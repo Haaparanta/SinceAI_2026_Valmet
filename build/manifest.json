@@ -2634,7 +2634,7 @@
       "index": 280,
       "kind": "part",
       "name": "ceiling",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0280_20261107-000923.png",
         "images/0281_20261107-000924.png",
@@ -2953,7 +2953,34 @@
         "patches": 139,
         "patches_at_ceiling": 66,
         "lamp_points": 7375
-      }
+      },
+      "decided_at": "2026-11-07T00:10:47+02:00"
+    },
+    {
+      "index": 295,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0295_20261107-001051.png",
+        "images/0296_20261107-001054.png",
+        "images/0297_20261107-001057.png",
+        "images/0298_20261107-001059.png",
+        "images/0299_20261107-001100.png",
+        "images/0300_20261107-001104.png",
+        "images/0301_20261107-001110.png",
+        "images/0302_20261107-001118.png",
+        "images/0303_20261107-001124.png",
+        "images/0304_20261107-001131.png",
+        "images/0305_20261107-001131.png",
+        "images/0306_20261107-001131.png",
+        "images/0307_20261107-001132.png",
+        "images/0308_20261107-001132.png"
+      ],
+      "created_at": "2026-11-07T00:11:32+02:00",
+      "event": "after 0280 ACCEPTED (part ceiling)",
+      "kept": 1617777,
+      "built": 186862
     }
   ],
   "parts": [
@@ -2980,6 +3007,34 @@
       },
       "indices": "build/parts/0242_floor.idx.npy",
       "ply": "build/parts/0242_floor.ply"
+    },
+    {
+      "index": 280,
+      "name": "ceiling",
+      "label": "Ceiling",
+      "kind": "structure",
+      "count": 2501,
+      "bbox": {
+        "min": [
+          -4.2567,
+          1.42,
+          -3.7896
+        ],
+        "max": [
+          4.7289,
+          1.5404,
+          3.5776
+        ]
+      },
+      "params": {
+        "white": 240,
+        "below": 0.03,
+        "lift": 0.0,
+        "lo": 1.42,
+        "hi": 1.55
+      },
+      "indices": "build/parts/0280_ceiling.idx.npy",
+      "ply": "build/parts/0280_ceiling.ply"
     }
   ],
   "removed": [
