@@ -19,4 +19,5 @@ This is a chance to make AI understand not just words and numbers, but physical 
 | Path | What |
 |---|---|
 | [`pm_pack/`](pm_pack/) | Provisional PM pack: briefing questions, PRD, SWOT, risks, roadmap, `AGENTS` context |
+| [`research/`](research/) | Research notes: splat cleaning, semantic extraction, navigation, three.js/WebXR, offline AI copilot, curator + metadata binding. Start at [`00`](research/00_context_and_source_data.md) |
 | [`design/`](design/) | **Cyberpunk v2** theme: [`cyberpunk-tokens.css`](design/cyberpunk-tokens.css) and the [guide](design/CYBERPUNK_THEME.md) |
