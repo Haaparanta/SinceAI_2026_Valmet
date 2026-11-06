@@ -1,0 +1,61 @@
+{
+  "index": 309,
+  "kind": "part",
+  "name": "lamp_1",
+  "count": 1839,
+  "pool_before": 1430915,
+  "bbox": {
+    "min": [
+      -2.3717,
+      1.1985,
+      -2.8742
+    ],
+    "max": [
+      -0.9711,
+      1.4566,
+      -2.4825
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0309_20261107-001256.png",
+    "images/0310_20261107-001256.png",
+    "images/0311_20261107-001257.png",
+    "images/0312_20261107-001257.png",
+    "images/0313_20261107-001257.png",
+    "images/0314_20261107-001257.png",
+    "images/0315_20261107-001257.png",
+    "images/0316_20261107-001257.png",
+    "images/0317_20261107-001257.png",
+    "images/0318_20261107-001257.png",
+    "images/0319_20261107-001258.png",
+    "images/0320_20261107-001258.png",
+    "images/0321_20261107-001258.png",
+    "images/0322_20261107-001258.png",
+    "images/0323_20261107-001258.png",
+    "images/0324_20261107-001258.png"
+  ],
+  "label": "Lamp 1",
+  "part_kind": "equipment",
+  "params": {
+    "white": 240,
+    "min_y": 1.13,
+    "eps": 0.04,
+    "min_samples": 8
+  },
+  "info": {
+    "white_candidates": 7618,
+    "clusters": 29,
+    "sizes": [
+      1839,
+      1582,
+      497,
+      476,
+      286,
+      234,
+      215,
+      191
+    ],
+    "noise": 1902
+  }
+}
