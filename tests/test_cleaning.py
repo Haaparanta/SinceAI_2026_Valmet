@@ -55,9 +55,10 @@ def test_floating_fog_keeps_faint_splats_on_surfaces() -> None:
     from stepbuild.splats import SH0_DTYPE
 
     rng = np.random.default_rng(2)
-    n_solid, n_faint_surface, n_faint_air = 4000, 1000, 300
+    gx, gz = np.meshgrid(np.arange(0, 2, 0.02), np.arange(-2, 0, 0.02))     # solid surface on a 2 cm grid (no gaps)
+    n_solid, n_faint_surface, n_faint_air = gx.size, 1000, 300
     xyz = np.vstack([
-        np.c_[rng.uniform(0, 2, n_solid), np.full(n_solid, -0.91), rng.uniform(-2, 0, n_solid)],
+        np.c_[gx.ravel(), np.full(n_solid, -0.91), gz.ravel()],
         np.c_[rng.uniform(0, 2, n_faint_surface), np.full(n_faint_surface, -0.90), rng.uniform(-2, 0, n_faint_surface)],
         np.c_[rng.uniform(0, 2, n_faint_air), rng.uniform(-0.5, 0.5, n_faint_air), rng.uniform(-2, 0, n_faint_air)],
     ]).astype(np.float32)
