@@ -4,6 +4,9 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
 
     uv run python pipeline/build.py init      # empty current.ply + manifest, image of the scan as delivered
     uv run python pipeline/build.py status    # what is in the build so far
+    uv run python pipeline/build.py restart --reason TEXT
+                                              # reject what is pending, archive the run under build/archive/,
+                                              # start a new empty build; image numbering continues
     uv run python pipeline/build.py preview --out FILE [--rgb] [--fill 0.25 --box xmin ymin zmin xmax ymax zmax]
                                               # render without touching state or images/ (camera checks)
     uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
@@ -247,6 +250,9 @@ def cmd_init(args: argparse.Namespace) -> int:
     header_rows, _, _ = read_header(str(args.ply))
     splats = load_real_splats(args.ply, CACHE)
     m = S.Manifest.new(args.ply.name, header_rows, len(splats))
+    m.data["frame"] = FRAME
+    if getattr(args, "previous", None):
+        m.data["previous_runs"] = args.previous
     write_sh0_ply(S.CURRENT_PLY, np.empty(0, dtype=SH0_DTYPE), "current state: empty")
     S.PARTS.mkdir(parents=True, exist_ok=True)
 
@@ -257,10 +263,12 @@ def cmd_init(args: argparse.Namespace) -> int:
                      edl_strength=0.6)
     when = S.now_local()
     index = S.next_image_index()
+    restart = " (restart)" if getattr(args, "previous", None) else ""
     im = R.compose(
         frame,
-        f"{index:04d} · START · the scan as delivered",
-        f"{len(splats):,} real splats of {header_rows:,} header rows · true colour · build is empty (0 parts)",
+        f"{index:04d} · START{restart} · the scan, right way up",
+        f"{len(splats):,} real splats of {header_rows:,} header rows · true colour · y up, floor at the bottom · "
+        "build is empty (0 parts)",
         legend=[], when=when, badge="START",
     )
     path = _save(im, index, when)
@@ -271,6 +279,35 @@ def cmd_init(args: argparse.Namespace) -> int:
     m.save()
     log.info("build started: %s, %s (0 splats), image %s", S.rel(S.MANIFEST), S.rel(S.CURRENT_PLY), S.rel(path))
     return 0
+
+
+def cmd_restart(args: argparse.Namespace) -> int:
+    """Close the current run and start a new one. Nothing is deleted: the pending proposal is rejected (its image
+    gets the badge), manifest + removed/ + parts/ move to build/archive/<time>_<reason>/, images stay in images/ and
+    the new run's image numbers continue after them."""
+    if not S.MANIFEST.exists():
+        log.error("no build to restart; use init")
+        return 1
+    m = S.Manifest.load()
+    if S.PENDING.exists():
+        _close_pending(m, "rejected", R.REJECTED_RGB, f"run restarted: {args.reason}")
+        S.PENDING_IDX.unlink(missing_ok=True)
+        S.PENDING.unlink()
+    when = S.now_local()
+    slug = "".join(c if c.isalnum() else "_" for c in args.reason.lower())[:40].strip("_")
+    dest = S.BUILD / "archive" / f"{when.strftime('%Y%m%d-%H%M%S')}_{slug}"
+    dest.mkdir(parents=True)
+    m.data["closed"] = {"at": when.isoformat(timespec="seconds"), "reason": args.reason}
+    m.save()
+    for sub in (S.MANIFEST, S.REMOVED, S.PARTS):
+        if sub.exists():
+            sub.replace(dest / sub.name)
+    for ply in dest.rglob("*.ply"):                       # part .ply files are rebuilt from indices; do not archive
+        ply.unlink()
+    args.previous = [{"archive": S.rel(dest), "reason": args.reason,
+                      "images": [s["image"] for s in m.data["steps"]]}] + m.data.get("previous_runs", [])
+    log.info("archived the run to %s (%d steps)", S.rel(dest), len(m.data["steps"]))
+    return cmd_init(args)
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -324,6 +361,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--force", action="store_true", help="overwrite build/manifest.json and current.ply")
     p.set_defaults(fn=cmd_init)
     sub.add_parser("status", help="print the build state").set_defaults(fn=cmd_status)
+    p = sub.add_parser("restart", help="archive the current run and start a new empty build")
+    p.add_argument("--reason", required=True, help="why (kept in both manifests)")
+    p.set_defaults(fn=cmd_restart, force=True)
     p = sub.add_parser("preview", help="render to --out without touching the build")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--rgb", action="store_true", help="true colour instead of grey (overview only)")

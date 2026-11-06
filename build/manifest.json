@@ -9,421 +9,54 @@
   "up_axis": "y",
   "steps": [
     {
-      "index": 1,
+      "index": 7,
       "kind": "start",
       "name": "scan",
       "status": "info",
-      "image": "images/0001_20261106-215306.png",
-      "created_at": "2026-11-06T21:53:06+02:00",
+      "image": "images/0007_20261106-222158.png",
+      "created_at": "2026-11-06T22:21:58+02:00",
       "points": 502482,
       "camera": {
         "position": [
-          -0.4181,
-          0.9033,
+          0.4181,
+          1.2077,
           2.3441
         ],
         "target": [
-          -0.4181,
-          -0.5291,
+          0.4181,
+          -0.2248,
           -2.9043
         ],
         "fov_deg": 50.0
-      }
-    },
-    {
-      "index": 2,
-      "kind": "clean",
-      "name": "below_floor",
-      "status": "accepted",
-      "image": "images/0002_20261106-215624.png",
-      "created_at": "2026-11-06T21:56:24+02:00",
-      "count": 49809,
-      "pool_before": 502482,
-      "params": {
-        "margin": 0.04
-      },
-      "info": {
-        "floor_y": -0.9096,
-        "floor_rms": 0.0157,
-        "floor_support": 53337,
-        "cut_y": -0.9496,
-        "median_depth": 0.1503
-      },
-      "camera": {
-        "position": [
-          -0.4181,
-          -0.9096,
-          2.4547
-        ],
-        "target": [
-          -0.4181,
-          -0.1522,
-          -2.5516
-        ],
-        "fov_deg": 55.0
-      },
-      "visible_pixels": {
-        "kept": 375280,
-        "removed": 109885
-      },
-      "decided_at": "2026-11-06T21:58:11+02:00"
-    },
-    {
-      "index": 3,
-      "kind": "clean",
-      "name": "behind_back_wall",
-      "status": "accepted",
-      "image": "images/0003_20261106-220159.png",
-      "created_at": "2026-11-06T22:01:59+02:00",
-      "count": 12569,
-      "pool_before": 452673,
-      "params": {
-        "margin": 0.04,
-        "strip": 0.25
-      },
-      "info": {
-        "wall_z": -3.4092,
-        "profile": [
-          [
-            -5.0,
-            -3.4092
-          ],
-          [
-            -4.75,
-            -3.4092
-          ],
-          [
-            -4.5,
-            -3.4092
-          ],
-          [
-            -4.25,
-            -3.4092
-          ],
-          [
-            -4.0,
-            -3.4092
-          ],
-          [
-            -3.75,
-            -3.4092
-          ],
-          [
-            -3.5,
-            -3.4092
-          ],
-          [
-            -3.25,
-            -3.3854
-          ],
-          [
-            -3.0,
-            -3.3949
-          ],
-          [
-            -2.75,
-            -3.3949
-          ],
-          [
-            -2.5,
-            -3.4021
-          ],
-          [
-            -2.25,
-            -3.4021
-          ],
-          [
-            -2.0,
-            -3.4028
-          ],
-          [
-            -1.75,
-            -3.4198
-          ],
-          [
-            -1.5,
-            -3.4661
-          ],
-          [
-            -1.25,
-            -3.4696
-          ],
-          [
-            -1.0,
-            -3.4734
-          ],
-          [
-            -0.75,
-            -3.4734
-          ],
-          [
-            -0.5,
-            -3.4711
-          ],
-          [
-            -0.25,
-            -3.4711
-          ],
-          [
-            0.0,
-            -3.4711
-          ],
-          [
-            0.25,
-            -3.4167
-          ],
-          [
-            0.5,
-            -3.4152
-          ],
-          [
-            0.75,
-            -3.4152
-          ],
-          [
-            1.0,
-            -3.4167
-          ],
-          [
-            1.25,
-            -3.4215
-          ],
-          [
-            1.5,
-            -3.4167
-          ],
-          [
-            1.75,
-            -3.4147
-          ],
-          [
-            2.0,
-            -3.413
-          ],
-          [
-            2.25,
-            -3.413
-          ],
-          [
-            2.5,
-            -3.413
-          ],
-          [
-            2.75,
-            -3.4092
-          ],
-          [
-            3.0,
-            -3.4092
-          ],
-          [
-            3.25,
-            -3.4092
-          ],
-          [
-            3.5,
-            -3.4092
-          ],
-          [
-            3.75,
-            -3.4092
-          ]
-        ]
-      },
-      "camera": {
-        "position": [
-          -0.4181,
-          8.2571,
-          -3.5102
-        ],
-        "target": [
-          -0.4181,
-          -0.8956,
-          -3.5102
-        ],
-        "fov_deg": 35.0
-      },
-      "visible_pixels": {
-        "kept": 312103,
-        "removed": 84072
-      },
-      "decided_at": "2026-11-06T22:02:46+02:00"
-    },
-    {
-      "index": 4,
-      "kind": "clean",
-      "name": "floating_fog",
-      "status": "accepted",
-      "image": "images/0004_20261106-220449.png",
-      "created_at": "2026-11-06T22:04:49+02:00",
-      "count": 13041,
-      "pool_before": 440104,
-      "params": {
-        "max_alpha": 0.05,
-        "gap": 0.05
-      },
-      "info": {
-        "see_through": 94755,
-        "solid": 345349,
-        "removed_gap_p50": 0.0875
-      },
-      "camera": {
-        "position": [
-          -0.4181,
-          0.9034,
-          2.3441
-        ],
-        "target": [
-          -0.4181,
-          -0.5291,
-          -2.9043
-        ],
-        "fov_deg": 50.0
-      },
-      "visible_pixels": {
-        "kept": 377332,
-        "removed": 62758
-      },
-      "decided_at": "2026-11-06T22:06:10+02:00"
-    },
-    {
-      "index": 5,
-      "kind": "clean",
-      "name": "outside_room",
-      "status": "accepted",
-      "image": "images/0005_20261106-220733.png",
-      "created_at": "2026-11-06T22:07:33+02:00",
-      "count": 4347,
-      "pool_before": 427063,
-      "params": {
-        "margin": 0.04
-      },
-      "info": {
-        "ceiling_y": 1.0703,
-        "ceiling_rms": 0.0093,
-        "right_edge_x": 3.9018,
-        "above": 3586,
-        "right_only": 761
-      },
-      "camera": {
-        "position": [
-          0.4189,
-          1.0703,
-          3.4348
-        ],
-        "target": [
-          0.4189,
-          -0.1692,
-          -2.5516
-        ],
-        "fov_deg": 55.0
-      },
-      "visible_pixels": {
-        "kept": 275072,
-        "removed": 15169
-      },
-      "decided_at": "2026-11-06T22:08:33+02:00"
-    },
-    {
-      "index": 6,
-      "kind": "part",
-      "name": "floor",
-      "status": "pending",
-      "image": "images/0006_20261106-221056.png",
-      "created_at": "2026-11-06T22:10:56+02:00",
-      "count": 57767,
-      "pool_before": 422716,
-      "label": "Floor",
-      "part_kind": "structure",
-      "bbox": {
-        "min": [
-          -6.0052,
-          -0.9496,
-          -3.5111
-        ],
-        "max": [
-          3.9415,
-          -0.8787,
-          -0.7385
-        ]
-      },
-      "params": {
-        "above": 0.03
-      },
-      "info": {
-        "floor_y": -0.9087,
-        "floor_rms": 0.0157
-      },
-      "camera": {
-        "position": [
-          -0.4181,
-          0.9034,
-          2.3441
-        ],
-        "target": [
-          -0.4181,
-          -0.5291,
-          -2.9043
-        ],
-        "fov_deg": 50.0
-      },
-      "visible_pixels": {
-        "accepted": 0,
-        "new": 94152,
-        "not built": 291545
       }
     }
   ],
   "parts": [],
-  "removed": [
+  "removed": [],
+  "frame": "world-rotz180-v1",
+  "previous_runs": [
     {
-      "index": 2,
-      "name": "below_floor",
-      "count": 49809,
-      "params": {
-        "margin": 0.04
-      },
-      "indices": "build/removed/0002_below_floor.idx.npy"
-    },
-    {
-      "index": 3,
-      "name": "behind_back_wall",
-      "count": 12569,
-      "params": {
-        "margin": 0.04,
-        "strip": 0.25
-      },
-      "indices": "build/removed/0003_behind_back_wall.idx.npy"
-    },
-    {
-      "index": 4,
-      "name": "floating_fog",
-      "count": 13041,
-      "params": {
-        "max_alpha": 0.05,
-        "gap": 0.05
-      },
-      "indices": "build/removed/0004_floating_fog.idx.npy"
-    },
-    {
-      "index": 5,
-      "name": "outside_room",
-      "count": 4347,
-      "params": {
-        "margin": 0.04
-      },
-      "indices": "build/removed/0005_outside_room.idx.npy"
+      "archive": "build/archive/20261106-222157_scan_was_upside_down_and_mirrored__rotat",
+      "reason": "scan was upside down and mirrored (rotated 180 deg about z)",
+      "images": [
+        "images/0001_20261106-215306.png",
+        "images/0002_20261106-215624.png",
+        "images/0003_20261106-220159.png",
+        "images/0004_20261106-220449.png",
+        "images/0005_20261106-220733.png",
+        "images/0006_20261106-221056.png"
+      ]
     }
   ],
   "room_bounds_p1_p99": {
     "min": [
-      -4.6939,
-      -1.4087,
+      -3.8577,
+      -1.1044,
       -4.3154
     ],
     "max": [
-      3.8577,
-      1.1044,
+      4.6939,
+      1.4087,
       -0.7877
     ]
   }
