@@ -47,12 +47,13 @@ class WallProfile:
 def back_wall_profile(run: np.ndarray, depth: np.ndarray, strip: float = 0.25, bin_size: float = 0.01,
                       rel: float = 0.35, min_points: int = 150, window: float = 0.5,
                       max_forward: float = 0.03) -> WallProfile:
-    """Wall at the low end of `depth` (the back wall: low z). Global depth = densest thin slab in the back half.
+    """Wall at the low end of `depth` (the back wall: low z). Global depth = densest thin slab in the back half of
+    the p0.5..p99.5 depth range, so the room must lie in front of the wall (true for a scan taken inside the room).
     Per strip of `run`: among histogram bins within `window` of the global depth, the back-most bin holding at least
     `rel` x the strip's peak is the wall; equipment in front is denser in some strips, floaters behind are diffuse.
-    A strip may sit deeper than the global wall (a recess) but at most `max_forward` in front of it: where equipment
-    hides the wall (the right-hand corner of the scan) the back-most dense layer is the equipment, and cutting behind
-    it would delete real wall points."""
+    A strip may sit deeper than the global wall (a recess); a strip more than `max_forward` in front of it is not
+    believed and gets the global depth: where equipment hides the wall (the right-hand corner of the scan) the
+    back-most dense layer is the equipment, and cutting behind it would delete real wall points."""
     lo, hi = np.percentile(depth, [0.5, 99.5])
     counts, e = np.histogram(depth, bins=np.arange(lo, 0.5 * (lo + hi) + bin_size, bin_size))
     g = 0.5 * (e[np.argmax(counts)] + e[np.argmax(counts) + 1])
@@ -75,5 +76,5 @@ def back_wall_profile(run: np.ndarray, depth: np.ndarray, strip: float = 0.25, b
     smooth = out.copy()                                       # 3-strip median removes single-strip outliers
     for i in range(1, len(out) - 1):
         smooth[i] = np.median(out[i - 1:i + 2])
-    smooth = np.minimum(smooth, g + max_forward)
+    smooth = np.where(smooth > g + max_forward, g, smooth)
     return WallProfile(edges=edges, depth=smooth, measured=measured, global_depth=g)

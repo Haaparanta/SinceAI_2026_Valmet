@@ -42,7 +42,8 @@ def test_back_wall_profile_follows_recess_and_ignores_equipment() -> None:
     ex = rng.uniform(2.0, 3.0, 30000)                                         # dense equipment in front, x 2..3
     ez = rng.normal(-3.18, 0.01, len(ex))
     fx, fz = rng.uniform(-4, 4, 3000), rng.uniform(-5.0, -3.6, 3000)          # diffuse floaters behind
-    prof = back_wall_profile(np.r_[x, ex, fx], np.r_[z, ez, fz])
+    rx, rz = rng.uniform(-4, 4, 60000), rng.uniform(-3.4, -0.75, 60000)       # the room in front (floor, stuff)
+    prof = back_wall_profile(np.r_[x, ex, fx, rx], np.r_[z, ez, fz, rz])
     assert abs(prof.global_depth + 3.41) < 0.01
     assert abs(prof.at(np.array([-0.75]))[0] + 3.47) < 0.01                   # recess found
     assert abs(prof.at(np.array([2.5]))[0] + 3.41) < 0.02                     # equipment strip keeps the wall
