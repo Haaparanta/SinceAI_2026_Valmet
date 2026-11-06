@@ -6951,7 +6951,7 @@
       "index": 598,
       "kind": "part",
       "name": "pipe_4",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0598_20261107-010513.png",
         "images/0599_20261107-010513.png",
@@ -7275,7 +7275,34 @@
         "start": -3.65,
         "end": 1.2,
         "runs": 3
-      }
+      },
+      "decided_at": "2026-11-07T01:06:10+02:00"
+    },
+    {
+      "index": 613,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0613_20261107-010614.png",
+        "images/0614_20261107-010617.png",
+        "images/0615_20261107-010619.png",
+        "images/0616_20261107-010620.png",
+        "images/0617_20261107-010622.png",
+        "images/0618_20261107-010625.png",
+        "images/0619_20261107-010631.png",
+        "images/0620_20261107-010635.png",
+        "images/0621_20261107-010639.png",
+        "images/0622_20261107-010642.png",
+        "images/0623_20261107-010643.png",
+        "images/0624_20261107-010643.png",
+        "images/0625_20261107-010644.png",
+        "images/0626_20261107-010644.png"
+      ],
+      "created_at": "2026-11-07T01:06:44+02:00",
+      "event": "after 0598 ACCEPTED (part pipe_4)",
+      "kept": 1617777,
+      "built": 320676
     }
   ],
   "parts": [
@@ -7571,6 +7598,36 @@
       },
       "indices": "build/parts/0569_pipe_3.idx.npy",
       "ply": "build/parts/0569_pipe_3.ply"
+    },
+    {
+      "index": 598,
+      "name": "pipe_4",
+      "label": "Pipe 4",
+      "kind": "pipe",
+      "count": 9002,
+      "bbox": {
+        "min": [
+          -0.7671,
+          0.7478,
+          -3.636
+        ],
+        "max": [
+          -0.5237,
+          0.9908,
+          1.199
+        ]
+      },
+      "params": {
+        "along": "z",
+        "a": -0.64,
+        "b": 0.86,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "indices": "build/parts/0598_pipe_4.idx.npy",
+      "ply": "build/parts/0598_pipe_4.ply"
     }
   ],
   "removed": [
