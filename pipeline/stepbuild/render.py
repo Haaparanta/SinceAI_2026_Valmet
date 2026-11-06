@@ -141,18 +141,13 @@ def _eye_dome(img: np.ndarray, depth: np.ndarray, strength: float, radius: int =
 # ---------------------------------------------------------------- cameras
 
 
-def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 50.0) -> Camera:
-    """Room overview from the open (camera) side, +z, just under the ceiling, looking at the middle of the back half.
-
-    The scan has no front wall and was captured from +z, so this is the side the room can be seen from without
-    looking through a wall or the ceiling."""
-    c = 0.5 * (bmin + bmax)
+def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 80.0) -> Camera:
+    """Room overview from INSIDE the room, like a security camera: in the -x/-z corner at ~55 % of the room height,
+    looking diagonally down the length of the room. Picked from six candidate corners on the Equipment Room scan
+    (closed on all sides) as the one with the clearest view; the first scan's camera stood outside its open front."""
     size = bmax - bmin
-    target = np.array([c[0], bmin[1] + 0.35 * size[1], bmin[2] + 0.4 * size[2]])
-    half_w = 0.5 * size[0] * 1.08
-    aspect = WIDTH / (HEIGHT - BANNER_H)
-    dist = half_w / (np.tan(np.radians(fov_deg) / 2) * aspect)
-    pos = np.array([c[0], bmax[1] - 0.08 * size[1], bmax[2] + dist * 0.55])
+    pos = bmin + np.array([0.08, 0.55, 0.08]) * size
+    target = bmin + np.array([0.85, 0.30, 0.80]) * size
     return Camera(tuple(map(float, pos)), tuple(map(float, target)), fov_deg)
 
 

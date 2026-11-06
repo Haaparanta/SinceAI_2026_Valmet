@@ -26,7 +26,7 @@ from common.splat_rows import real_row_count
 
 log = logging.getLogger("01_clean")
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_IN = ROOT / "data" / "raw" / "Industrial Boiler Room (1).ply"
+DEFAULT_IN = ROOT / "data" / "raw" / "Equipment Room.ply"  # master scan since 2026-11-06 23:15
 DEFAULT_OUT = ROOT / "data" / "derived"
 
 

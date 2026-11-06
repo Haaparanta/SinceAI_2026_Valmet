@@ -36,12 +36,28 @@ from PIL import Image, ImageDraw
 from stepbuild import render as R
 from stepbuild import state as S
 from stepbuild.cleaning import CLEANERS
+from stepbuild.geometry import horizontal_plane
 from stepbuild.parts import DETECTORS
 from stepbuild.splats import SH0_DTYPE, load_real_splats, rgb_of, size_of, write_sh0_ply, xyz_of
 
 log = logging.getLogger("build")
-DEFAULT_PLY = S.ROOT / "data" / "raw" / "Industrial Boiler Room (1).ply"
-CACHE = S.ROOT / "data" / "derived" / f"real_sh0_{FRAME}.npy"
+DEFAULT_PLY = S.ROOT / "data" / "raw" / "Equipment Room.ply"     # master scan since 2026-11-06 23:15 (no corrupt rows)
+
+
+def cache_for(ply: Path) -> Path:
+    """The SH0 world-frame cache of one source file: named after the frame, the file's stem and its size, so two
+    scans (or a re-export under the same name) never share a cache."""
+    stem = "".join(c if c.isalnum() else "_" for c in ply.stem).strip("_")
+    return S.ROOT / "data" / "derived" / f"real_sh0_{FRAME}_{stem}_{ply.stat().st_size}.npy"
+
+
+def _load(args: argparse.Namespace, m: S.Manifest | None = None) -> np.ndarray:
+    """Real splats of --ply, refusing a file that is not the one the current build run started from (row indices
+    in the manifest only mean something for that file)."""
+    if m is not None and m.data["source"]["file"] != args.ply.name:
+        raise SystemExit(f"this build run uses {m.data['source']['file']!r}, not {args.ply.name!r}: pass --ply for "
+                         "that file, or `restart` the build on the new one")
+    return load_real_splats(args.ply, cache_for(args.ply))
 
 
 def _room_bounds(xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -142,6 +158,20 @@ def _layers(splats: np.ndarray, built_idx: np.ndarray, sel_idx: np.ndarray, rest
             R.BlendLayer(xyz_of(sel), R.tint(rgb_of(sel), hl), alphas[0], "selected", np.maximum(size_of(sel), 0.01))]
 
 
+def _below_cut(splats: np.ndarray, m: S.Manifest, idx: np.ndarray) -> np.ndarray:
+    """Dollhouse: drop the top of the room (above manifest dollhouse_cut_y) so an outside camera sees in."""
+    return idx[splats["y"][idx] <= m.data["dollhouse_cut_y"]]
+
+
+def _outside_views(m: S.Manifest) -> list[tuple[str, R.Camera, None]]:
+    bmin, bmax = _bounds(m)
+    views = [("outside, all points", R.outside_camera(bmin, bmax), None)]
+    if "dollhouse_cut_y" in m.data:
+        views.append((f"dollhouse: outside, top of the room above y {m.data['dollhouse_cut_y']:+.2f} hidden",
+                      R.outside_camera(bmin, bmax), None))
+    return views
+
+
 def _render_views(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray,
                   views: list[tuple[str, R.Camera, np.ndarray | None]], kind: str) -> list[tuple[str, R.Frame]]:
     """Each view in true colours with the change tinted (red = removed, green = added) at 80 %, accepted parts
@@ -152,7 +182,10 @@ def _render_views(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_i
     out = []
     for name, cam, hide in views:
         rest = rest_idx if hide is None else rest_idx[~hide]
-        frame = R.render_blend(_layers(splats, built_idx, sel_idx, rest, kind), cam)
+        built = built_idx
+        if name.startswith("dollhouse"):
+            rest, built = _below_cut(splats, m, rest), _below_cut(splats, m, built_idx)
+        frame = R.render_blend(_layers(splats, built, sel_idx, rest, kind), cam)
         if name == "close-up" and len(sel_idx):
             pts = xyz_of(splats[sel_idx])
             lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
@@ -250,9 +283,7 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
     sel_idx = pool_idx[sel_mask]
     if len(sel_idx) == 0:
         return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
-    bmin, bmax = _bounds(m)
-    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx]), view_dir), None),
-             ("outside, all points", R.outside_camera(bmin, bmax), None)]
+    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx]), view_dir), None), *_outside_views(m)]
     if extra is not None:
         views.append(extra)
     frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views, kind)
@@ -286,7 +317,7 @@ def cmd_clean(args: argparse.Namespace) -> int:
     m = S.Manifest.load()
     if not _check_pending(m, args.replace):
         return 1
-    splats = load_real_splats(args.ply, CACHE)
+    splats = _load(args, m)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
     pool = splats[pool_idx]
     bmin, bmax = _bounds(m)
@@ -308,7 +339,7 @@ def cmd_part(args: argparse.Namespace) -> int:
     m = S.Manifest.load()
     if not _check_pending(m, args.replace):
         return 1
-    splats = load_real_splats(args.ply, CACHE)
+    splats = _load(args, m)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
     pool = splats[pool_idx]
     bmin, bmax = _bounds(m)
@@ -350,10 +381,15 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
         else R.overview_camera(bmin, bmax)
     n_parts, n_clean = len(m.data["parts"]), len(m.data["removed"])
     facts = f"{len(kept):,} points kept · {n_clean} cleanings · {n_parts} parts ({len(built):,} points in current.ply)"
-    views = [("kept scan, outside", R.outside_camera(bmin, bmax), kept),
-             ("kept scan, front (START camera)", start_cam, kept)]
+    views = [("kept scan, outside", R.outside_camera(bmin, bmax), kept)]
+    if "dollhouse_cut_y" in m.data:
+        views.append((f"kept scan, dollhouse (top above y {m.data['dollhouse_cut_y']:+.2f} hidden)",
+                      R.outside_camera(bmin, bmax), _below_cut(splats, m, kept)))
+    views.append(("kept scan, inside (START camera)", start_cam, kept))
     if len(built):
         views.append(("built 3D world = current.ply, outside", R.outside_camera(bmin, bmax), built))
+        if "dollhouse_cut_y" in m.data:
+            views.append(("built 3D world, dollhouse", R.outside_camera(bmin, bmax), _below_cut(splats, m, built)))
     images = []
     for view, cam, idx in views:
         sub = splats[idx]
@@ -379,7 +415,7 @@ def cmd_probe(args: argparse.Namespace) -> int:
     and everything else in true colour at 100 % (once with nearest-point-wins, once with the green on top); then one
     side view with every level drawn as a line."""
     m = S.Manifest.load()
-    splats = load_real_splats(args.ply, CACHE)
+    splats = _load(args, m)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
     kept = np.concatenate([m.claimed_indices(), pool_idx])
     pts, rgb = xyz_of(splats[kept]), rgb_of(splats[kept])
@@ -448,7 +484,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
         dest = S.PARTS / f"{stem}.idx.npy"
         dest.parent.mkdir(parents=True, exist_ok=True)
         S.PENDING_IDX.replace(dest)
-        splats = load_real_splats(args.ply, CACHE)
+        splats = _load(args, m)
         ply = S.PARTS / f"{stem}.ply"
         write_sh0_ply(ply, splats[np.load(dest)], f"part {pending['label']} (step {pending['index']:04d})")
         m.data["parts"].append({"index": pending["index"], "name": pending["name"], "label": pending["label"],
@@ -462,7 +498,7 @@ def cmd_decide(args: argparse.Namespace) -> int:
     pool = int(m.pool_mask().sum())
     word = "ACCEPTED" if accept else "REJECTED"
     print(f"{pending['index']:04d} {word} {pending['kind']}/{pending['name']} · pool now {pool:,} points")
-    images = state_images(load_real_splats(args.ply, CACHE), m,
+    images = state_images(_load(args, m), m,
                           f"after {pending['index']:04d} {word} ({pending['kind']} {pending['name']})")
     m.save()
     for img in images:
@@ -475,7 +511,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         log.error("%s exists; the build has started. Use --force to start over (old images stay).", S.rel(S.MANIFEST))
         return 1
     header_rows, _, _ = read_header(str(args.ply))
-    splats = load_real_splats(args.ply, CACHE)
+    splats = _load(args)
     m = S.Manifest.new(args.ply.name, header_rows, len(splats))
     m.data["frame"] = FRAME
     if getattr(args, "previous", None):
@@ -503,6 +539,9 @@ def cmd_init(args: argparse.Namespace) -> int:
                created_at=when.isoformat(timespec="seconds"), points=len(splats), camera=cam.to_dict())
     m.data["room_bounds_p1_p99"] = {"min": [round(float(v), 4) for v in bmin],
                                     "max": [round(float(v), 4) for v in bmax]}
+    floor = horizontal_plane(xyz[:, 1], lower=True).y
+    # dollhouse: hide the top 30 % of the room (the dense pipe band and the ceiling) so an outside camera sees in
+    m.data["dollhouse_cut_y"] = round(float(floor + 0.70 * (bmax[1] - floor)), 4)
     m.save()
     log.info("build started: %s, %s (0 splats), image %s", S.rel(S.MANIFEST), S.rel(S.CURRENT_PLY), S.rel(path))
     return 0
@@ -532,7 +571,7 @@ def cmd_restart(args: argparse.Namespace) -> int:
     for ply in dest.rglob("*.ply"):                       # part .ply files are rebuilt from indices; do not archive
         ply.unlink()
     args.previous = [{"archive": S.rel(dest), "reason": args.reason,
-                      "images": [s["image"] for s in m.data["steps"]]}] + m.data.get("previous_runs", [])
+                      "images": _step_images(m)}] + m.data.get("previous_runs", [])
     log.info("archived the run to %s (%d steps)", S.rel(dest), len(m.data["steps"]))
     return cmd_init(args)
 
@@ -556,7 +595,7 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def cmd_preview(args: argparse.Namespace) -> int:
-    splats = load_real_splats(args.ply, CACHE)
+    splats = _load(args)
     xyz = xyz_of(splats)
     bmin, bmax = _room_bounds(xyz)
     size = size_of(splats)
