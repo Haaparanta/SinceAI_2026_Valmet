@@ -170,6 +170,21 @@ def screen_span(points: np.ndarray, cam: Camera, width: int = WIDTH, height: int
     return float(np.ptp(px)) / width, float(np.ptp(py)) / height
 
 
+def front_elevation_camera(bmin: np.ndarray, bmax: np.ndarray, eye_y: float, look_y: float | None = None,
+                           fov_deg: float = 55.0) -> Camera:
+    """Camera on the open +z side with its eye at height `eye_y`, looking at the room (-z), wide enough for the whole
+    room width. A plane through the eye always projects to a straight line, so with eye_y = floor height the floor
+    is a line whatever the tilt: above it is the room, below it is under the floor. `look_y` tilts the view (default:
+    the middle of the room height, so floor-to-ceiling fits)."""
+    c = 0.5 * (bmin + bmax)
+    half_w = 0.5 * (bmax[0] - bmin[0]) * 1.06
+    aspect = WIDTH / (HEIGHT - BANNER_H)
+    dist = half_w / (np.tan(np.radians(fov_deg) / 2) * aspect)
+    ty = float(c[1] if look_y is None else look_y)
+    pos = (float(c[0]), float(eye_y), float(c[2] + dist))
+    return Camera(pos, (float(c[0]), ty, float(c[2])), fov_deg)
+
+
 def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarray,
                    fill: float = 0.25, fov_deg: float = 50.0) -> Camera:
     """Camera looking along `view_dir` at a box; distance tuned so the box's larger screen share (width or height)
@@ -224,7 +239,21 @@ def compose(frame: Frame, title: str, subtitle: str, legend: list[tuple[tuple[in
         d.rectangle((x, y0 + 6, x + 14, y0 + 20), fill=rgb)
         x -= 18
     if badge:
-        bw = d.textlength(badge, font=big) + 20
-        d.rectangle((w - 16 - bw, 12, w - 16, 46), fill=badge_rgb)
-        d.text((w - 16 - bw + 10, 15), badge, fill=(10, 10, 14), font=big)
+        draw_badge(im, badge, badge_rgb)
     return im
+
+
+BADGE_W = 170
+PROPOSED_RGB = (255, 184, 0)
+ACCEPTED_RGB = (46, 204, 113)
+REJECTED_RGB = (130, 134, 145)
+
+
+def draw_badge(im: Image.Image, text: str, rgb: tuple[int, int, int]) -> None:
+    """Fixed-size badge in the top-right corner (fixed so a later decision badge fully covers the PROPOSED one)."""
+    d = ImageDraw.Draw(im)
+    big = _font(22)
+    w = im.width
+    d.rectangle((w - 16 - BADGE_W, 12, w - 16, 46), fill=rgb)
+    tw = d.textlength(text, font=big)
+    d.text((w - 16 - BADGE_W + (BADGE_W - tw) / 2, 15), text, fill=(10, 10, 14), font=big)

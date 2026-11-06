@@ -21,6 +21,9 @@ IMAGES = ROOT / "images"
 MANIFEST = BUILD / "manifest.json"
 CURRENT_PLY = BUILD / "current.ply"
 PARTS = BUILD / "parts"
+REMOVED = BUILD / "removed"
+PENDING = BUILD / "pending.json"          # the one proposal waiting for a human decision
+PENDING_IDX = BUILD / "pending.idx.npy"
 IMAGE_RE = re.compile(r"^(\d{4,})_(\d{8}-\d{6})(?:_[\w-]+)?\.png$")
 
 
@@ -69,6 +72,9 @@ class Manifest:
     def add_step(self, **step) -> dict:
         self.data["steps"].append(step)
         return step
+
+    def step(self, index: int) -> dict:
+        return next(s for s in self.data["steps"] if s["index"] == index)
 
     def claimed_indices(self, root: Path = ROOT) -> np.ndarray:
         """Rows in accepted parts, concatenated in part order."""

@@ -29,6 +29,43 @@
         ],
         "fov_deg": 50.0
       }
+    },
+    {
+      "index": 2,
+      "kind": "clean",
+      "name": "below_floor",
+      "status": "pending",
+      "image": "images/0002_20261106-215624.png",
+      "created_at": "2026-11-06T21:56:24+02:00",
+      "count": 49809,
+      "pool_before": 502482,
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "floor_y": -0.9096,
+        "floor_rms": 0.0157,
+        "floor_support": 53337,
+        "cut_y": -0.9496,
+        "median_depth": 0.1503
+      },
+      "camera": {
+        "position": [
+          -0.4181,
+          -0.9096,
+          2.4547
+        ],
+        "target": [
+          -0.4181,
+          -0.1522,
+          -2.5516
+        ],
+        "fov_deg": 55.0
+      },
+      "visible_pixels": {
+        "kept": 375280,
+        "removed": 109885
+      }
     }
   ],
   "parts": [],
