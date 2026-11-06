@@ -5,3 +5,18 @@
 # Share these outside git and drop them into Source-Data-Do-Not_change/ locally.
 Source-Data-Do-Not_change/*.ply
 Source-Data-Do-Not_change/*.mp4
+
+# a2b scaffold (see AGENTS.md S2)
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+data/raw
+data/derived/*
+!data/derived/.gitkeep
+data/snapshots/*
+!data/snapshots/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+web/node_modules/
+web/dist/
