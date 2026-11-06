@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Large partner source media: too big for GitHub (>100 MB) or kept out on purpose.
+# Share these outside git and drop them into Source-Data-Do-Not_change/ locally.
+Source-Data-Do-Not_change/*.ply
+Source-Data-Do-Not_change/*.mp4
