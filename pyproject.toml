@@ -30,7 +30,8 @@ a2b-contracts = { path = "contracts/py", editable = true }
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-extend-exclude = ["data", "web", "Source-Data-Do-Not_change", "pm_pack", "design"]
+# scoring/ is the PM scorecard tooling from main (not an AGENTS.md S7 folder); lint only the a2b code here.
+extend-exclude = ["data", "web", "Source-Data-Do-Not_change", "pm_pack", "design", "scoring"]
 
 [tool.ruff.lint.per-file-ignores]
 # These two files are copied byte-for-byte from AGENTS.md (pm_pack/06 S3 and S4.1). Never lint-fix or reformat them;
