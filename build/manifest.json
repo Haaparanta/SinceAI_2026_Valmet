@@ -9534,7 +9534,7 @@
       "index": 821,
       "kind": "part",
       "name": "pipe_11",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0821_20261107-015256.png",
         "images/0822_20261107-015256.png",
@@ -9912,7 +9912,38 @@
         "start": -0.85,
         "end": 4.3,
         "runs": 4
-      }
+      },
+      "decided_at": "2026-11-07T01:56:45+02:00",
+      "note": "user: accept, after checking it is not already built (no shared points, nearest parallel pipe 0.89 u away)"
+    },
+    {
+      "index": 839,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0839_20261107-015650.png",
+        "images/0840_20261107-015657.png",
+        "images/0841_20261107-015714.png",
+        "images/0842_20261107-015718.png",
+        "images/0843_20261107-015720.png",
+        "images/0844_20261107-015722.png",
+        "images/0845_20261107-015724.png",
+        "images/0846_20261107-015726.png",
+        "images/0847_20261107-015731.png",
+        "images/0848_20261107-015738.png",
+        "images/0849_20261107-015744.png",
+        "images/0850_20261107-015748.png",
+        "images/0851_20261107-015751.png",
+        "images/0852_20261107-015752.png",
+        "images/0853_20261107-015753.png",
+        "images/0854_20261107-015754.png",
+        "images/0855_20261107-015755.png"
+      ],
+      "created_at": "2026-11-07T01:57:55+02:00",
+      "event": "after 0821 ACCEPTED (part pipe_11)",
+      "kept": 1617777,
+      "built": 394315
     }
   ],
   "parts": [
@@ -10418,6 +10449,36 @@
       },
       "indices": "build/parts/0772_pipe_10.idx.npy",
       "ply": "build/parts/0772_pipe_10.ply"
+    },
+    {
+      "index": 821,
+      "name": "pipe_11",
+      "label": "Pipe 11",
+      "kind": "pipe",
+      "count": 6577,
+      "bbox": {
+        "min": [
+          -0.8461,
+          0.6747,
+          -1.3836
+        ],
+        "max": [
+          4.295,
+          0.9291,
+          -1.1296
+        ]
+      },
+      "params": {
+        "along": "x",
+        "a": -1.24,
+        "b": 0.82,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "indices": "build/parts/0821_pipe_11.idx.npy",
+      "ply": "build/parts/0821_pipe_11.ply"
     }
   ],
   "removed": [
