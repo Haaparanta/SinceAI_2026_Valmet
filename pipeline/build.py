@@ -190,25 +190,28 @@ def _before_after(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_i
 def _object_pair(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray, kind: str
                  ) -> R.Frame:
     """Small parts: the same close-up twice side by side, from the middle of the room looking at the object (the
-    style of image 0100: the room faint around it). Left: the object tinted green at 80 %. Right: the object in its
-    own colours at 100 %."""
+    style of image 0100). Left: the object tinted green at 80 %, the room faint around it. Right: everything at
+    100 % in its own colours (nearest point wins), a thin box marking where the part is."""
     bmin, bmax = _bounds(m)
     pts = xyz_of(splats[sel_idx])
     lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
     hw, h = R.WIDTH // 2, R.HEIGHT - R.BANNER_H
     cam = R.from_room_middle_camera(lo, hi, bmin, bmax, width=hw, height=h)
     built_idx = m.claimed_indices()
-    left = _layers(splats, built_idx, sel_idx, rest_idx, kind)
-    right = _layers(splats, built_idx, sel_idx, rest_idx, kind)
-    sel = splats[sel_idx]
-    right[-1] = R.BlendLayer(xyz_of(sel), rgb_of(sel), 1.0, "selected", np.maximum(size_of(sel), 0.01))
-    img = np.concatenate([R.render_blend(left, cam, hw, h).image, R.render_blend(right, cam, hw, h).image], axis=1)
+    left = R.render_blend(_layers(splats, built_idx, sel_idx, rest_idx, kind), cam, hw, h).image
+    everything = splats[np.concatenate([built_idx, rest_idx, sel_idx])]          # right: all at 100 %, own colours
+    right = R.render([R.Layer(xyz_of(everything), rgb_of(everything), "all", size_of(everything))], cam, hw, h,
+                     edl_strength=0.5).image
+    sel_rect = R.project_rect(R.box_corners(lo, hi), cam, hw, h)
+    right = right.copy()
+    R.draw_box(right, sel_rect, (240, 240, 245), pad=12, thick=2)                # where the part is, nothing hidden
+    img = np.concatenate([left, right], axis=1)
     img[:, hw - 1:hw + 1] = (90, 92, 100)
     im = Image.fromarray(img)
     d = ImageDraw.Draw(im)
     hl, word = _highlight(kind)
     d.text((16, h - 44), f"{word.upper()}: GREEN", fill=hl, font=R._font(26))
-    d.text((hw + 16, h - 44), "OWN COLOURS", fill=(240, 240, 245), font=R._font(26))
+    d.text((hw + 16, h - 44), "EVERYTHING 100 %, OWN COLOURS", fill=(240, 240, 245), font=R._font(26))
     return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
 
 
