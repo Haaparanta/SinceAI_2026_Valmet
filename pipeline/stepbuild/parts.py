@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 from stepbuild import render as R
-from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, horizontal_plane
+from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, fit_floor_plane
 from stepbuild.splats import rgb_of
 
 
@@ -27,26 +27,34 @@ class PartProposal:
     params: dict = field(default_factory=dict)
     info: dict = field(default_factory=dict)
     view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)  # close-up looks this way (default: from above front)
+    # planes y = a*x + b*z + c drawn as lines in the axis views: (label, a, b, c, rgb)
+    guides: list[tuple[str, float, float, float, tuple[int, int, int]]] = field(default_factory=list)
 
 
 def floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
-          above: float = 0.03) -> PartProposal:
-    """The floor slab: every pool point at or below floor_y + `above` (2 x the floor's RMS thickness). Everything
-    lower was removed in 2a, so this is the slab itself; objects standing on the floor lose at most their lowest 3 cm.
-    Room-scale part: shown from the fixed overview camera instead of the 25 % framing."""
-    plane = horizontal_plane(xyz[:, 1], lower=True)
-    take = xyz[:, 1] <= plane.y + above
+          above: float = 0.025) -> PartProposal:
+    """The floor: every pool point at or below the fitted floor plane + `above` (about 2 x its RMS thickness). The
+    plane is fitted (geometry.fit_floor_plane), not flat: the Equipment Room floor tilts ~5 cm across the room, and a
+    flat cut took up to 5 cm of the objects standing on its low side (rejected by the user, image 0225)."""
+    a, b, c, rms = fit_floor_plane(xyz)
+    plane_y = a * xyz[:, 0] + b * xyz[:, 2] + c
+    take = xyz[:, 1] <= plane_y + above
     n = int(take.sum())
     pts = xyz[take]
     lo, hi = (pts.min(0), pts.max(0)) if n else (bmin, bmax)
+    tilt = float(np.degrees(np.arctan(np.hypot(a, b))))
+    corners = [a * x + b * z + c for x in (bmin[0], bmax[0]) for z in (bmin[2], bmax[2])]
     return PartProposal(
         take=take, name="floor", label="Floor", kind="structure",
-        title=f"FLOOR (y <= {plane.y + above:+.3f})",
-        subtitle=(f"floor y {plane.y:+.3f} (rms {100 * plane.rms:.1f} cm) · {n:,} of {len(xyz):,} pool points "
+        title=f"FLOOR (tilted plane + {100 * above:.1f} cm)",
+        subtitle=(f"floor plane y = {a:+.4f} x {b:+.4f} z {c:+.3f} (tilt {tilt:.2f} deg, y {min(corners):+.3f}…"
+                  f"{max(corners):+.3f}, rms {100 * rms:.1f} cm) · {n:,} of {len(xyz):,} pool points "
                   f"({100 * n / len(xyz):.1f} %) · x {lo[0]:+.1f}…{hi[0]:+.1f}, z {lo[2]:+.1f}…{hi[2]:+.1f}"),
         camera=R.overview_camera(bmin, bmax),
         params={"above": above},
-        info={"floor_y": round(plane.y, 4), "floor_rms": round(plane.rms, 4)},
+        info={"plane": [round(a, 6), round(b, 6), round(c, 5)], "rms": round(rms, 4), "tilt_deg": round(tilt, 3)},
+        guides=[("floor plane", a, b, c, (90, 200, 255)), (f"cut +{100 * above:.1f} cm", a, b, c + above,
+                                                           (255, 200, 0))],
     )
 
 

@@ -284,7 +284,8 @@ def _fail(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, kind: str, na
 
 def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: np.ndarray, *, kind: str,
              name: str, title: str, subtitle: str, extra: tuple[str, R.Camera, np.ndarray | None] | None,
-             record: dict, headline: str, view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)) -> int:
+             record: dict, headline: str, view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0),
+             guides: list | None = None) -> int:
     sel_idx = pool_idx[sel_mask]
     if len(sel_idx) == 0:
         return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
@@ -297,10 +298,15 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
              ("close-up from above", R.plan_camera(lo_s, hi_s, fill=0.5), None),
              *_outside_views(m),
              ("outside from the opposite corner", R.outside_camera(bmin, bmax, opposite=True), None),
-             ("inside the room (START camera)", R.overview_camera(bmin, bmax), None)]
+             ("inside the room (START camera)", R.overview_camera(bmin, bmax), None),
+             *[(f"axis view {name}", R.axis_camera(bmin, bmax, name), None) for name in R.AXIS_VIEWS]]
     if extra is not None:
         views.append(extra)
     frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views, kind)
+    for i, (view, frame) in enumerate(frames):                     # height ruler + guide planes on side views
+        if view.startswith("axis view"):
+            frames[i] = (view, R.Frame(R.draw_axis_guides(frame.image, frame.camera, bmin, bmax, guides or []),
+                                       frame.depth, frame.camera, frame.counts))
     frames.append(("before | after", _before_after(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
     lo, hi = np.percentile(pts_all := xyz_of(splats[sel_idx]), 2, axis=0), np.percentile(pts_all, 98, axis=0)
     if kind == "part" and float(np.max(hi - lo)) < 2.0:          # small part: green | colour pair comes first
@@ -369,7 +375,7 @@ def cmd_part(args: argparse.Namespace) -> int:
                     extra=("overview", prop.camera, None),
                     record={"label": prop.label, "part_kind": prop.kind, "params": prop.params, "info": prop.info},
                     headline=f"ADD {prop.label.upper()} · {int(prop.take.sum()):,} points as part {n_parts + 1}",
-                    view_dir=prop.view_dir)
+                    view_dir=prop.view_dir, guides=prop.guides)
 
 
 def write_current(splats: np.ndarray, m: S.Manifest) -> int:
@@ -407,6 +413,8 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
                   (f"kept scan, dollhouse from the opposite corner ({cut})",
                    R.outside_camera(bmin, bmax, opposite=True), cut_kept),
                   (f"kept scan, top view ({cut})", R.plan_camera(bmin, bmax), cut_kept)]
+    views += [(f"kept scan, axis view {name}", R.axis_camera(bmin, bmax, name), kept)
+              for name in ("from the top (looking down -Y)", "from the right (looking -X)", "from the front (looking -Z)")]
     views += [("kept scan, inside (START camera)", start_cam, kept),
               ("kept scan, inside from the opposite corner", R.overview_camera(bmin, bmax, opposite=True), kept)]
     if len(built):
@@ -422,6 +430,8 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
         sub = splats[idx]
         frame = R.render([R.Layer(xyz_of(sub), rgb_of(sub), view, size_of(sub))], cam, R.WIDTH, R.HEIGHT - R.BANNER_H,
                          edl_strength=0.5, near=0.3 if "inside" in view else 0.05)
+        if "axis view" in view:
+            frame = R.Frame(R.draw_axis_guides(frame.image, cam, bmin, bmax, []), frame.depth, cam, frame.counts)
         when = S.now_local()
         index = S.next_image_index()
         im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} · 100 % · {facts}", [], when, "STATE",

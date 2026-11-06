@@ -167,3 +167,22 @@ def envelope_edge(values: np.ndarray, high: bool, bin_size: float = 0.04, band: 
     ok = np.flatnonzero(counts >= rel * counts.max())
     edge = float(e[ok[-1] + 1])
     return edge if high else -edge
+
+
+def fit_floor_plane(xyz: np.ndarray, band: float = 0.04, iterations: int = 4) -> tuple[float, float, float, float]:
+    """(a, b, c, rms) of the floor plane y = a*x + b*z + c: start from the densest low slab (horizontal_plane), take
+    the points within `band` of it and fit by least squares, re-fitting on the inliers (|residual| < 2.5 rms). The
+    Equipment Room floor is tilted ~0.3 deg (5 cm across the room), so a flat cut is too high on one side."""
+    y0 = horizontal_plane(xyz[:, 1], lower=True).y
+    sel = np.abs(xyz[:, 1] - y0) <= band
+    p = xyz[sel]
+    a = b = 0.0
+    c = y0
+    rms = band
+    for _ in range(iterations):
+        A = np.c_[p[:, 0], p[:, 2], np.ones(len(p))]
+        (a, b, c), *_ = np.linalg.lstsq(A, p[:, 1], rcond=None)
+        r = p[:, 1] - A @ np.array([a, b, c])
+        rms = float(np.sqrt(np.mean(r ** 2)))
+        p = p[np.abs(r) < 2.5 * rms]
+    return float(a), float(b), float(c), rms

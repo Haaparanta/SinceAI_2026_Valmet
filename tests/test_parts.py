@@ -2,6 +2,7 @@
 
 import numpy as np
 from stepbuild.parts import floor
+from stepbuild.parts import floor as floor_fn
 
 from tests.test_cleaning import synthetic_room
 
@@ -12,7 +13,8 @@ def test_floor_takes_the_slab_and_nothing_above() -> None:
     prop = floor(xyz, xyz.min(0), xyz.max(0))
     taken = xyz[prop.take]
     assert prop.name == "floor" and prop.kind == "structure"
-    assert (taken[:, 1] <= prop.info["floor_y"] + 0.03 + 1e-6).all()
+    a_, b_, c_ = prop.info["plane"]
+    assert (taken[:, 1] <= a_ * taken[:, 0] + b_ * taken[:, 2] + c_ + 0.025 + 1e-6).all()
     on_slab = np.abs(xyz[:, 1] + 0.91) < 0.025
     assert prop.take[on_slab].mean() > 0.99                        # the slab is taken
     assert not prop.take[xyz[:, 1] > -0.85].any()                  # nothing standing on it
@@ -60,3 +62,20 @@ def test_lamp_takes_the_largest_white_cluster_up_high() -> None:
     assert prop.name == "lamp_1" and prop.kind == "equipment"
     assert prop.take[:len(big)].mean() > 0.95                  # the big tube
     assert not prop.take[len(big):].any()                      # not the smaller tube, white pipes or grey points
+
+
+def test_floor_follows_a_tilted_plane() -> None:
+    rng = np.random.default_rng(11)
+    n = 40000
+    x, z = rng.uniform(-4, 4.8, n), rng.uniform(-3.6, 3.4, n)
+    floor = np.c_[x, -0.0025 * x - 0.0049 * z - 1.174 + rng.normal(0, 0.01, n), z]
+    m = 30000
+    above = np.c_[rng.uniform(-4, 4.8, m), rng.uniform(-1.0, 1.0, m), rng.uniform(-3.6, 3.4, m)]
+    low_box = np.c_[rng.uniform(3, 4, 2000), rng.uniform(-1.16, -1.15, 2000), rng.uniform(2.5, 3.3, 2000)]  # 4+ cm up
+    xyz = np.vstack([floor, above, low_box]).astype(np.float32)
+    prop = floor_fn(xyz, xyz.min(0), xyz.max(0))
+    assert abs(prop.info["plane"][2] + 1.174) < 0.005 and prop.info["tilt_deg"] > 0.2
+    assert prop.take[:n].mean() > 0.97                         # the whole tilted floor
+    assert prop.take[n:n + m].sum() == 0                       # nothing standing higher
+    assert prop.take[n + m:].sum() == 0                         # a box 4-5 cm above the low corner stays
+    # (a flat cut at the mean floor height + 3 cm would take it: the low corner is 2.3 cm below the mean)

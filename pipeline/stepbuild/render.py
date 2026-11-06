@@ -514,3 +514,62 @@ def level_chart(xyz: np.ndarray, rgb: np.ndarray, levels: list[tuple[float, str]
     d.text((plot_w + 10, 8), "points per", fill=(150, 156, 170), font=_font(14))
     d.text((plot_w + 10, 24), "height", fill=(150, 156, 170), font=_font(14))
     return np.asarray(im)
+
+
+# ---------------------------------------------------------------- axis views (near-orthographic, with a height ruler)
+
+AXIS_VIEWS = {  # name: (view direction, up)
+    "from the top (looking down -Y)": ((0.0, -1.0, 1e-4), (0.0, 0.0, -1.0)),
+    "from the right (looking -X)": ((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+    "from the left (looking +X)": ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+    "from the front (looking -Z)": ((0.0, 0.0, -1.0), (0.0, 1.0, 0.0)),
+    "from the back (looking +Z)": ((0.0, 0.0, 1.0), (0.0, 1.0, 0.0)),
+}
+
+
+def axis_camera(lo: np.ndarray, hi: np.ndarray, name: str, fill: float = 0.92, width: int = WIDTH,
+                height: int = HEIGHT - BANNER_H) -> Camera:
+    """Straight along one axis with a 3 degree lens from far away: close to an orthographic drawing, so heights and
+    levels can be read off the picture."""
+    d, up = AXIS_VIEWS[name]
+    return framing_camera(lo, hi, np.array(d), fill=fill, fov_deg=3.0, width=width, height=height, up=up)
+
+
+def _project(points: np.ndarray, cam: Camera, width: int, height: int) -> np.ndarray:
+    r, u, f = cam.basis()
+    rel = points.astype(np.float64) - np.asarray(cam.position)
+    z = np.maximum(rel @ f, 1e-6)
+    focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
+    return np.c_[width / 2 + focal * (rel @ r) / z, height / 2 - focal * (rel @ u) / z]
+
+
+def draw_axis_guides(img: np.ndarray, cam: Camera, lo: np.ndarray, hi: np.ndarray,
+                     guides: list[tuple[str, float, float, float, tuple[int, int, int]]]) -> np.ndarray:
+    """For a side view (camera up = +y): a height ruler on the left (every 0.1 u, labelled every 0.2 u) and each
+    guide plane y = a*x + b*z + c drawn as a labelled line across the room (through the room's middle)."""
+    h, w = img.shape[:2]
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    c = 0.5 * (lo + hi)
+    small = _font(14)
+    if abs(cam.up[1]) > 0.5:
+        for yv in np.arange(np.floor(lo[1] * 10) / 10, hi[1] + 1e-6, 0.1):
+            _, py = _project(np.array([[c[0], yv, c[2]]]), cam, w, h)[0]
+            if 0 <= py < h:
+                major = abs(round(yv * 10) % 2) == 0
+                d.line((0, py, 18 if major else 10, py), fill=(200, 204, 214), width=1)
+                if major:
+                    d.text((22, py - 8), f"y {yv:+.1f}", fill=(200, 204, 214), font=small)
+        f = np.asarray(cam.target) - np.asarray(cam.position)
+        run = 2 if abs(f[0]) > abs(f[2]) else 0            # the horizontal axis on screen
+        for i, (label, a, b, cc, rgb) in enumerate(guides):
+            ends = []
+            for t in (lo[run], hi[run]):
+                pnt = c.copy()
+                pnt[run] = t
+                pnt[1] = a * pnt[0] + b * pnt[2] + cc
+                ends.append(pnt)
+            (x0, y0), (x1, y1) = _project(np.array(ends), cam, w, h)
+            d.line((x0, y0, x1, y1), fill=rgb, width=2)
+            d.text((w - 200, y1 - 20 - 16 * i), f"{label}", fill=rgb, font=small)
+    return np.asarray(im)
