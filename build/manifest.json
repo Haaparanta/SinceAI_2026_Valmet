@@ -1601,6 +1601,88 @@
       "event": "after 0064 REJECTED (part ceiling)",
       "kept": 464713,
       "built": 41641
+    },
+    {
+      "index": 71,
+      "kind": "probe",
+      "name": "ceiling_levels",
+      "status": "info",
+      "images": [
+        "images/0071_20261106-225607.png",
+        "images/0072_20261106-225607.png",
+        "images/0073_20261106-225608.png",
+        "images/0074_20261106-225609.png",
+        "images/0075_20261106-225610.png",
+        "images/0076_20261106-225610.png",
+        "images/0077_20261106-225611.png"
+      ],
+      "created_at": "2026-11-06T22:56:11+02:00",
+      "levels": [
+        1.13,
+        1.27,
+        1.35
+      ],
+      "labels": [
+        "try 1 (0046): above the pipe gap",
+        "try 2 (0057)",
+        "try 3 (0064): raised 8 cm"
+      ],
+      "camera": {
+        "position": [
+          0.4181,
+          -0.17,
+          -2.5516
+        ],
+        "target": [
+          0.4181,
+          0.83,
+          -2.5516
+        ],
+        "fov_deg": 100.0
+      }
+    },
+    {
+      "index": 78,
+      "kind": "probe",
+      "name": "ceiling_levels",
+      "status": "info",
+      "images": [
+        "images/0078_20261106-225655.png",
+        "images/0079_20261106-225656.png",
+        "images/0080_20261106-225657.png",
+        "images/0081_20261106-225658.png",
+        "images/0082_20261106-225658.png",
+        "images/0083_20261106-225659.png",
+        "images/0084_20261106-225700.png",
+        "images/0085_20261106-225701.png",
+        "images/0086_20261106-225701.png"
+      ],
+      "created_at": "2026-11-06T22:57:01+02:00",
+      "levels": [
+        0.9,
+        1.13,
+        1.27,
+        1.35
+      ],
+      "labels": [
+        "densest flat layer (spike at 0.92)",
+        "try 1 (0046)",
+        "try 2 (0057)",
+        "try 3 (0064)"
+      ],
+      "camera": {
+        "position": [
+          0.4181,
+          -0.17,
+          -2.5516
+        ],
+        "target": [
+          0.4181,
+          0.83,
+          -2.5516
+        ],
+        "fov_deg": 100.0
+      }
     }
   ],
   "parts": [

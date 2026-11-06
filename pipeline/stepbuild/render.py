@@ -423,3 +423,58 @@ def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0, wi
     step of a run, so the outside images line up in the flipbook."""
     return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg, width=width,
                           height=height)
+
+
+# ---------------------------------------------------------------- probes (help the user judge a level)
+
+
+def look_up_from_middle(bmin: np.ndarray, bmax: np.ndarray, eye_y: float, fov_deg: float = 100.0) -> Camera:
+    """Standing in the middle of the room at height `eye_y`, looking straight up; the back wall at the top."""
+    c = 0.5 * (bmin + bmax)
+    return Camera((float(c[0]), float(eye_y), float(c[2])), (float(c[0]), float(eye_y) + 1.0, float(c[2])), fov_deg,
+                  up=(0.0, 0.0, -1.0))
+
+
+LEVEL_COLOURS = [(255, 196, 0), (0, 200, 255), (255, 90, 200), (160, 255, 90), (255, 140, 60)]
+
+
+def level_chart(xyz: np.ndarray, rgb: np.ndarray, levels: list[tuple[float, str]], y_lo: float, y_hi: float,
+                width: int = WIDTH, height: int = HEIGHT - BANNER_H) -> np.ndarray:
+    """Side view (x across, height up; vertical stretched) of the points between y_lo and y_hi in their own colours
+    (mean colour per pixel, brighter where denser), a points-per-height histogram on the right, and a labelled
+    horizontal line at every level."""
+    hist_w = 180
+    plot_w = width - hist_w
+    sel = (xyz[:, 1] >= y_lo) & (xyz[:, 1] <= y_hi)
+    p, c = xyz[sel], rgb[sel].astype(np.float64)
+    x_lo, x_hi = np.percentile(p[:, 0], [0.5, 99.5])
+    px = np.clip(((p[:, 0] - x_lo) / (x_hi - x_lo) * (plot_w - 1)).astype(int), 0, plot_w - 1)
+    py = np.clip(((y_hi - p[:, 1]) / (y_hi - y_lo) * (height - 1)).astype(int), 0, height - 1)
+    flat = py * plot_w + px
+    cnt = np.bincount(flat, minlength=plot_w * height).astype(np.float64)
+    col = np.stack([np.bincount(flat, weights=c[:, k], minlength=plot_w * height) for k in range(3)], 1)
+    mean = col / np.maximum(cnt, 1)[:, None]
+    shade = np.clip(np.log1p(cnt) / np.log1p(np.percentile(cnt[cnt > 0], 95)), 0, 1)[:, None]
+    bg = np.asarray(BACKGROUND, np.float64)
+    plot = (bg * (1 - shade) + mean * shade).reshape(height, plot_w, 3)
+    rows = np.bincount(py, minlength=height).astype(np.float64)
+    rows = np.convolve(rows, np.ones(5) / 5, mode="same")
+    hist = np.tile(np.asarray((16, 18, 26), np.float64), (height, hist_w, 1))
+    bar = (rows / rows.max() * (hist_w - 20)).astype(int)
+    for r in range(height):
+        hist[r, 10:10 + bar[r]] = (150, 156, 170)
+    img = np.concatenate([plot, hist], axis=1).clip(0, 255).astype(np.uint8)
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    font = _font(18)
+    for i, (level, label) in enumerate(levels):
+        r = int((y_hi - level) / (y_hi - y_lo) * (height - 1))
+        col_l = LEVEL_COLOURS[i % len(LEVEL_COLOURS)]
+        d.line((0, r, width, r), fill=col_l, width=2)
+        d.text((12, r - 24), f"y {level:+.2f}  {label}", fill=col_l, font=font)
+    for yv in np.arange(np.ceil(y_lo * 10) / 10, y_hi, 0.1):
+        r = int((y_hi - yv) / (y_hi - y_lo) * (height - 1))
+        d.text((plot_w - 60, r - 9), f"{yv:+.1f}", fill=(120, 124, 136), font=_font(14))
+    d.text((plot_w + 10, 8), "points per", fill=(150, 156, 170), font=_font(14))
+    d.text((plot_w + 10, 24), "height", fill=(150, 156, 170), font=_font(14))
+    return np.asarray(im)

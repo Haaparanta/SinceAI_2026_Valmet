@@ -336,6 +336,65 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
     return images
 
 
+PROBE_RGB = (190, 120, 255)
+
+
+def cmd_probe(args: argparse.Namespace) -> int:
+    """Pictures that help the user pick a level, saved in images/ like every step (no state change): for each
+    --levels value, from the middle of the room looking straight up, the points at or above that level as green dots
+    and everything else in true colour at 100 % (once with nearest-point-wins, once with the green on top); then one
+    side view with every level drawn as a line."""
+    m = S.Manifest.load()
+    splats = load_real_splats(args.ply, CACHE)
+    pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
+    kept = np.concatenate([m.claimed_indices(), pool_idx])
+    pts, rgb = xyz_of(splats[kept]), rgb_of(splats[kept])
+    size = size_of(splats[kept])
+    bmin, bmax = _bounds(m)
+    lamp = (rgb.min(1) >= args.white) & (pts[:, 1] >= min(args.levels) - 0.2)
+    floor_y = next((p_["params"] for p_ in m.data["parts"] if p_["name"] == "floor"), None)
+    eye_y = float(np.percentile(pts[:, 1], 1)) + 0.9 if floor_y is None else -1.07 + 0.9
+    cam = R.look_up_from_middle(bmin, bmax, eye_y)
+    h = R.HEIGHT - R.BANNER_H
+    images = []
+
+    def save(frame: R.Frame, title: str, sub: str, headline: str) -> None:
+        when = S.now_local()
+        index = S.next_image_index()
+        im = R.compose(frame, f"{index:04d} · PROBE · {title}", sub, [(R.ADD_RGB, "at or above the level"),
+                       ((200, 200, 200), "everything else, true colour")], when, "PROBE", PROBE_RGB,
+                       headline=headline, headline_rgb=R.ADD_RGB)
+        images.append(S.rel(_save(im, index, when)))
+
+    for level in args.levels:
+        sel = (pts[:, 1] >= level) & ~lamp
+        n = int(sel.sum())
+        rest = R.Layer(pts[~sel], rgb[~sel], "rest", size[~sel])
+        green = R.Layer(pts[sel], np.broadcast_to(np.asarray(R.ADD_RGB, np.uint8), (n, 3)).copy(), "level",
+                        np.maximum(size[sel], 0.015))
+        honest = R.render([rest, green], cam, R.WIDTH, h, edl_strength=0.4)
+        save(honest, f"ceiling level y >= {level:+.2f}, looking up", f"from the middle of the room, eye y {eye_y:+.2f}"
+             f" · nearer points hide farther ones · {n:,} green points (lamps excluded)",
+             f"LEVEL y >= {level:+.2f} · {n:,} green points · seen from below")
+        back = R.render([rest], cam, R.WIDTH, h, edl_strength=0.4)
+        front = R.render([green], cam, R.WIDTH, h, edl_strength=0)
+        on_top = np.where(np.isfinite(front.depth)[..., None], front.image, back.image)
+        save(R.Frame(on_top, back.depth, cam, {}), f"ceiling level y >= {level:+.2f}, green on top",
+             f"same view, green drawn over everything · {n:,} green points", f"LEVEL y >= {level:+.2f} · green on top")
+    labels = [args.labels[i] if i < len(args.labels) else "" for i in range(len(args.levels))]
+    chart = R.level_chart(pts, rgb, list(zip(args.levels, labels)), args.y_lo, args.y_hi)
+    save(R.Frame(chart, np.full(chart.shape[:2], np.inf, np.float32), cam, {}), "levels, side view",
+         f"x across, height up (stretched {args.y_lo:+.1f}…{args.y_hi:+.1f}) · colour = the points' own · right: points"
+         " per height", "WHICH LEVEL IS THE CEILING? · side view")
+    m.add_step(index=int(Path(images[0]).name[:4]), kind="probe", name="ceiling_levels", status="info",
+               images=images, created_at=S.now_local().isoformat(timespec="seconds"),
+               levels=list(args.levels), labels=labels, camera=cam.to_dict())
+    m.save()
+    for img in images:
+        print(f"  probe image {img}")
+    return 0
+
+
 def cmd_decide(args: argparse.Namespace) -> int:
     if not S.PENDING.exists():
         log.error("nothing pending")
@@ -517,6 +576,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="detector parameter")
     p.add_argument("--replace", action="store_true", help="mark a pending proposal as replaced and propose again")
     p.set_defaults(fn=cmd_part)
+    p = sub.add_parser("probe", help="pictures that help pick a ceiling level (no state change)")
+    p.add_argument("--levels", type=float, nargs="+", required=True)
+    p.add_argument("--labels", nargs="*", default=[], help="one label per level")
+    p.add_argument("--white", type=int, default=240, help="min RGB treated as lamp")
+    p.add_argument("--y-lo", type=float, default=0.5)
+    p.add_argument("--y-hi", type=float, default=1.65)
+    p.set_defaults(fn=cmd_probe)
     for name in ("accept", "reject"):
         p = sub.add_parser(name, help=f"{name} the pending proposal")
         p.add_argument("--note", default="", help="why (kept in the manifest)")
