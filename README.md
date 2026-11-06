@@ -18,5 +18,7 @@ This is a chance to make AI understand not just words and numbers, but physical 
 
 | Path | What |
 |---|---|
+| [`docs/`](docs/README.md) | Readable versions of the partner files (challenge brief, Excel builder pack, PLY scan, videos) and a summary of every linked reference |
+| [`Source-Data-Do-Not_change/`](Source-Data-Do-Not_change/) | Original partner files, read-only. `*.ply` / `*.mp4` are gitignored, see [docs/source-data](docs/source-data/README.md) |
 | [`pm_pack/`](pm_pack/) | Provisional PM pack: briefing questions, PRD, SWOT, risks, roadmap, `AGENTS` context |
 | [`design/`](design/) | **Cyberpunk v2** theme: [`cyberpunk-tokens.css`](design/cyberpunk-tokens.css) and the [guide](design/CYBERPUNK_THEME.md) |
