@@ -27,6 +27,12 @@ def test_duration_is_clamped(n: int) -> None:
     assert p.images[0].name.startswith("0001") and p.images[-1] == _paths(n)[-1]
 
 
+@pytest.mark.parametrize("max_s", [59.99, 45.5, 31.01])
+def test_fractional_max_never_rounds_up(max_s: float) -> None:
+    p = timelapse.plan(_paths(5000), min_s=30, max_s=max_s, rate=6, fps=30, hold_last=2)
+    assert p.seconds <= max_s
+
+
 def test_many_images_are_thinned_in_order() -> None:
     p = timelapse.plan(_paths(5000), min_s=30, max_s=60, rate=6, fps=30, hold_last=0)
     assert len(p.images) == 1800
@@ -44,3 +50,5 @@ def test_bad_bounds() -> None:
         timelapse.plan(_paths(3), min_s=60, max_s=30, rate=6, fps=30)
     with pytest.raises(ValueError):
         timelapse.plan([], min_s=30, max_s=60, rate=6, fps=30)
+    with pytest.raises(ValueError):
+        timelapse.plan(_paths(3), min_s=30, max_s=60, rate=0, fps=30)

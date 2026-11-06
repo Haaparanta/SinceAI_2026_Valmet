@@ -16,6 +16,7 @@ imageio-ffmpeg wheel (the `video` dependency group), so no Homebrew install is n
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import shutil
 import subprocess
@@ -81,11 +82,14 @@ def plan(images: list[Path], *, min_s: float, max_s: float, rate: float, fps: in
         raise ValueError("no images to put in the video")
     if not 0 < min_s <= max_s:
         raise ValueError(f"need 0 < --min <= --max, got {min_s} and {max_s}")
-    if hold_last >= min_s:
-        raise ValueError("--hold-last must be shorter than --min")
+    if rate <= 0 or fps <= 0:
+        raise ValueError("--rate and --fps must be positive")
+    if not 0 <= hold_last < min_s:
+        raise ValueError("--hold-last must be between 0 and --min")
 
     total = min(max(len(images) / rate, min_s), max_s)
-    total_frames = round(total * fps)
+    # whole frames; never round up past max_s (e.g. --max 59.99 at 30 fps is 1799 frames, not 1800)
+    total_frames = min(round(total * fps), math.floor(max_s * fps + 1e-9))
     hold_frames = round(hold_last * fps)
     body_frames = total_frames - hold_frames
 
@@ -123,6 +127,20 @@ def fit(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     canvas = Image.new("RGB", size)
     canvas.paste(resized, ((size[0] - resized.width) // 2, (size[1] - resized.height) // 2))
     return canvas
+
+
+def probe(path: Path) -> tuple[int, float]:
+    """(frames, seconds) of an encoded video, by decoding it: the real length, not the planned one."""
+    r = subprocess.run(
+        [ffmpeg_exe(), "-hide_banner", "-i", str(path), "-map", "0:v:0", "-f", "null", "-"],
+        check=False, capture_output=True, text=True,
+    )  # fmt: skip
+    frames = re.findall(r"frame=\s*(\d+)", r.stderr)
+    times = re.findall(r"time=(\d+):(\d+):([\d.]+)", r.stderr)
+    if r.returncode != 0 or not frames or not times:
+        raise RuntimeError(f"could not read back {path}: {r.stderr[-300:]}")
+    h, m, sec = times[-1]
+    return int(frames[-1]), int(h) * 3600 + int(m) * 60 + float(sec)
 
 
 def render(p: Plan, out: Path, *, crf: int = 26) -> None:
@@ -191,7 +209,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         return 0
     render(p, args.out, crf=args.crf)
-    print(f"wrote {args.out} ({args.out.stat().st_size / 1e6:.1f} MB)", file=sys.stderr)
+    frames, decoded_s = probe(args.out)
+    seconds = frames / p.fps
+    print(
+        f"wrote {args.out} ({args.out.stat().st_size / 1e6:.1f} MB, {frames} frames = {seconds:.2f} s, decoder clock {decoded_s:.2f} s)",
+        file=sys.stderr,
+    )
+    if frames != sum(p.frames) or not args.min_s - 1 / p.fps < seconds <= args.max_s or decoded_s > args.max_s:
+        sys.exit(
+            f"length check FAILED: {seconds:.2f} s, planned {p.seconds:.2f} s, allowed {args.min_s}-{args.max_s} s"
+        )
     return 0
 
 
