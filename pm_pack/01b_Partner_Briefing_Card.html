@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1020">
 <title>Valmet Briefing Card</title>
+<meta name="description" content="Phone card for the Valmet × Since AI 2026 partner briefing: three pitches, ten gap questions with inputs, and a copy-to-Claude button.">
 <style>
   /* Tokens: inlined subset of design/cyberpunk-tokens.css (v2). Keep in sync. */
   :root {
@@ -65,35 +66,36 @@
     background-size: 32px 32px;
     font: 400 16px/24px var(--font-sans);
     transition: background-color 220ms var(--ease-snap), color 220ms var(--ease-snap);
+    overflow-x: hidden;
   }
-  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 168px; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 176px; }
 
-  /* Scanline: once, on load */
   .scan { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
   .scan::after { content: ""; position: absolute; left: 0; right: 0; height: 80px; top: -80px;
     background: linear-gradient(transparent, oklch(0.86 0.15 195 / 0.08), transparent);
     animation: scan 900ms var(--ease-snap) 120ms 1 forwards; }
   @keyframes scan { to { transform: translateY(calc(100vh + 160px)); } }
+  @media (prefers-reduced-motion: reduce) { .scan::after { animation: none; } * { transition: none !important; } }
 
-  /* Type */
   .eyebrow { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; }
-  h1 { font: 700 34px/41px var(--font-display); letter-spacing: -0.02em; margin: 0 0 4px; }
-  .subtitle { color: var(--muted-foreground); margin: 0 0 12px; }
+  h1 { font: 700 30px/36px var(--font-display); letter-spacing: -0.02em; margin: 0 0 4px; }
+  .subtitle { color: var(--muted-foreground); margin: 0 0 12px; font-size: 15px; line-height: 22px; }
   .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 12px/16px var(--font-mono); color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; }
   .meta b { color: var(--success); font-weight: 600; }
   .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  code { font-family: var(--font-mono); font-size: 0.92em; background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); padding: 1px 5px; border-radius: 4px; }
 
   header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
   .section { margin-top: 32px; }
   .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
   .section-head h2 { font: 600 22px/28px var(--font-display); margin: 0; }
 
-  /* Callout: WARN */
   .callout { border: 1px solid var(--border); border-left: 3px solid var(--warning); border-radius: var(--radius);
     background: color-mix(in oklch, var(--warning) 8%, var(--card)); padding: 12px 14px; font-size: 14px; line-height: 20px; }
   .callout .eyebrow { color: var(--warning); margin-bottom: 4px; }
+  .callout.info { border-left-color: var(--primary); background: color-mix(in oklch, var(--primary) 7%, var(--card)); }
+  .callout.info .eyebrow { color: var(--primary); }
 
-  /* Buttons */
   button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .btn { min-height: 48px; border-radius: var(--radius); padding: 0 16px; border: 1px solid transparent;
     font-weight: 600; transition: box-shadow 150ms var(--ease-snap), background-color 150ms var(--ease-snap), transform 150ms var(--ease-snap); }
@@ -106,31 +108,38 @@
     font: 600 11px/14px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap; }
   .btn-ghost:hover, .btn-ghost:focus-visible { color: var(--primary); box-shadow: var(--glow-primary); outline: none; }
 
-  /* Badges */
   .badge { display: inline-block; border-radius: 4px; padding: 2px 6px; font: 600 10px/14px var(--font-mono);
     letter-spacing: 0.14em; text-transform: uppercase; vertical-align: middle; }
   .badge-primary { background: color-mix(in oklch, var(--primary) 15%, transparent); color: var(--primary); }
   .badge-accent { background: color-mix(in oklch, var(--accent) 16%, transparent); color: var(--accent); }
   .badge-success { background: color-mix(in oklch, var(--success) 15%, transparent); color: var(--success); }
+  .badge-warning { background: color-mix(in oklch, var(--warning) 18%, transparent); color: var(--warning); }
   .badge-muted { background: var(--muted); color: var(--muted-foreground); }
 
-  /* Cards */
   .card { background: color-mix(in oklch, var(--card) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); padding: 14px 16px; margin-bottom: 10px; position: relative; }
 
-  /* Wedges */
-  .wedge { display: block; width: 100%; text-align: left; transition: box-shadow 150ms var(--ease-snap), border-color 150ms var(--ease-snap); }
-  .wedge:focus-visible { outline: none; box-shadow: var(--glow-primary); }
-  .wedge[aria-pressed="true"] { border-color: var(--primary); box-shadow: var(--glow-primary); }
-  .wedge[aria-pressed="true"]::before, .wedge[aria-pressed="true"]::after {
+  /* Pitch cards */
+  .pitch { display: block; width: 100%; text-align: left; transition: box-shadow 150ms var(--ease-snap), border-color 150ms var(--ease-snap); }
+  .pitch:focus-visible { outline: none; box-shadow: var(--glow-primary); }
+  .pitch[aria-expanded="true"] { border-color: var(--primary); box-shadow: var(--glow-primary); }
+  .pitch[aria-expanded="true"]::before, .pitch[aria-expanded="true"]::after {
     content: ""; position: absolute; width: 10px; height: 10px; border-color: var(--primary); border-style: solid; }
-  .wedge[aria-pressed="true"]::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: 6px; }
-  .wedge[aria-pressed="true"]::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: 6px; }
-  .wedge-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .wedge-id { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--muted-foreground); }
-  .wedge[aria-pressed="true"] .wedge-id { color: var(--primary); }
-  .wedge-name { display: block; font: 600 17px/22px var(--font-sans); margin-bottom: 4px; }
-  .wedge-text { display: block; color: var(--muted-foreground); font-size: 14px; line-height: 20px; }
+  .pitch[aria-expanded="true"]::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: 6px; }
+  .pitch[aria-expanded="true"]::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: 6px; }
+  .pitch-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .pitch-id { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--muted-foreground); }
+  .pitch[aria-expanded="true"] .pitch-id { color: var(--primary); }
+  .pitch-name { display: block; font: 600 17px/22px var(--font-sans); margin-bottom: 4px; }
+  .pitch-text { display: block; color: var(--muted-foreground); font-size: 14px; line-height: 20px; }
+  .pitch-body { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .pitch[aria-expanded="true"] + .pitch-body { display: block; }
+  .script { font-size: 15px; line-height: 23px; margin: 0 0 10px; padding-left: 12px; border-left: 2px solid var(--accent); }
+  .watch { font-size: 13px; line-height: 19px; color: var(--muted-foreground); margin: 0 0 10px; }
+  .react { display: flex; gap: 6px; flex-wrap: wrap; }
+  .react button { min-height: 44px; min-width: 56px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--input-bg);
+    font: 600 13px/16px var(--font-mono); letter-spacing: 0.08em; color: var(--muted-foreground); padding: 0 10px; }
+  .react button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow-accent); }
 
   /* Progress */
   .progress { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
@@ -140,41 +149,39 @@
   .count small { color: var(--muted-foreground); font-size: 11px; letter-spacing: 0.14em; }
 
   /* Questions */
-  .q-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .q-id { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--primary); }
-  .q label { display: block; font: 600 16px/22px var(--font-sans); margin-bottom: 4px; }
-  .q .why { font: 500 12px/16px var(--font-mono); color: var(--muted-foreground); margin-bottom: 10px; }
-  .q.answered { border-left: 3px solid var(--success); }
-  .state { display: none; }
-  .q.answered .state { display: inline-block; }
-
-  textarea { width: 100%; min-height: 72px; display: block; background: var(--input-bg); color: var(--foreground);
-    border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); padding: 10px 12px;
-    font: 400 16px/24px var(--font-sans); resize: vertical; transition: box-shadow 150ms var(--ease-snap), border-color 150ms var(--ease-snap); }
-  textarea::placeholder { font-family: var(--font-mono); font-size: 14px; color: var(--muted-foreground); opacity: 0.8; }
+  .q { padding: 14px 16px; }
+  .q-top { display: flex; gap: 10px; align-items: flex-start; }
+  .q-num { flex: 0 0 auto; font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--primary); padding-top: 4px; }
+  .q-text { flex: 1; font: 600 15px/21px var(--font-sans); margin: 0; }
+  .q-why { font-size: 13px; line-height: 19px; color: var(--muted-foreground); margin: 6px 0 0 0; }
+  .q-tags { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+  textarea { width: 100%; min-height: 72px; margin-top: 10px; resize: vertical; border-radius: calc(var(--radius) - 2px);
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--foreground); padding: 10px 12px;
+    font: 400 15px/21px var(--font-sans); }
+  textarea::placeholder { font-family: var(--font-mono); color: var(--muted-foreground); font-size: 13px; }
   textarea:focus { outline: none; border-color: var(--primary); box-shadow: var(--glow-primary); }
+  .asked { display: flex; align-items: center; gap: 8px; margin-top: 8px; font: 500 12px/16px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); min-height: 44px; }
+  .asked input { width: 20px; height: 20px; accent-color: var(--primary); }
 
-  /* Bottom bar */
-  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--bar-bg);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border);
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  /* Facts */
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fact { padding: 10px 12px; }
+  .fact .v { display: block; font: 600 20px/24px var(--font-mono); font-variant-numeric: tabular-nums; }
+  .fact .k { display: block; font: 500 11px/14px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground); margin-top: 2px; }
+  .fact .s { display: block; font-size: 12px; line-height: 16px; color: var(--muted-foreground); margin-top: 4px; }
+
+  /* Sticky bar */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--bar-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); }
   .bar-inner { max-width: 720px; margin: 0 auto; display: flex; gap: 8px; }
-
-  /* Toast */
-  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 20;
-    max-width: 688px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--success);
-    border-radius: var(--radius); padding: 10px 14px; font: 500 13px/18px var(--font-mono);
-    opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity 220ms var(--ease-snap), transform 220ms var(--ease-snap); }
-  .toast.show { opacity: 1; transform: none; }
+  .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(8px); opacity: 0;
+    background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--success); border-radius: var(--radius);
+    padding: 10px 14px; font: 500 13px/18px var(--font-mono); white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis;
+    transition: opacity 180ms var(--ease-snap), transform 180ms var(--ease-snap); z-index: 60; pointer-events: none; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.err { border-left-color: var(--destructive); }
-  .toast b { color: var(--success); }
-  .toast.err b { color: var(--destructive); }
 
-  #fallback { display: none; min-height: 220px; margin-top: 12px; font: 400 13px/18px var(--font-mono); }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition-duration: 0ms !important; }
-  }
+  footer { margin-top: 32px; font: 500 12px/16px var(--font-mono); color: var(--muted-foreground); letter-spacing: 0.04em; }
 </style>
 </head>
 <body>
@@ -182,186 +189,295 @@
 <main>
   <header>
     <div>
-      <p class="eyebrow">// Valmet × Since AI 2026</p>
-      <h1>Briefing Card</h1>
-      <p class="subtitle">Pick a wedge, capture the partner's answers, hand them to Claude.</p>
-      <div class="meta"><span>v2.0</span><span>Fri 19:30 EET</span><span>Status: <b id="status-word">Standby</b></span></div>
+      <p class="eyebrow">// VALMET × SINCE AI 2026 · BRIEFING CARD</p>
+      <h1>Approve-to-Build</h1>
+      <p class="subtitle">Three pitches to test live, ten gaps to close, one button to feed the answers back to Claude.</p>
+      <div class="meta"><span>Wedge D · locked</span><span>Fri 19:30 → Sun 10:00</span><span id="savedAt">Autosave: <b>on</b></span></div>
     </div>
-    <button class="btn btn-ghost" id="theme" type="button" aria-label="Toggle light or dark theme">◐ Daylight</button>
+    <button class="btn btn-ghost" id="themeBtn" type="button" aria-label="Toggle daylight mode">Daylight</button>
   </header>
 
-  <div class="callout" role="note">
-    <p class="eyebrow">⚠ Warn · Provisional</p>
-    These wedges and questions come from the README alone. There is no data, no API docs and no evaluation criteria yet. Fill in the gaps here.
+  <div class="callout">
+    <p class="eyebrow">// IF YOU ONLY GET 3 MINUTES</p>
+    Open with a measured fact: <span class="mono">1.5 M gaussians · 33 % inside the room · y-up · ≈ 8.6 × 4.4 × 2.6 u</span>. Then ask questions <span class="mono">01 → 02 → 03 → 06 → 07</span> in that order. Write the answer to <span class="mono">08</span> down word for word.
   </div>
 
-  <section class="section" aria-labelledby="s1">
-    <p class="eyebrow">[ 01 ] Wedge</p>
-    <div class="section-head"><h2 id="s1">Lock a direction</h2></div>
-    <div id="wedges"></div>
+  <!-- PITCHES -->
+  <section class="section" aria-labelledby="pitchesH">
+    <div class="section-head"><h2 id="pitchesH">Pitches</h2><span class="badge badge-accent">tap to expand</span></div>
+
+    <div class="card pitch" role="button" tabindex="0" aria-expanded="true" data-pitch="D">
+      <div class="pitch-top"><span class="pitch-id">PITCH D</span><span class="badge badge-primary">locked</span></div>
+      <span class="pitch-name">Approve-to-Build Twin</span>
+      <span class="pitch-text">Objects proposed offline, approved one by one, photographed on every approval, then walked in three.js and on a Quest 3.</span>
+    </div>
+    <div class="pitch-body card" id="pitchD">
+      <p class="script">"We turn your boiler-room splat into a twin the way a service engineer would: the pipeline proposes objects one by one, a human approves each into the scene, and the twin photographs itself after every approval so you can audit how it was built. Then you walk it — on a laptop or in a Quest 3 — follow the avatar to the faulty pump along a path that never clips a wall, and get a diagnosis that cites the exact telemetry, events and documents from your pack."</p>
+      <p class="watch">Watch for: do they light up at "audit how it was built" (provenance) or at "Quest 3" (demo)? Do they frown at "a human approves" (automation concern → ask 03 immediately)?</p>
+      <div class="react" role="group" aria-label="Reaction to pitch D">
+        <button type="button" data-react="D" data-v="🔥 hot">🔥 hot</button>
+        <button type="button" data-react="D" data-v="🙂 good">🙂 good</button>
+        <button type="button" data-react="D" data-v="😐 flat">😐 flat</button>
+        <button type="button" data-react="D" data-v="❌ no">❌ no</button>
+      </div>
+      <textarea data-note="D" placeholder="> what they said, verbatim_"></textarea>
+    </div>
+
+    <div class="card pitch" role="button" tabindex="0" aria-expanded="false" data-pitch="B">
+      <div class="pitch-top"><span class="pitch-id">PITCH B</span><span class="badge badge-muted">fallback</span></div>
+      <span class="pitch-name">Walk to the Fault</span>
+      <span class="pitch-text">Collision-free route + proximity status chips + evidence-cited copilot. Extraction kept simple.</span>
+    </div>
+    <div class="pitch-body card" id="pitchB">
+      <p class="script">"A service avatar plans a collision-free route through your scanned boiler room to the pump that's fouling, highlighting every asset it passes with its live status from your data pack. When it arrives, the copilot explains the fault with evidence IDs, a confidence score and the next safe check — nothing is ever claimed without a citation."</p>
+      <p class="watch">Watch for: if this lands better than D, the curator becomes a backstage tool and the walk goes first in the video.</p>
+      <div class="react" role="group" aria-label="Reaction to pitch B">
+        <button type="button" data-react="B" data-v="🔥 hot">🔥 hot</button>
+        <button type="button" data-react="B" data-v="🙂 good">🙂 good</button>
+        <button type="button" data-react="B" data-v="😐 flat">😐 flat</button>
+        <button type="button" data-react="B" data-v="❌ no">❌ no</button>
+      </div>
+      <textarea data-note="B" placeholder="> what they said, verbatim_"></textarea>
+    </div>
+
+    <div class="card pitch" role="button" tabindex="0" aria-expanded="false" data-pitch="A">
+      <div class="pitch-top"><span class="pitch-id">PITCH A</span><span class="badge badge-muted">if "fully automatic"</span></div>
+      <span class="pitch-name">Every Object, Its Own Asset</span>
+      <span class="pitch-text">Density-first automatic extraction with a live counter; same walk and copilot behind it.</span>
+    </div>
+    <div class="pitch-body card" id="pitchA">
+      <p class="script">"We extract and frame as many objects as the scan allows — automatically — and show the count climbing live, every box bound to your equipment data. The same scene then drives an avatar that walks to the faulty device and a copilot that explains why it needs attention."</p>
+      <p class="watch">Watch for: if they insist on "automatic", we headline the automatic count and present approval as QA. Code does not change.</p>
+      <div class="react" role="group" aria-label="Reaction to pitch A">
+        <button type="button" data-react="A" data-v="🔥 hot">🔥 hot</button>
+        <button type="button" data-react="A" data-v="🙂 good">🙂 good</button>
+        <button type="button" data-react="A" data-v="😐 flat">😐 flat</button>
+        <button type="button" data-react="A" data-v="❌ no">❌ no</button>
+      </div>
+      <textarea data-note="A" placeholder="> what they said, verbatim_"></textarea>
+    </div>
   </section>
 
-  <section class="section" aria-labelledby="s2">
-    <p class="eyebrow">[ 02 ] Gap audit</p>
-    <div class="section-head"><h2 id="s2">Ask the partner</h2></div>
+  <!-- QUESTIONS -->
+  <section class="section" aria-labelledby="gapsH">
+    <div class="section-head"><h2 id="gapsH">Top 10 gap questions</h2><span class="badge badge-warning">[GAP - ASK PARTNER]</span></div>
     <div class="progress" aria-live="polite">
       <div class="track"><div class="fill" id="fill"></div></div>
-      <span class="count"><span id="count">00/10</span> <small>ANSWERED</small></span>
+      <div class="count"><span id="answered">0</span>/10 <small>ANSWERED</small></div>
     </div>
     <div id="questions"></div>
   </section>
 
-  <section class="section" aria-labelledby="s3">
-    <p class="eyebrow">[ 03 ] Field notes</p>
-    <div class="section-head"><h2 id="s3">Signal & noise</h2></div>
-    <div class="card q">
-      <label for="notes">Words they repeated, surprises, contacts, data hand-off</label>
-      <div class="why">// e.g. "they kept saying robots", data on USB, Slack contact</div>
-      <textarea id="notes" placeholder="> log observation_"></textarea>
+  <!-- FACTS -->
+  <section class="section" aria-labelledby="factsH">
+    <div class="section-head"><h2 id="factsH">Facts to quote</h2><span class="badge badge-success">[SOURCE DATA]</span></div>
+    <div class="facts">
+      <div class="card fact"><span class="v">1,506,136</span><span class="k">gaussians</span><span class="s">3DGS PLY · 59 floats each · 355 MB</span></div>
+      <div class="card fact"><span class="v">33 %</span><span class="k">usable</span><span class="s">56 % beyond ±100 u · 10 % transparent · ~20 % at origin</span></div>
+      <div class="card fact"><span class="v">8.6 × 4.4 × 2.6</span><span class="k">room, units</span><span class="s">y-up · floor ≈ y −0.9 · scale unverified</span></div>
+      <div class="card fact"><span class="v">30</span><span class="k">assets in pack</span><span class="s">12 valves · 6 pumps · 6 motors · 3 PT · 3 VS</span></div>
+      <div class="card fact"><span class="v">P-005</span><span class="k">default target</span><span class="s">ASSET-017 · fouling · health 44 · A-critical</span></div>
+      <div class="card fact"><span class="v">30 / 25 / 20</span><span class="k">extraction / nav / AI</span><span class="s">then 15 backend · 10 demo</span></div>
     </div>
-    <textarea id="fallback" readonly aria-label="Generated prompt (copy manually)"></textarea>
   </section>
+
+  <div class="callout info" style="margin-top:24px">
+    <p class="eyebrow">// AFTER THE BRIEFING</p>
+    Tap <b>Copy Partner Answers as Claude Update Prompt</b>, paste it into the pm-pack session. Claude re-tags the gaps as <span class="mono">[SOURCE DATA — partner]</span> and re-estimates the MoSCoW hours.
+  </div>
+
+  <footer>a2b · pm_pack/01b · answers stay on this phone (localStorage) · nothing is sent anywhere</footer>
 </main>
 
+<div class="bar">
+  <div class="bar-inner">
+    <button class="btn btn-primary" id="copyBtn" type="button">Copy Partner Answers as Claude Update Prompt</button>
+    <button class="btn btn-secondary" id="clearBtn" type="button" aria-label="Clear all answers">Clear</button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<div class="bar"><div class="bar-inner">
-  <button class="btn btn-secondary" id="clear" type="button">Clear</button>
-  <button class="btn btn-primary" id="copy" type="button">Copy Partner Answers as Claude Update Prompt</button>
-</div></div>
-
 <script>
-const WEDGES = [
-  { id: "1", name: "Point, Path, Why plant twin", tag: "Recommended", badge: "badge-accent",
-    text: "Scan in a 3D viewer, equipment auto-labeled and colored by health. Ask a question → asset highlighted, route drawn, cited explanation." },
-  { id: "2", name: "Maintenance work-package agent", tag: "Data-light", badge: "badge-primary",
-    text: "Alarm + fragmented docs → complete work package: location, photo, route, safety steps, parts. Works on synthetic data." },
-  { id: "3", name: "Scan-to-semantic-twin pipeline", tag: "Data-heavy", badge: "badge-primary",
-    text: "Raw point cloud → 3D instance segmentation → scene graph → navmesh / robot-sim export, with docs linked to each asset." }
-];
-const QUESTIONS = [
-  { q: "What exactly do we get at 19:30 (point cloud / mesh / 360° / splats)? Format, size, how many areas?", why: "Viewer choice + Branch A vs B data.", top: true },
-  { q: "What equipment info can we link: asset register with IDs, P&IDs, manuals, work orders, alarms?", why: "Real RAG vs synthetic docs; source of 'needs attention'.", top: true },
-  { q: "Can data go to cloud AI APIs, or local/open-weight only? Can we show it in a public video?", why: "Cloud LLM vs local model; demo data choice.", top: true },
-  { q: "Primary Monday-morning user: field tech on tablet, remote expert, or robot in simulation?", why: "UI form factor; robot export SHOULD vs COULD.", top: true },
-  { q: "What single live action or metric on screen Sunday separates 1st from 2nd place? Who judges?", why: "Reorders MoSCoW; defines the video's key moment.", top: true },
-  { q: "Which equipment classes matter most? Any labeled ground truth?", why: "Closed vs open vocabulary; measurable accuracy." },
-  { q: "Navigation for people, robots or both? Clearance limits, safety zones, stairs?", why: "Path-planning constraints and grid resolution." },
-  { q: "Where does 'needs attention' come from today: condition alarms, schedules, technician judgment?", why: "Health-status data source." },
-  { q: "How many systems / how long does a tech spend preparing one job today?", why: "ROI baseline. Without it, ROI stays a hypothesis." },
-  { q: "More data on Saturday, or is 19:30 everything? GPU or size limits?", why: "When to freeze the data adapter; pipeline weight." }
-];
-const KEY = "valmet-briefing-card-v1";       // unchanged so v1 answers carry over
-const THEME_KEY = "valmet-briefing-card-theme";
-const pad = n => String(n).padStart(2, "0");
+(function () {
+  'use strict';
 
-let state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.answers)) state = Object.assign(state, s); } catch (e) {}
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
-
-/* Theme: Night City by default */
-const root = document.documentElement, themeBtn = document.getElementById("theme");
-function applyTheme(t) {
-  root.classList.toggle("dark", t !== "light");
-  themeBtn.textContent = t === "light" ? "◑ Night City" : "◐ Daylight";
-  document.querySelector('meta[name="theme-color"]').content = t === "light" ? "#f4f5f8" : "#0f1020";
-}
-let theme = "dark";
-try { theme = localStorage.getItem(THEME_KEY) || "dark"; } catch (e) {}
-applyTheme(theme);
-themeBtn.addEventListener("click", () => {
-  theme = theme === "light" ? "dark" : "light"; applyTheme(theme);
-  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
-});
-
-/* Wedges */
-const wEl = document.getElementById("wedges");
-WEDGES.forEach(w => {
-  const b = document.createElement("button");
-  b.type = "button"; b.className = "card wedge"; b.dataset.id = w.id;
-  b.innerHTML = `<span class="wedge-top"><span class="wedge-id"></span><span class="badge"></span></span><span class="wedge-name"></span><span class="wedge-text"></span>`;
-  b.querySelector(".wedge-id").textContent = "W" + pad(w.id);
-  const badge = b.querySelector(".badge"); badge.textContent = w.tag; badge.classList.add(w.badge);
-  b.querySelector(".wedge-name").textContent = w.name;
-  b.querySelector(".wedge-text").textContent = w.text;
-  b.addEventListener("click", () => { state.wedge = w.id; save(); renderWedges(); });
-  wEl.appendChild(b);
-});
-function renderWedges() { wEl.querySelectorAll(".wedge").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === state.wedge))); }
-renderWedges();
-
-/* Questions */
-const qEl = document.getElementById("questions");
-QUESTIONS.forEach((item, i) => {
-  const d = document.createElement("div"); d.className = "card q";
-  const id = "q" + i;
-  d.innerHTML = `<div class="q-top"><span class="q-id"></span><span><span class="badge badge-success state">[OK] Logged</span> </span></div><label for="${id}"></label><div class="why"></div><textarea id="${id}" placeholder="> partner's answer_"></textarea>`;
-  d.querySelector(".q-id").textContent = "Q" + pad(i + 1);
-  if (item.top) { const t = document.createElement("span"); t.className = "badge badge-accent"; t.textContent = "Top 5"; d.querySelector(".q-top > span:last-child").appendChild(t); }
-  d.querySelector("label").textContent = item.q;
-  d.querySelector(".why").textContent = "// why: " + item.why;
-  const ta = d.querySelector("textarea");
-  ta.value = state.answers[i] || "";
-  ta.addEventListener("input", () => { state.answers[i] = ta.value; save(); renderProgress(); });
-  qEl.appendChild(d);
-});
-const notes = document.getElementById("notes");
-notes.value = state.notes || "";
-notes.addEventListener("input", () => { state.notes = notes.value; save(); });
-
-function renderProgress() {
-  const n = state.answers.filter(a => (a || "").trim()).length;
-  document.getElementById("count").textContent = pad(n) + "/" + pad(QUESTIONS.length);
-  document.getElementById("fill").style.width = (n / QUESTIONS.length * 100) + "%";
-  qEl.querySelectorAll(".q").forEach((el, i) => el.classList.toggle("answered", !!(state.answers[i] || "").trim()));
-  const word = document.getElementById("status-word");
-  word.textContent = n === 0 ? "Standby" : n === QUESTIONS.length ? "Complete" : "Recording";
-}
-renderProgress();
-
-/* Prompt */
-function buildPrompt() {
-  const w = WEDGES.find(x => x.id === state.wedge);
-  const lines = [
-    "Valmet partner briefing answers (Since AI 2026). Update ./pm_pack/ using these.",
-    "",
-    `Selected wedge: Wedge ${w.id} — ${w.name}`,
-    "",
-    "## Answers to [GAP - ASK PARTNER] questions"
+  var QUESTIONS = [
+    { id: 1, gap: 'G1', tag: 'scale', q: 'Is the PLY in metres and y-up? We measure ~2.0–2.6 units floor-to-ceiling — what is the real height?',
+      why: 'Sets clearance (0.30 u), grid cell (0.05 u), eye height and every number we show.' },
+    { id: 2, gap: 'G2', tag: 'data quality', q: 'Two thirds of the gaussians sit outside the room or at the origin — expected? Is a cleaner export or the camera poses available?',
+      why: 'Poses unlock multi-view labelling (S1); a clean export shortens M1/M3.' },
+    { id: 3, gap: 'G4', tag: 'scoring', q: 'What counts as one asset for the 30 % density score (pipe segments? structure?), and does human-approved extraction score fully or must it be fully automatic?',
+      why: 'Decides the headline counter (approved vs automatic) and whether over-segmentation is rewarded.' },
+    { id: 4, gap: 'G5', tag: 'demo script', q: 'OK to use P-005 (fouling, health 44) as the pre-determined faulty device and the room entrance as the start pose?',
+      why: 'Fixes route.json and the three sample buttons (P-005, M-006, P-002).' },
+    { id: 5, gap: 'G3', tag: 'missing files', q: 'The pack references telemetry_full_14d_30min.csv and 38 DOC-*.md asset cards that are not in the package — do they exist?',
+      why: '14-day CSV = real trend in the copilot; without the .md cards we generate them from the rows.' },
+    { id: 6, gap: 'G6', tag: 'NDA / cloud', q: 'May scan views go to a cloud vision/LLM API? May the scan and the data appear in a public GitHub repo and in our demo video?',
+      why: 'Cloud = S1 + live copilot; no cloud = local model. Public video = real room on screen.' },
+    { id: 7, gap: 'G7', tag: 'judging', q: 'Sunday: live run on our laptop (can we hand a judge the Quest 3?), slot length, or video-first?',
+      why: 'Makes VR (S3) a wow moment or a liability; sets Demo Mode rehearsal.' },
+    { id: 8, gap: 'G7', tag: 'tiebreaker', q: 'What single live metric or action on screen separates 1st from 2nd place for you?',
+      why: 'Becomes the 0:30 mark of the video and the first thing on the judges’ screen. Write it down verbatim.' },
+    { id: 9, gap: 'G8', tag: 'mentoring', q: 'When exactly are the mentoring windows, and who answers in the Discord channel at night?',
+      why: 'Puts the Gate 2 partner check (Sat ~08:30) on the clock.' },
+    { id: 10, gap: 'G5', tag: 'navigation', q: 'Human or robot clearance? Single floor only? What radius counts as "near" for the proximity display?',
+      why: 'Grid dilation (M2/M7) and the proximity ring (1.5 u today) in M8.' }
   ];
-  QUESTIONS.forEach((item, i) => {
-    const a = (state.answers[i] || "").trim();
-    lines.push(`Q${i + 1}: ${item.q}`, `A${i + 1}: ${a || "(no answer — keep as [GAP - ASK PARTNER])"}`, "");
-  });
-  lines.push("## Extra notes", (state.notes || "").trim() || "(none)", "",
-    "Instructions: for every answered question, replace the matching [GAP - ASK PARTNER] / [HYPOTHESIS] tags with [PARTNER] facts across all pm_pack files, choose Branch A or Branch B for data, adjust MoSCoW priorities, the risk register and AGENTS.md architecture accordingly, and keep the 'provisional' notice only where gaps remain.");
-  return lines.join("\n");
-}
 
-/* Toast */
-const toast = document.getElementById("toast"); let toastTimer;
-function showToast(html, isErr) {
-  toast.innerHTML = html; toast.classList.toggle("err", !!isErr); toast.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
-}
+  var KEY = 'valmet_a2b_briefing_v1';
+  var state = { answers: {}, asked: {}, reactions: {}, notes: {}, theme: 'dark', savedAt: null };
 
-document.getElementById("copy").addEventListener("click", async () => {
-  const text = buildPrompt();
-  try { await navigator.clipboard.writeText(text); showToast("<b>[OK]</b> Prompt copied. Paste it into Claude."); }
-  catch (e) {
-    const fb = document.getElementById("fallback");
-    fb.style.display = "block"; fb.value = text; fb.focus(); fb.select();
-    showToast("<b>[ERR]</b> Clipboard blocked. Text is selected below; copy it manually.", true);
+  function load() {
+    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && typeof s === 'object') state = Object.assign(state, s); } } catch (e) {}
   }
-});
-document.getElementById("clear").addEventListener("click", () => {
-  if (!confirm("Clear all answers and notes on this device?")) return;
-  state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
-  save();
-  qEl.querySelectorAll("textarea").forEach(t => t.value = "");
-  notes.value = ""; renderWedges(); renderProgress();
-  showToast("<b>[OK]</b> Card cleared.");
-});
+  function save() {
+    state.savedAt = new Date().toISOString();
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    var el = document.getElementById('savedAt');
+    if (el) el.innerHTML = 'Saved <b>' + state.savedAt.slice(11, 16) + '</b>';
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function renderQuestions() {
+    var host = document.getElementById('questions');
+    var html = '';
+    QUESTIONS.forEach(function (it) {
+      html += '<div class="card q">' +
+        '<div class="q-top"><span class="q-num">' + pad(it.id) + '</span><p class="q-text">' + esc(it.q) + '</p></div>' +
+        '<p class="q-why">' + esc(it.why) + '</p>' +
+        '<div class="q-tags"><span class="badge badge-warning">' + it.gap + '</span><span class="badge badge-muted">' + esc(it.tag) + '</span></div>' +
+        '<textarea data-q="' + it.id + '" placeholder="> partner answer_" aria-label="Answer to question ' + it.id + '">' + esc(state.answers[it.id] || '') + '</textarea>' +
+        '<label class="asked"><input type="checkbox" data-asked="' + it.id + '"' + (state.asked[it.id] ? ' checked' : '') + '> asked</label>' +
+        '</div>';
+    });
+    host.innerHTML = html;
+  }
+
+  function updateProgress() {
+    var n = 0;
+    QUESTIONS.forEach(function (it) { if ((state.answers[it.id] || '').trim()) n++; });
+    document.getElementById('answered').textContent = n;
+    document.getElementById('fill').style.width = (n * 10) + '%';
+  }
+
+  function applyTheme() {
+    var dark = state.theme !== 'light';
+    document.documentElement.classList.toggle('dark', dark);
+    document.getElementById('themeBtn').textContent = dark ? 'Daylight' : 'Night city';
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0f1020' : '#f4f4f8');
+  }
+
+  function applyPitchState() {
+    document.querySelectorAll('.react button').forEach(function (b) {
+      b.setAttribute('aria-pressed', state.reactions[b.dataset.react] === b.dataset.v ? 'true' : 'false');
+    });
+    document.querySelectorAll('textarea[data-note]').forEach(function (t) { t.value = state.notes[t.dataset.note] || ''; });
+  }
+
+  function buildPrompt() {
+    var lines = [];
+    lines.push('# Partner answers → update the Valmet pm_pack (Since AI 2026, wedge D "Approve-to-Build Twin")');
+    lines.push('');
+    lines.push('Captured ' + new Date().toLocaleString() + ' at the Valmet briefing. Treat every answer below as `[SOURCE DATA — partner, Fri briefing]`.');
+    lines.push('');
+    lines.push('## Instructions');
+    lines.push('1. Re-tag the matching `[GAP - ASK PARTNER]` items (G1–G8) in pm_pack/01–06 as `[SOURCE DATA — partner]` and rewrite the affected sentences.');
+    lines.push('2. Re-score the risk register (04) and re-estimate MoSCoW hours (02) where an answer changes scope; promote/demote S1, S2, S3 accordingly.');
+    lines.push('3. Update the video shot list (05) if the tiebreaker (question 8) changes the 0:30 moment.');
+    lines.push('4. List every change you made as a table: file → section → before → after.');
+    lines.push('5. Unanswered questions stay `[GAP - ASK PARTNER]`; do not invent answers.');
+    lines.push('');
+    lines.push('## Pitch reactions');
+    ['D', 'B', 'A'].forEach(function (p) {
+      var name = { D: 'Approve-to-Build Twin', B: 'Walk to the Fault', A: 'Every Object, Its Own Asset' }[p];
+      var r = state.reactions[p] || '(no reaction recorded)';
+      var n = (state.notes[p] || '').trim();
+      lines.push('- Pitch ' + p + ' (' + name + '): ' + r + (n ? ' — "' + n + '"' : ''));
+    });
+    lines.push('');
+    lines.push('## Answers');
+    QUESTIONS.forEach(function (it) {
+      var a = (state.answers[it.id] || '').trim();
+      lines.push('### Q' + pad(it.id) + ' [' + it.gap + '] ' + it.q);
+      lines.push('- Asked: ' + (state.asked[it.id] ? 'yes' : 'no'));
+      lines.push('- Answer: ' + (a ? a : '(no answer yet — keep as [GAP - ASK PARTNER])'));
+      lines.push('');
+    });
+    lines.push('## Context for Claude');
+    lines.push('Source files: Source-Data-Do-Not_change/ (brief .docx, builder pack .xlsx v4.0, Industrial Boiler Room .ply — 1,506,136 gaussians, ~33 % usable, y-up, ≈ 8.6 × 4.4 × 2.6 units). Judging: extraction 30 / navigation 25 / AI 20 / backend 15 / demo 10. Deadline Sun 10:00 EET.');
+    return lines.join('\n');
+  }
+
+  function toast(msg, err) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('on');
+    clearTimeout(toast._h); toast._h = setTimeout(function () { t.classList.remove('on'); }, 2200);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+      var ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+    } catch (e) { return false; }
+  }
+
+  // --- wire up ---
+  load();
+  renderQuestions();
+  applyTheme();
+  applyPitchState();
+  updateProgress();
+  if (state.savedAt) { var el = document.getElementById('savedAt'); el.innerHTML = 'Saved <b>' + state.savedAt.slice(11, 16) + '</b>'; }
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.matches('textarea[data-q]')) { state.answers[t.dataset.q] = t.value; updateProgress(); save(); }
+    if (t.matches('textarea[data-note]')) { state.notes[t.dataset.note] = t.value; save(); }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[data-asked]')) { state.asked[t.dataset.asked] = t.checked; save(); }
+  });
+  document.addEventListener('click', function (e) {
+    var r = e.target.closest('.react button');
+    if (r) { state.reactions[r.dataset.react] = (state.reactions[r.dataset.react] === r.dataset.v) ? '' : r.dataset.v; applyPitchState(); save(); return; }
+    var p = e.target.closest('.pitch');
+    if (p) { p.setAttribute('aria-expanded', p.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); return; }
+  });
+  document.addEventListener('keydown', function (e) {
+    var p = e.target.closest && e.target.closest('.pitch');
+    if (p && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); p.click(); }
+  });
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    state.theme = state.theme === 'light' ? 'dark' : 'light'; applyTheme(); save();
+  });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var text = buildPrompt();
+    copyText(text).then(function (ok) {
+      if (ok) toast('[OK] Update prompt copied — paste it into Claude.');
+      else { toast('[ERR] Clipboard blocked — long-press the text below.', true); showFallback(text); }
+    });
+  });
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    if (!confirm('Clear all answers, reactions and notes on this phone?')) return;
+    state.answers = {}; state.asked = {}; state.reactions = {}; state.notes = {};
+    save(); renderQuestions(); applyPitchState(); updateProgress(); toast('[OK] Cleared.');
+  });
+  function showFallback(text) {
+    var id = 'fallbackBox'; var box = document.getElementById(id);
+    if (!box) { box = document.createElement('textarea'); box.id = id; box.setAttribute('aria-label', 'Update prompt'); box.style.minHeight = '220px'; document.querySelector('main').appendChild(box); }
+    box.value = text; box.focus(); box.select();
+  }
+})();
 </script>
 </body>
 </html>
