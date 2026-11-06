@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valmet Briefing Card</title>
+<style>
+  :root {
+    --bg: #0e1116; --card: #171b22; --card2: #1f2530; --text: #e6e9ef; --muted: #9aa3b2;
+    --accent: #4fb3a9; --warn: #e0a84a; --border: #2a3140; --sel: #18403c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px 16px 120px; }
+  h1 { font-size: 1.35rem; margin: 4px 0 4px; }
+  h2 { font-size: 1.05rem; margin: 28px 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+  .notice { background: #2b2213; border: 1px solid var(--warn); color: #f3d9a8; border-radius: 10px;
+    padding: 10px 12px; font-size: .85rem; }
+  .wedge { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 10px; cursor: pointer; width: 100%; text-align: left; color: inherit; font: inherit; }
+  .wedge[aria-pressed="true"] { border-color: var(--accent); background: var(--sel); }
+  .wedge b { display: block; margin-bottom: 4px; }
+  .wedge span { color: var(--muted); font-size: .9rem; }
+  .wedge .tag { float: right; font-size: .75rem; color: var(--accent); }
+  .q { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .q label { display: block; font-weight: 600; margin-bottom: 4px; }
+  .q .why { color: var(--muted); font-size: .82rem; margin-bottom: 8px; }
+  .q .num { color: var(--accent); margin-right: 6px; }
+  .top { font-size: .7rem; background: var(--accent); color: #062b27; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+  textarea { width: 100%; min-height: 64px; background: var(--card2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px; font: inherit; resize: vertical; }
+  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(14,17,22,.96); border-top: 1px solid var(--border);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .bar div { max-width: 640px; margin: 0 auto; display: flex; gap: 8px; }
+  button.primary { flex: 1; background: var(--accent); color: #062b27; border: 0; border-radius: 10px; padding: 14px; font-weight: 700; font-size: 1rem; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: .9rem; }
+  #status { text-align: center; color: var(--accent); font-size: .85rem; min-height: 1.2em; margin-top: 6px; }
+  #fallback { display: none; width: 100%; min-height: 200px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Valmet Briefing Card</h1>
+  <p class="sub">Since AI 2026 · Fri 19:30 briefing · Answers save on this device as you type</p>
+  <div class="notice">⚠️ <b>Provisional:</b> these wedges and questions come from the README alone. There is no data, no API docs and no evaluation criteria yet. Fill in the gaps here.</div>
+
+  <h2>Pick a wedge (tap)</h2>
+  <div id="wedges"></div>
+
+  <h2>Top 10 gaps: ask partner</h2>
+  <div id="questions"></div>
+
+  <h2>Extra notes</h2>
+  <div class="q">
+    <label for="notes">Words they repeated, surprises, contacts, data hand-off details</label>
+    <textarea id="notes" placeholder="e.g. 'they kept saying robots', data on USB stick, Slack contact…"></textarea>
+  </div>
+  <textarea id="fallback" readonly aria-label="Generated prompt (copy manually)"></textarea>
+</main>
+
+<div class="bar"><div>
+  <button class="ghost" id="clear" type="button">Clear</button>
+  <button class="primary" id="copy" type="button">Copy Partner Answers as Claude Update Prompt</button>
+</div><div id="status" role="status"></div></div>
+
+<script>
+const WEDGES = [
+  { id: "1", name: "Wedge 1 — Point, Path, Why plant twin", tag: "recommended",
+    text: "Scan in a 3D viewer, equipment auto-labeled and colored by health. Ask a question → asset highlighted, route drawn, cited explanation." },
+  { id: "2", name: "Wedge 2 — Maintenance work-package agent", tag: "data-light",
+    text: "Alarm + fragmented docs → complete work package: location, photo, route, safety steps, parts. Works on synthetic data." },
+  { id: "3", name: "Wedge 3 — Scan-to-semantic-twin pipeline", tag: "data-heavy",
+    text: "Raw point cloud → 3D instance segmentation → scene graph → navmesh / robot-sim export, with docs linked to each asset." }
+];
+const QUESTIONS = [
+  { q: "What exactly do we get at 19:30 (point cloud / mesh / 360° / splats)? Format, size, how many areas?", why: "Viewer choice + Branch A vs B data.", top: true },
+  { q: "What equipment info can we link: asset register with IDs, P&IDs, manuals, work orders, alarms?", why: "Real RAG vs synthetic docs; source of 'needs attention'.", top: true },
+  { q: "Can data go to cloud AI APIs, or local/open-weight only? Can we show it in a public video?", why: "Cloud LLM vs local model; demo data choice.", top: true },
+  { q: "Primary Monday-morning user: field tech on tablet, remote expert, or robot in simulation?", why: "UI form factor; robot export SHOULD vs COULD.", top: true },
+  { q: "What single live action or metric on screen Sunday separates 1st from 2nd place? Who judges?", why: "Reorders MoSCoW; defines the video's key moment.", top: true },
+  { q: "Which equipment classes matter most? Any labeled ground truth?", why: "Closed vs open vocabulary; measurable accuracy." },
+  { q: "Navigation for people, robots or both? Clearance limits, safety zones, stairs?", why: "Path-planning constraints and grid resolution." },
+  { q: "Where does 'needs attention' come from today — condition alarms, schedules, technician judgment?", why: "Health-status data source." },
+  { q: "How many systems / how long does a tech spend preparing one job today?", why: "ROI baseline — otherwise ROI stays a hypothesis." },
+  { q: "More data on Saturday, or is 19:30 everything? GPU or size limits?", why: "When to freeze the data adapter; pipeline weight." }
+];
+const KEY = "valmet-briefing-card-v1";
+let state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.answers)) state = Object.assign(state, s); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+const wEl = document.getElementById("wedges");
+WEDGES.forEach(w => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "wedge"; b.dataset.id = w.id;
+  b.innerHTML = `<i class="tag"></i><b></b><span></span>`;
+  b.querySelector(".tag").textContent = w.tag;
+  b.querySelector("b").textContent = w.name;
+  b.querySelector("span").textContent = w.text;
+  b.addEventListener("click", () => { state.wedge = w.id; save(); renderWedges(); });
+  wEl.appendChild(b);
+});
+function renderWedges() { wEl.querySelectorAll(".wedge").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === state.wedge))); }
+renderWedges();
+
+const qEl = document.getElementById("questions");
+QUESTIONS.forEach((item, i) => {
+  const d = document.createElement("div"); d.className = "q";
+  const id = "q" + i;
+  d.innerHTML = `<label for="${id}"><span class="num">Q${i + 1}</span><span class="t"></span></label><div class="why"></div><textarea id="${id}" placeholder="Partner's answer…"></textarea>`;
+  d.querySelector(".t").textContent = item.q;
+  if (item.top) { const t = document.createElement("span"); t.className = "top"; t.textContent = "TOP 5"; d.querySelector("label").appendChild(t); }
+  d.querySelector(".why").textContent = "Why: " + item.why;
+  const ta = d.querySelector("textarea");
+  ta.value = state.answers[i] || "";
+  ta.addEventListener("input", () => { state.answers[i] = ta.value; save(); });
+  qEl.appendChild(d);
+});
+const notes = document.getElementById("notes");
+notes.value = state.notes || "";
+notes.addEventListener("input", () => { state.notes = notes.value; save(); });
+
+function buildPrompt() {
+  const w = WEDGES.find(x => x.id === state.wedge);
+  const lines = [
+    "Valmet partner briefing answers (Since AI 2026). Update ./pm_pack/ using these.",
+    "",
+    `Selected wedge: ${w.name}`,
+    "",
+    "## Answers to [GAP - ASK PARTNER] questions"
+  ];
+  QUESTIONS.forEach((item, i) => {
+    const a = (state.answers[i] || "").trim();
+    lines.push(`Q${i + 1}: ${item.q}`, `A${i + 1}: ${a || "(no answer — keep as [GAP - ASK PARTNER])"}`, "");
+  });
+  lines.push("## Extra notes", (state.notes || "").trim() || "(none)", "",
+    "Instructions: for every answered question, replace the matching [GAP - ASK PARTNER] / [HYPOTHESIS] tags with [PARTNER] facts across all pm_pack files, choose Branch A or Branch B for data, adjust MoSCoW priorities, the risk register and AGENTS.md architecture accordingly, and keep the 'provisional' notice only where gaps remain.");
+  return lines.join("\n");
+}
+const status = document.getElementById("status");
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = buildPrompt();
+  try { await navigator.clipboard.writeText(text); status.textContent = "Copied ✓ — paste into Claude"; }
+  catch (e) {
+    const fb = document.getElementById("fallback");
+    fb.style.display = "block"; fb.value = text; fb.focus(); fb.select();
+    status.textContent = "Clipboard blocked — text selected below, copy manually";
+  }
+});
+document.getElementById("clear").addEventListener("click", () => {
+  if (!confirm("Clear all answers on this device?")) return;
+  state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
+  save(); location.reload();
+});
+</script>
+</body>
+</html>
