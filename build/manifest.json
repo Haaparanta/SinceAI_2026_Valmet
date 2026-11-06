@@ -768,6 +768,701 @@
       "event": "after 0156 ACCEPTED (clean behind_wall)",
       "kept": 1632230,
       "built": 0
+    },
+    {
+      "index": 164,
+      "kind": "clean",
+      "name": "behind_wall",
+      "status": "replaced",
+      "images": [
+        "images/0164_20261106-233141.png",
+        "images/0165_20261106-233142.png",
+        "images/0166_20261106-233142.png",
+        "images/0167_20261106-233142.png",
+        "images/0168_20261106-233142.png",
+        "images/0169_20261106-233142.png",
+        "images/0170_20261106-233142.png",
+        "images/0171_20261106-233142.png",
+        "images/0172_20261106-233142.png",
+        "images/0173_20261106-233142.png"
+      ],
+      "created_at": "2026-11-06T23:31:42+02:00",
+      "count": 23904,
+      "pool_before": 1632230,
+      "bbox": {
+        "min": [
+          -5.923,
+          -1.2133,
+          -3.451
+        ],
+        "max": [
+          -3.949,
+          2.9438,
+          4.2235
+        ]
+      },
+      "headline": "REMOVE 23,904 points (1.5 %) · floaters behind the left wall (-x)",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -4.3424,
+            1.9577,
+            5.2001
+          ],
+          "target": [
+            -4.3424,
+            -0.0148,
+            -0.4357
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -8.2299,
+            1.5563,
+            1.8088
+          ],
+          "target": [
+            -4.3424,
+            -0.0148,
+            -0.4357
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            -0.455,
+            1.5563,
+            1.8088
+          ],
+          "target": [
+            -4.3424,
+            -0.0148,
+            -0.4357
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            -4.3424,
+            13.1495,
+            -0.437
+          ],
+          "target": [
+            -4.3424,
+            -0.0148,
+            -0.4357
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.0735,
+            11.4768,
+            -0.1341
+          ],
+          "target": [
+            0.0735,
+            -0.7101,
+            -0.1341
+          ],
+          "fov_deg": 35.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 186110,
+          "built": 0,
+          "selected": 46995
+        },
+        "close-up from the left": {
+          "rest": 174742,
+          "built": 0,
+          "selected": 135899
+        },
+        "close-up from the right": {
+          "rest": 216397,
+          "built": 0,
+          "selected": 100465
+        },
+        "close-up from above": {
+          "rest": 136582,
+          "built": 0,
+          "selected": 14676
+        },
+        "outside, all points": {
+          "rest": 241223,
+          "built": 0,
+          "selected": 18453
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 175047,
+          "built": 0,
+          "selected": 30489
+        },
+        "outside from the opposite corner": {
+          "rest": 228268,
+          "built": 0,
+          "selected": 32773
+        },
+        "inside the room (START camera)": {
+          "rest": 330349,
+          "built": 0,
+          "selected": 0
+        },
+        "diagnostic view": {
+          "rest": 233505,
+          "built": 0,
+          "selected": 49814
+        },
+        "before | after": {}
+      },
+      "params": {
+        "side": "left",
+        "margin": 0.04,
+        "strip": 0.25
+      },
+      "info": {
+        "densest_layer": -3.9383,
+        "wall_layer_median": -4.0063,
+        "edge_gap": 0.4,
+        "profile": [
+          [
+            -3.75,
+            -3.9383
+          ],
+          [
+            -3.5,
+            -3.9739
+          ],
+          [
+            -3.25,
+            -4.0063
+          ],
+          [
+            -3.0,
+            -4.0063
+          ],
+          [
+            -2.75,
+            -4.0063
+          ],
+          [
+            -2.5,
+            -4.0206
+          ],
+          [
+            -2.25,
+            -4.1307
+          ],
+          [
+            -2.0,
+            -4.1307
+          ],
+          [
+            -1.75,
+            -3.9549
+          ],
+          [
+            -1.5,
+            -3.9549
+          ],
+          [
+            -1.25,
+            -4.1361
+          ],
+          [
+            -1.0,
+            -4.1777
+          ],
+          [
+            -0.75,
+            -4.1361
+          ],
+          [
+            -0.5,
+            -4.0701
+          ],
+          [
+            -0.25,
+            -3.9801
+          ],
+          [
+            0.0,
+            -3.9383
+          ],
+          [
+            0.25,
+            -3.9383
+          ],
+          [
+            0.5,
+            -3.9383
+          ],
+          [
+            0.75,
+            -3.9383
+          ],
+          [
+            1.0,
+            -3.9383
+          ],
+          [
+            1.25,
+            -3.909
+          ],
+          [
+            1.5,
+            -3.909
+          ],
+          [
+            1.75,
+            -3.9383
+          ],
+          [
+            2.0,
+            -3.9383
+          ],
+          [
+            2.25,
+            -4.157
+          ],
+          [
+            2.5,
+            -4.1602
+          ],
+          [
+            2.75,
+            -4.157
+          ],
+          [
+            3.0,
+            -4.1244
+          ],
+          [
+            3.25,
+            -4.1244
+          ],
+          [
+            3.5,
+            -4.1269
+          ]
+        ]
+      },
+      "decided_at": "2026-11-06T23:32:31+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 174,
+      "kind": "clean",
+      "name": "behind_wall",
+      "status": "pending",
+      "images": [
+        "images/0174_20261106-233255.png",
+        "images/0175_20261106-233255.png",
+        "images/0176_20261106-233255.png",
+        "images/0177_20261106-233256.png",
+        "images/0178_20261106-233256.png",
+        "images/0179_20261106-233256.png",
+        "images/0180_20261106-233256.png",
+        "images/0181_20261106-233256.png",
+        "images/0182_20261106-233256.png",
+        "images/0183_20261106-233256.png"
+      ],
+      "created_at": "2026-11-06T23:32:56+02:00",
+      "count": 1689,
+      "pool_before": 1632230,
+      "bbox": {
+        "min": [
+          -5.923,
+          -1.2133,
+          -3.4468
+        ],
+        "max": [
+          -4.3616,
+          2.9438,
+          4.2235
+        ]
+      },
+      "headline": "REMOVE 1,689 points (0.1 %) · floaters behind the left wall (-x)",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -4.8898,
+            2.7966,
+            7.0128
+          ],
+          "target": [
+            -4.8898,
+            0.349,
+            0.0198
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -9.6545,
+            2.2746,
+            2.7707
+          ],
+          "target": [
+            -4.8898,
+            0.349,
+            0.0198
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            -0.1252,
+            2.2746,
+            2.7707
+          ],
+          "target": [
+            -4.8898,
+            0.349,
+            0.0198
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            -4.8898,
+            15.7798,
+            0.0183
+          ],
+          "target": [
+            -4.8898,
+            0.349,
+            0.0198
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "diagnostic view": {
+          "position": [
+            -0.2855,
+            11.4768,
+            -0.1341
+          ],
+          "target": [
+            -0.2855,
+            -0.7101,
+            -0.1341
+          ],
+          "fov_deg": 35.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 187272,
+          "built": 0,
+          "selected": 13324
+        },
+        "close-up from the left": {
+          "rest": 186501,
+          "built": 0,
+          "selected": 17102
+        },
+        "close-up from the right": {
+          "rest": 198992,
+          "built": 0,
+          "selected": 11442
+        },
+        "close-up from above": {
+          "rest": 104559,
+          "built": 0,
+          "selected": 4709
+        },
+        "outside, all points": {
+          "rest": 244338,
+          "built": 0,
+          "selected": 5377
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 178592,
+          "built": 0,
+          "selected": 7923
+        },
+        "outside from the opposite corner": {
+          "rest": 240236,
+          "built": 0,
+          "selected": 12939
+        },
+        "inside the room (START camera)": {
+          "rest": 330349,
+          "built": 0,
+          "selected": 0
+        },
+        "diagnostic view": {
+          "rest": 240281,
+          "built": 0,
+          "selected": 13821
+        },
+        "before | after": {}
+      },
+      "params": {
+        "side": "left",
+        "margin": 0.04,
+        "strip": 0.25
+      },
+      "info": {
+        "outer_edge": -4.3216,
+        "densest_layer": -3.9383,
+        "wall_layer_median": -4.0063,
+        "edge_gap": 0.4,
+        "profile": [
+          [
+            -3.75,
+            -3.9383
+          ],
+          [
+            -3.5,
+            -3.9739
+          ],
+          [
+            -3.25,
+            -4.0063
+          ],
+          [
+            -3.0,
+            -4.0063
+          ],
+          [
+            -2.75,
+            -4.0063
+          ],
+          [
+            -2.5,
+            -4.0206
+          ],
+          [
+            -2.25,
+            -4.1307
+          ],
+          [
+            -2.0,
+            -4.1307
+          ],
+          [
+            -1.75,
+            -3.9549
+          ],
+          [
+            -1.5,
+            -3.9549
+          ],
+          [
+            -1.25,
+            -4.1361
+          ],
+          [
+            -1.0,
+            -4.1777
+          ],
+          [
+            -0.75,
+            -4.1361
+          ],
+          [
+            -0.5,
+            -4.0701
+          ],
+          [
+            -0.25,
+            -3.9801
+          ],
+          [
+            0.0,
+            -3.9383
+          ],
+          [
+            0.25,
+            -3.9383
+          ],
+          [
+            0.5,
+            -3.9383
+          ],
+          [
+            0.75,
+            -3.9383
+          ],
+          [
+            1.0,
+            -3.9383
+          ],
+          [
+            1.25,
+            -3.909
+          ],
+          [
+            1.5,
+            -3.909
+          ],
+          [
+            1.75,
+            -3.9383
+          ],
+          [
+            2.0,
+            -3.9383
+          ],
+          [
+            2.25,
+            -4.157
+          ],
+          [
+            2.5,
+            -4.1602
+          ],
+          [
+            2.75,
+            -4.157
+          ],
+          [
+            3.0,
+            -4.1244
+          ],
+          [
+            3.25,
+            -4.1244
+          ],
+          [
+            3.5,
+            -4.1269
+          ]
+        ]
+      }
     }
   ],
   "parts": [],

@@ -162,12 +162,16 @@ def behind_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np
         raise ValueError(f"side must be one of {sorted(WALL_SIDES)}")
     ax, run_ax, sign = WALL_SIDES[side]
     depth = sign * xyz[:, ax]
-    _, gap = outer_edge_gap(-depth)
+    edge, gap = outer_edge_gap(-depth)
+    outer = -edge                                    # outer edge of ALL dense material on this side (depth coords)
     if gap > max_gap:
         raise ValueError(f"no sharp {WALL_LABEL[side]} in the scan: its edge lies {gap:.2f} u past the densest layer "
                          f"(a wall is within {max_gap})")
     prof = back_wall_profile(xyz[:, run_ax], depth, strip=strip)
-    remove = depth < prof.at(xyz[:, run_ax]) - margin
+    # never cut inside the outer edge of the dense material: on the Equipment Room's left side a second, 15 cm thick
+    # dense layer sits behind the main wall layer, and per-strip walls alone sliced through it (images 0164-0173)
+    cut = np.minimum(prof.at(xyz[:, run_ax]), outer) - margin
+    remove = depth < cut
     n = int(remove.sum())
     wall = sign * prof.global_depth
     lo, hi = bmin.copy(), bmax.copy()
@@ -178,16 +182,17 @@ def behind_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np
     wall_med = sign * float(np.median(prof.depth[prof.measured])) if prof.measured.any() else wall
     layers = (f"wall layer {'xyz'[ax]} {wall_med:+.2f} (median of strips, range "
               f"{sign * prof.depth.max():+.2f}…{sign * prof.depth.min():+.2f})"
-              + (f"; denser layer in front at {wall:+.2f}" if abs(wall_med - wall) > 0.05 else ""))
+              + (f"; denser layer in front at {wall:+.2f}" if abs(wall_med - wall) > 0.05 else "")
+              + f"; dense material ends at {sign * outer:+.2f}")
     return CleanProposal(
         what=f"floaters behind the {WALL_LABEL[side]}",
         remove=remove,
         title=f"behind the {WALL_LABEL[side]} (wall layer {'xyz'[ax]} {wall_med:+.2f})",
-        subtitle=(f"{layers} · cut {100 * margin:.0f} cm behind it per strip · remove {n:,} of {len(xyz):,} "
+        subtitle=(f"{layers} · cut {100 * margin:.0f} cm behind the wall and the dense material · remove {n:,} of {len(xyz):,} "
                   f"({100 * n / len(xyz):.1f} %) · top view, above y {hide_above:+.1f} hidden"),
         camera=cam,
         params={"side": side, "margin": margin, "strip": strip},
-        info={"densest_layer": round(float(wall), 4), "wall_layer_median": round(wall_med, 4), "edge_gap": round(float(gap), 3),
+        info={"outer_edge": round(float(sign * outer), 4), "densest_layer": round(float(wall), 4), "wall_layer_median": round(wall_med, 4), "edge_gap": round(float(gap), 3),
               "profile": [[round(float(a), 3), round(float(sign * d), 4)] for a, d in zip(prof.edges[:-1], prof.depth)]},
         hide_kept=xyz[:, 1] > hide_above,
     )

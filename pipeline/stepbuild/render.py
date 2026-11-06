@@ -141,13 +141,15 @@ def _eye_dome(img: np.ndarray, depth: np.ndarray, strength: float, radius: int =
 # ---------------------------------------------------------------- cameras
 
 
-def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 80.0) -> Camera:
+def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 80.0, opposite: bool = False) -> Camera:
     """Room overview from INSIDE the room, like a security camera: in the -x/-z corner at ~55 % of the room height,
     looking diagonally down the length of the room. Picked from six candidate corners on the Equipment Room scan
     (closed on all sides) as the one with the clearest view; the first scan's camera stood outside its open front."""
     size = bmax - bmin
-    pos = bmin + np.array([0.08, 0.55, 0.08]) * size
-    target = bmin + np.array([0.85, 0.30, 0.80]) * size
+    a, b = (np.array([0.92, 0.55, 0.92]), np.array([0.15, 0.30, 0.20])) if opposite else \
+        (np.array([0.08, 0.55, 0.08]), np.array([0.85, 0.30, 0.80]))
+    pos = bmin + a * size
+    target = bmin + b * size
     return Camera(tuple(map(float, pos)), tuple(map(float, target)), fov_deg)
 
 
@@ -438,11 +440,25 @@ def render_blend(layers: list[BlendLayer], cam: Camera, width: int = WIDTH, heig
 
 
 def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0, width: int = WIDTH,
-                   height: int = HEIGHT - BANNER_H) -> Camera:
-    """Fixed view from outside the room (front-right, above), framing the whole scan: the same camera for every
-    step of a run, so the outside images line up in the flipbook."""
-    return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg, width=width,
-                          height=height)
+                   height: int = HEIGHT - BANNER_H, opposite: bool = False) -> Camera:
+    """Fixed view from outside the room, above, framing the whole scan: from the front-right corner, or with
+    `opposite` from the back-left corner. The same cameras for every step of a run, so the images line up."""
+    d = np.array([0.55, -0.55, 1.0]) if opposite else np.array([-0.55, -0.55, -1.0])
+    return framing_camera(bmin, bmax, d, fill=0.92, fov_deg=fov_deg, width=width, height=height)
+
+
+def plan_camera(lo: np.ndarray, hi: np.ndarray, fill: float = 0.85, width: int = WIDTH,
+                height: int = HEIGHT - BANNER_H) -> Camera:
+    """Straight down onto the box lo..hi, back wall (-z) at the top of the picture."""
+    return framing_camera(lo, hi, np.array([0.0, -1.0, 1e-4]), fill=fill, width=width, height=height,
+                          up=(0.0, 0.0, -1.0))
+
+
+def turned(view_dir: tuple[float, float, float] | np.ndarray, degrees: float) -> np.ndarray:
+    """A view direction turned about the vertical axis (positive = counter-clockwise seen from above)."""
+    a = np.radians(degrees)
+    d = np.asarray(view_dir, dtype=np.float64)
+    return np.array([d[0] * np.cos(a) + d[2] * np.sin(a), d[1], -d[0] * np.sin(a) + d[2] * np.cos(a)])
 
 
 # ---------------------------------------------------------------- probes (help the user judge a level)

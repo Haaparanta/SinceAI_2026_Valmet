@@ -168,7 +168,7 @@ def _below_cut(splats: np.ndarray, m: S.Manifest, idx: np.ndarray) -> np.ndarray
     return idx[splats["y"][idx] <= m.data["dollhouse_cut_y"]]
 
 
-def _outside_views(m: S.Manifest) -> list[tuple[str, R.Camera, None]]:
+def _outside_views(m: S.Manifest) -> list[tuple[str, R.Camera, np.ndarray | None]]:
     bmin, bmax = _bounds(m)
     views = [("outside, all points", R.outside_camera(bmin, bmax), None)]
     if "dollhouse_cut_y" in m.data:
@@ -191,7 +191,7 @@ def _render_views(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_i
         if name.startswith("dollhouse"):
             rest, built = _below_cut(splats, m, rest), _below_cut(splats, m, built_idx)
         frame = R.render_blend(_layers(splats, built, sel_idx, rest, kind), cam)
-        if name == "close-up" and len(sel_idx):
+        if name.startswith("close-up") and len(sel_idx):
             pts = xyz_of(splats[sel_idx])
             lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
             h, w = frame.image.shape[:2]
@@ -288,7 +288,16 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
     sel_idx = pool_idx[sel_mask]
     if len(sel_idx) == 0:
         return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
-    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx]), view_dir), None), *_outside_views(m)]
+    sel_pts = xyz_of(splats[sel_idx])
+    lo_s, hi_s = np.percentile(sel_pts, 2, axis=0), np.percentile(sel_pts, 98, axis=0)
+    bmin, bmax = _bounds(m)
+    views = [("close-up", _closeup_camera(sel_pts, view_dir), None),
+             ("close-up from the left", _closeup_camera(sel_pts, tuple(R.turned(view_dir, -60))), None),
+             ("close-up from the right", _closeup_camera(sel_pts, tuple(R.turned(view_dir, 60))), None),
+             ("close-up from above", R.plan_camera(lo_s, hi_s, fill=0.5), None),
+             *_outside_views(m),
+             ("outside from the opposite corner", R.outside_camera(bmin, bmax, opposite=True), None),
+             ("inside the room (START camera)", R.overview_camera(bmin, bmax), None)]
     if extra is not None:
         views.append(extra)
     frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views, kind)
@@ -375,9 +384,11 @@ STATE_RGB = (90, 160, 255)
 
 
 def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
-    """Progress pictures after a decision, everything at 100 % opacity in true colour (nearest point wins):
-    the whole kept scan (built parts + pool) from the fixed outside camera and from the START front camera, and
-    once parts exist the built 3D world (current.ply) alone from outside. Recorded as a 'state' step."""
+    """Progress pictures after a decision, everything at 100 % opacity in true colour (nearest point wins). The
+    whole kept scan (built parts + pool): outside from two opposite corners, dollhouse from both corners and from
+    straight above, and inside from both room corners (the first is the START camera). Once parts exist, the built
+    3D world (current.ply) alone: outside from both corners, from above, and as a dollhouse. The user asked for many
+    pictures per state; recorded as a 'state' step."""
     bmin, bmax = _bounds(m)
     built = m.claimed_indices()
     kept = np.concatenate([built, np.flatnonzero(m.pool_mask()).astype(np.uint32)])
@@ -386,20 +397,31 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
         else R.overview_camera(bmin, bmax)
     n_parts, n_clean = len(m.data["parts"]), len(m.data["removed"])
     facts = f"{len(kept):,} points kept · {n_clean} cleanings · {n_parts} parts ({len(built):,} points in current.ply)"
-    views = [("kept scan, outside", R.outside_camera(bmin, bmax), kept)]
-    if "dollhouse_cut_y" in m.data:
-        views.append((f"kept scan, dollhouse (top above y {m.data['dollhouse_cut_y']:+.2f} hidden)",
-                      R.outside_camera(bmin, bmax), _below_cut(splats, m, kept)))
-    views.append(("kept scan, inside (START camera)", start_cam, kept))
+    has_cut = "dollhouse_cut_y" in m.data
+    cut_kept = _below_cut(splats, m, kept) if has_cut else kept
+    views = [("kept scan, outside", R.outside_camera(bmin, bmax), kept),
+             ("kept scan, outside from the opposite corner", R.outside_camera(bmin, bmax, opposite=True), kept)]
+    if has_cut:
+        cut = f"top above y {m.data['dollhouse_cut_y']:+.2f} hidden"
+        views += [(f"kept scan, dollhouse ({cut})", R.outside_camera(bmin, bmax), cut_kept),
+                  (f"kept scan, dollhouse from the opposite corner ({cut})",
+                   R.outside_camera(bmin, bmax, opposite=True), cut_kept),
+                  (f"kept scan, top view ({cut})", R.plan_camera(bmin, bmax), cut_kept)]
+    views += [("kept scan, inside (START camera)", start_cam, kept),
+              ("kept scan, inside from the opposite corner", R.overview_camera(bmin, bmax, opposite=True), kept)]
     if len(built):
-        views.append(("built 3D world = current.ply, outside", R.outside_camera(bmin, bmax), built))
-        if "dollhouse_cut_y" in m.data:
-            views.append(("built 3D world, dollhouse", R.outside_camera(bmin, bmax), _below_cut(splats, m, built)))
+        cut_built = _below_cut(splats, m, built) if has_cut else built
+        views += [("built 3D world = current.ply, outside", R.outside_camera(bmin, bmax), built),
+                  ("built 3D world, outside from the opposite corner", R.outside_camera(bmin, bmax, opposite=True),
+                   built),
+                  ("built 3D world, top view", R.plan_camera(bmin, bmax), built)]
+        if has_cut:
+            views.append(("built 3D world, dollhouse", R.outside_camera(bmin, bmax), cut_built))
     images = []
     for view, cam, idx in views:
         sub = splats[idx]
         frame = R.render([R.Layer(xyz_of(sub), rgb_of(sub), view, size_of(sub))], cam, R.WIDTH, R.HEIGHT - R.BANNER_H,
-                         edl_strength=0.5)
+                         edl_strength=0.5, near=0.3 if "inside" in view else 0.05)
         when = S.now_local()
         index = S.next_image_index()
         im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} · 100 % · {facts}", [], when, "STATE",
