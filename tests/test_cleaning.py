@@ -97,3 +97,21 @@ def test_ceiling_is_the_top_layer_not_the_denser_pipe_band() -> None:
     ceiling, edge = top_layer_edge(y)
     assert abs(ceiling - 1.28) < 0.05
     assert 1.38 < edge < 1.6
+
+
+def test_behind_wall_any_side_and_refuses_a_side_without_a_wall() -> None:
+    import pytest
+    from stepbuild.cleaning import behind_wall
+
+    rng = np.random.default_rng(9)
+    room = np.c_[rng.uniform(-3.9, 4.5, 60000), rng.uniform(-1.1, 1.0, 60000), rng.uniform(-3.6, 1.0, 60000)]
+    left_wall = np.c_[rng.normal(-3.94, 0.01, 20000), rng.uniform(-1.1, 1.0, 20000), rng.uniform(-3.6, 3.0, 20000)]
+    behind_left = np.c_[rng.uniform(-5.0, -4.1, 800), rng.uniform(-1.1, 1.0, 800), rng.uniform(-3.6, 3.0, 800)]
+    fade_right = np.c_[4.5 + rng.exponential(0.6, 6000), rng.uniform(-1.1, 1.0, 6000), rng.uniform(-3.6, 3.0, 6000)]
+    xyz = np.vstack([room, left_wall, behind_left, fade_right]).astype(np.float32)
+    prop = behind_wall(xyz, xyz.min(0), xyz.max(0), side="left")
+    n0 = len(room) + len(left_wall)
+    assert prop.remove[n0:n0 + len(behind_left)].all()              # floaters behind the left wall go
+    assert prop.remove[:n0].mean() < 0.01                            # the room and the wall stay
+    with pytest.raises(ValueError, match="no sharp right wall"):
+        behind_wall(xyz, xyz.min(0), xyz.max(0), side="right")    # the right side just fades out: no cut

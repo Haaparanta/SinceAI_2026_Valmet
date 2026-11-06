@@ -9,7 +9,8 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
                                               # start a new empty build; image numbering continues
     uv run python pipeline/build.py preview --out FILE [--rgb] [--fill 0.25 --box xmin ymin zmin xmax ymax zmax]
                                               # render without touching state or images/ (camera checks)
-    uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
+    uv run python pipeline/build.py clean below_floor|behind_wall|behind_back_wall|floating_fog|outside_room [--set key=value]
+                                              # e.g. clean behind_wall --set side=left
                                               # propose a cleaning step: image with removed points red, kept grey
     uv run python pipeline/build.py part floor|ceiling|lamp [--set key=value]
                                               # propose the next part: new part red, accepted parts grey,
@@ -84,11 +85,15 @@ def _stamp(image: str, text: str, rgb: tuple[int, int, int]) -> None:
     _quantized(im).save(path, optimize=True)
 
 
-def _parse_params(pairs: list[str]) -> dict[str, float]:
-    out = {}
+def _parse_params(pairs: list[str]) -> dict[str, float | str]:
+    """KEY=VALUE pairs; numbers become floats, anything else stays text (e.g. side=left)."""
+    out: dict[str, float | str] = {}
     for pair in pairs:
         key, _, value = pair.partition("=")
-        out[key.strip()] = float(value)
+        try:
+            out[key.strip()] = float(value)
+        except ValueError:
+            out[key.strip()] = value.strip()
     return out
 
 
