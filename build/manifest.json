@@ -1732,7 +1732,7 @@
       "index": 208,
       "kind": "clean",
       "name": "outside_envelope",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0208_20261106-234139.png",
         "images/0209_20261106-234139.png",
@@ -1971,7 +1971,27 @@
           4.81,
           5.59
         ]
-      }
+      },
+      "decided_at": "2026-11-06T23:43:54+02:00"
+    },
+    {
+      "index": 218,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0218_20261106-234358.png",
+        "images/0219_20261106-234400.png",
+        "images/0220_20261106-234403.png",
+        "images/0221_20261106-234405.png",
+        "images/0222_20261106-234406.png",
+        "images/0223_20261106-234410.png",
+        "images/0224_20261106-234413.png"
+      ],
+      "created_at": "2026-11-06T23:44:13+02:00",
+      "event": "after 0208 ACCEPTED (clean outside_envelope)",
+      "kept": 1617777,
+      "built": 0
     }
   ],
   "parts": [],
@@ -2006,6 +2026,15 @@
         "strip": 0.25
       },
       "indices": "build/removed/0174_behind_wall.idx.npy"
+    },
+    {
+      "index": 208,
+      "name": "outside_envelope",
+      "count": 12764,
+      "params": {
+        "margin": 0.04
+      },
+      "indices": "build/removed/0208_outside_envelope.idx.npy"
     }
   ],
   "frame": "world-rotz180-v1",
