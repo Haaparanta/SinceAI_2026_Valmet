@@ -1,8 +1,11 @@
 """Turn the numbered step images (images/NNNN_YYYYMMDD-HHMMSS.png) into one timelapse video (PRD S7).
 
-    uv run --group video python scripts/timelapse.py                      # images/ -> docs/timelapse.mp4, 30-60 s
+    uv run --group video python scripts/timelapse.py                      # equipment-room images -> docs/timelapse.mp4
     uv run --group video python scripts/timelapse.py path/to/images -o out.mp4 --min 30 --max 60
     uv run --group video python scripts/timelapse.py --first 7 --last 354 --hold-last 3
+
+Default input is the equipment-room worktree's images/ (.claude/worktrees/pli-cleanup-3d-viz-1dda2f), which has
+the newest step images; without that worktree it falls back to this checkout's images/.
 
 Timing: every image is shown the same time; the total is N / --rate seconds, clamped to [--min, --max].
 More images than fit at --fps frames per second are thinned out evenly (first and last always kept).
@@ -25,6 +28,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 INDEX_RE = re.compile(r"^(\d+)")
+# Default input: the equipment-room build worktree, which has the newest images (more than the committed images/).
+EQUIPMENT_ROOM_WORKTREE = "pli-cleanup-3d-viz-1dda2f"
 
 
 @dataclass(frozen=True)
@@ -41,6 +46,19 @@ class Plan:
 def image_index(path: Path) -> int | None:
     m = INDEX_RE.match(path.name)
     return int(m.group(1)) if m else None
+
+
+def default_images() -> Path:
+    """The equipment-room worktree's images/ when it exists on this machine, else this checkout's images/."""
+    try:
+        git_dir = subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=ROOT, capture_output=True, text=True, check=True,
+        ).stdout.strip()  # fmt: skip
+    except (OSError, subprocess.CalledProcessError):
+        return ROOT / "images"
+    candidate = Path(git_dir).parent / ".claude" / "worktrees" / EQUIPMENT_ROOM_WORKTREE / "images"
+    return candidate if candidate.is_dir() else ROOT / "images"
 
 
 def collect(folder: Path, first: int | None = None, last: int | None = None) -> list[Path]:
@@ -137,7 +155,10 @@ def render(p: Plan, out: Path, *, crf: int = 26) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("images", nargs="?", type=Path, default=ROOT / "images", help="folder of images (default images/)")
+    ap.add_argument(
+        "images", nargs="?", type=Path,
+        help=f"folder of images (default: the {EQUIPMENT_ROOM_WORKTREE} worktree's images/ if present, else images/)",
+    )  # fmt: skip
     ap.add_argument("-o", "--out", type=Path, default=ROOT / "docs" / "timelapse.mp4", help="output .mp4")
     ap.add_argument("--min", dest="min_s", type=float, default=30.0, help="shortest video in seconds (default 30)")
     ap.add_argument("--max", dest="max_s", type=float, default=60.0, help="longest video in seconds (default 60)")
@@ -150,6 +171,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
     args = ap.parse_args(argv)
 
+    if args.images is None:
+        args.images = default_images()
+    print(f"images from {args.images}", file=sys.stderr)
     if not args.images.is_dir():
         sys.exit(f"not a folder: {args.images}")
     images = collect(args.images, args.first, args.last)

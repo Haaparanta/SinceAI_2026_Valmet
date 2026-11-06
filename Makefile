@@ -39,7 +39,7 @@ check:           ## lint + contract drift + tests + web typecheck/build  (must b
 	$(UV) run pytest -q
 	cd web && npm run typecheck && npm run build
 
-timelapse:       ## images/ -> docs/timelapse.mp4 (30-60 s); pass ARGS="--first 7 --hold-last 3" etc.
+timelapse:       ## equipment-room images (else images/) -> docs/timelapse.mp4 (30-60 s); pass ARGS="--first 7 --hold-last 3" etc.
 	$(UV) run --group video python scripts/timelapse.py $(ARGS)
 
 api:             ## FastAPI on :8000 (reload)
