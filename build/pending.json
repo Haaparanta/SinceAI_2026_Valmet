@@ -1,0 +1,30 @@
+{
+  "index": 6,
+  "kind": "part",
+  "name": "floor",
+  "label": "Floor",
+  "part_kind": "structure",
+  "params": {
+    "above": 0.03
+  },
+  "info": {
+    "floor_y": -0.9087,
+    "floor_rms": 0.0157
+  },
+  "count": 57767,
+  "pool_before": 422716,
+  "bbox": {
+    "min": [
+      -6.0052,
+      -0.9496,
+      -3.5111
+    ],
+    "max": [
+      3.9415,
+      -0.8787,
+      -0.7385
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "image": "images/0006_20261106-221056.png"
+}

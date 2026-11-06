@@ -8,10 +8,14 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
                                               # render without touching state or images/ (camera checks)
     uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # propose a cleaning step: image with removed points red, kept grey
+    uv run python pipeline/build.py part floor [--set key=value]
+                                              # propose the next part: new part red, accepted parts grey,
+                                              # points not built yet as a faint backdrop
     uv run python pipeline/build.py accept | reject [--note TEXT]
-                                              # decide the pending proposal; the image gets an ACCEPTED/REJECTED badge
+                                              # decide the pending proposal; the image gets an ACCEPTED/REJECTED badge;
+                                              # an accepted part is written to build/parts/ and build/current.ply
 
-Parts (Step 3+) and the flipbook come as further subcommands.
+The flipbook comes as a further subcommand.
 """
 
 from __future__ import annotations
@@ -28,6 +32,7 @@ from PIL import Image
 from stepbuild import render as R
 from stepbuild import state as S
 from stepbuild.cleaning import CLEANERS
+from stepbuild.parts import DETECTORS
 from stepbuild.splats import SH0_DTYPE, load_real_splats, rgb_of, size_of, write_sh0_ply, xyz_of
 
 log = logging.getLogger("build")
@@ -84,14 +89,23 @@ def _close_pending(m: S.Manifest, status: str, badge_rgb: tuple[int, int, int], 
     return pending
 
 
-def cmd_clean(args: argparse.Namespace) -> int:
-    m = S.Manifest.load()
+def _check_pending(m: S.Manifest, replace: bool) -> bool:
+    """False if a proposal is waiting and may not be replaced."""
     if S.PENDING.exists():
-        if not args.replace:
+        if not replace:
             p = orjson.loads(S.PENDING.read_bytes())
             log.error("step %04d (%s) is still pending: accept / reject it first, or pass --replace", p["index"], p["name"])
-            return 1
+            return False
         _close_pending(m, "replaced", R.REJECTED_RGB, "replaced by a new proposal")
+        S.PENDING_IDX.unlink(missing_ok=True)
+        S.PENDING.unlink()
+    return True
+
+
+def cmd_clean(args: argparse.Namespace) -> int:
+    m = S.Manifest.load()
+    if not _check_pending(m, args.replace):
+        return 1
     params = _parse_params(args.set)
     splats = load_real_splats(args.ply, CACHE)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
@@ -125,6 +139,70 @@ def cmd_clean(args: argparse.Namespace) -> int:
     return 0
 
 
+def render_parts(splats: np.ndarray, m: S.Manifest, candidate: np.ndarray, context: np.ndarray, cam: R.Camera
+                 ) -> R.Frame:
+    """New part red over the accepted parts in grey (one z-buffer); the points not built yet drawn faint, only where
+    no part covers the pixel, so they give orientation without hiding the build."""
+    h = R.HEIGHT - R.BANNER_H
+    built = splats[m.claimed_indices()]
+    cand = splats[candidate]
+    layers = [R.Layer(xyz_of(built), R.GREY, "accepted", size_of(built)),
+              R.Layer(xyz_of(cand), R.RED, "new", size_of(cand))]
+    front = R.render(layers, cam, R.WIDTH, h)
+    ctx = splats[context]
+    back = R.render([R.Layer(xyz_of(ctx), R.FAINT, "not built", 0.008, 1)], cam, R.WIDTH, h, edl_strength=0)
+    covered = np.isfinite(front.depth)
+    img = np.where(covered[..., None], front.image, back.image)
+    counts = dict(front.counts)
+    counts["not built"] = int((np.isfinite(back.depth) & ~covered).sum())
+    return R.Frame(img, np.where(covered, front.depth, back.depth), cam, counts)
+
+
+def cmd_part(args: argparse.Namespace) -> int:
+    m = S.Manifest.load()
+    if not _check_pending(m, args.replace):
+        return 1
+    params = _parse_params(args.set)
+    splats = load_real_splats(args.ply, CACHE)
+    pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
+    pool = splats[pool_idx]
+    bmin, bmax = _bounds(m)
+    prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **params)
+    take_idx = pool_idx[prop.take]
+    frame = render_parts(splats, m, take_idx, pool_idx[~prop.take], prop.camera)
+    when = S.now_local()
+    index = S.next_image_index()
+    n_parts = len(m.data["parts"])
+    im = R.compose(frame, f"{index:04d} · PART {n_parts + 1} · {prop.title}", prop.subtitle,
+                   [(R.RED, "new part"), (R.GREY, f"accepted ({n_parts})"), (R.FAINT, "not built yet")], when,
+                   "PROPOSED", R.PROPOSED_RGB)
+    path = _save(im, index, when)
+    np.save(S.PENDING_IDX, take_idx)
+    pts = xyz_of(splats[take_idx])
+    bbox = {"min": [round(float(v), 4) for v in pts.min(0)], "max": [round(float(v), 4) for v in pts.max(0)]}
+    pending = {"index": index, "kind": "part", "name": prop.name, "label": prop.label, "part_kind": prop.kind,
+               "params": prop.params, "info": prop.info, "count": len(take_idx), "pool_before": len(pool_idx),
+               "bbox": bbox, "indices": S.rel(S.PENDING_IDX), "image": S.rel(path)}
+    S.PENDING.write_bytes(orjson.dumps(pending, option=orjson.OPT_INDENT_2) + b"\n")
+    m.add_step(index=index, kind="part", name=prop.name, status="pending", image=S.rel(path),
+               created_at=when.isoformat(timespec="seconds"), count=len(take_idx), pool_before=len(pool_idx),
+               label=prop.label, part_kind=prop.kind, bbox=bbox, params=prop.params, info=prop.info,
+               camera=prop.camera.to_dict(), visible_pixels=frame.counts)
+    m.save()
+    print(f"{index:04d} PROPOSED part/{prop.name}: {len(take_idx):,} of {len(pool_idx):,} pool points")
+    print(f"  {prop.subtitle}")
+    print(f"  image {S.rel(path)}   -> `build.py accept` or `build.py reject`")
+    return 0
+
+
+def write_current(splats: np.ndarray, m: S.Manifest) -> int:
+    """build/current.ply = every accepted part, in the order accepted."""
+    rows = splats[m.claimed_indices()]
+    names = ", ".join(p["name"] for p in m.data["parts"]) or "empty"
+    write_sh0_ply(S.CURRENT_PLY, rows, f"current state: {len(m.data['parts'])} parts ({names})")
+    return len(rows)
+
+
 def cmd_decide(args: argparse.Namespace) -> int:
     if not S.PENDING.exists():
         log.error("nothing pending")
@@ -139,6 +217,19 @@ def cmd_decide(args: argparse.Namespace) -> int:
         S.PENDING_IDX.replace(dest)
         m.data["removed"].append({"index": pending["index"], "name": pending["name"], "count": pending["count"],
                                   "params": pending["params"], "indices": S.rel(dest)})
+    if accept and pending["kind"] == "part":
+        stem = f"{pending['index']:04d}_{pending['name']}"
+        dest = S.PARTS / f"{stem}.idx.npy"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        S.PENDING_IDX.replace(dest)
+        splats = load_real_splats(args.ply, CACHE)
+        ply = S.PARTS / f"{stem}.ply"
+        write_sh0_ply(ply, splats[np.load(dest)], f"part {pending['label']} (step {pending['index']:04d})")
+        m.data["parts"].append({"index": pending["index"], "name": pending["name"], "label": pending["label"],
+                                "kind": pending["part_kind"], "count": pending["count"], "bbox": pending["bbox"],
+                                "params": pending["params"], "indices": S.rel(dest), "ply": S.rel(ply)})
+        n_current = write_current(splats, m)
+        print(f"  wrote {S.rel(ply)} ({pending['count']:,} splats) and {S.rel(S.CURRENT_PLY)} ({n_current:,} splats)")
     S.PENDING_IDX.unlink(missing_ok=True)
     S.PENDING.unlink()
     m.save()
@@ -244,13 +335,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="filter parameter, e.g. margin=0.05")
     p.add_argument("--replace", action="store_true", help="mark a pending proposal as replaced and propose again")
     p.set_defaults(fn=cmd_clean)
+    p = sub.add_parser("part", help="propose the next part (Step 3+)")
+    p.add_argument("name", choices=sorted(DETECTORS))
+    p.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="detector parameter")
+    p.add_argument("--replace", action="store_true", help="mark a pending proposal as replaced and propose again")
+    p.set_defaults(fn=cmd_part)
     for name in ("accept", "reject"):
         p = sub.add_parser(name, help=f"{name} the pending proposal")
         p.add_argument("--note", default="", help="why (kept in the manifest)")
         p.set_defaults(fn=cmd_decide)
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
-    if args.cmd not in ("status", "accept", "reject") and not args.ply.exists():
+    if args.cmd not in ("status", "reject") and not args.ply.exists():
         log.error("PLY not found: %s", args.ply)
         return 2
     return args.fn(args)
