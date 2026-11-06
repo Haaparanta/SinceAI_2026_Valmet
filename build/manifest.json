@@ -253,7 +253,7 @@
       "index": 4,
       "kind": "clean",
       "name": "floating_fog",
-      "status": "pending",
+      "status": "accepted",
       "image": "images/0004_20261106-220449.png",
       "created_at": "2026-11-06T22:04:49+02:00",
       "count": 13041,
@@ -283,7 +283,8 @@
       "visible_pixels": {
         "kept": 377332,
         "removed": 62758
-      }
+      },
+      "decided_at": "2026-11-06T22:06:10+02:00"
     }
   ],
   "parts": [],
@@ -306,6 +307,16 @@
         "strip": 0.25
       },
       "indices": "build/removed/0003_behind_back_wall.idx.npy"
+    },
+    {
+      "index": 4,
+      "name": "floating_fog",
+      "count": 13041,
+      "params": {
+        "max_alpha": 0.05,
+        "gap": 0.05
+      },
+      "indices": "build/removed/0004_floating_fog.idx.npy"
     }
   ],
   "room_bounds_p1_p99": {
