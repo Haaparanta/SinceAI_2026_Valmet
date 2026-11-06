@@ -12,7 +12,7 @@ from sklearn.cluster import DBSCAN
 
 from stepbuild import render as R
 from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, envelope_edge, fit_floor_plane
-from stepbuild.splats import rgb_of
+from stepbuild.splats import alpha_of, rgb_of
 
 
 @dataclass
@@ -177,9 +177,58 @@ def wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarra
     )
 
 
+def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, x: float, y: float, z: float,
+              radius: float = 0.8, label: str = "Equipment", cls: str = "other", voxel: float = 0.04,
+              min_alpha: float = 0.15, min_per_voxel: int = 3, y_top: float = 0.62, number: int = 1) -> PartProposal:
+    """One technical object grown from a seed point (x, y, z): pool points with opacity >= `min_alpha`, below
+    `y_top` (under the ceiling pipe band) and within `radius` of the seed are put on a `voxel` grid (a voxel counts
+    with >= `min_per_voxel` points); the 26-connected group of voxels nearest the seed is the object, and all pool
+    points in those voxels belong to it. `cls` is the xlsx asset class (PROCESS_PUMP, CONTROL_VALVE, ...) or a
+    generic one (tank, pipe, cabinet, other)."""
+    from scipy import ndimage
+
+    seed = np.array([x, y, z], dtype=np.float64)
+    near = (np.linalg.norm(xyz - seed, axis=1) <= radius) & (xyz[:, 1] < y_top)
+    solid = near & (alpha_of(pool) >= min_alpha)
+    take = np.zeros(len(xyz), dtype=bool)
+    info: dict = {"seed": [x, y, z]}
+    if solid.sum():
+        o = xyz[near].min(0)
+        k_all = np.floor((xyz[near] - o) / voxel).astype(int)
+        k_sol = np.floor((xyz[solid] - o) / voxel).astype(int)
+        dims = k_all.max(0) + 1
+        grid = np.zeros(dims, np.int32)
+        np.add.at(grid, tuple(k_sol.T), 1)
+        lab, n = ndimage.label(grid >= min_per_voxel, structure=np.ones((3, 3, 3)))
+        occ = np.argwhere(lab > 0)
+        if len(occ):
+            sk = np.floor((seed - o) / voxel)
+            nearest = occ[np.argmin(np.linalg.norm(occ - sk, axis=1))]
+            comp = lab[tuple(nearest)]
+            in_comp = lab[tuple(k_all.T)] == comp
+            take[np.flatnonzero(near)[in_comp]] = True
+            info.update(components=int(n), voxels=int((lab == comp).sum()))
+    pts = xyz[take] if take.any() else seed[None, :]
+    lo, hi = np.percentile(pts, 1, axis=0), np.percentile(pts, 99, axis=0)
+    size = hi - lo
+    name = "".join(c if c.isalnum() else "_" for c in str(cls).lower())
+    return PartProposal(
+        take=take, name=f"{name}_{number}", label=f"{label} {number}", kind="equipment",
+        title=f"{str(label).upper()} {number} ({cls})",
+        subtitle=(f"{int(take.sum()):,} points · {size[0]:.2f} x {size[1]:.2f} x {size[2]:.2f} u · centre "
+                  f"({(lo[0] + hi[0]) / 2:+.2f}, {(lo[1] + hi[1]) / 2:+.2f}, {(lo[2] + hi[2]) / 2:+.2f}) · grown from the seed "
+                  f"({x:+.2f}, {y:+.2f}, {z:+.2f}) within {radius:.1f} u"),
+        camera=R.overview_camera(bmin, bmax),
+        params={"x": x, "y": y, "z": z, "radius": radius, "label": label, "cls": cls, "voxel": voxel,
+                "min_alpha": min_alpha, "min_per_voxel": min_per_voxel, "y_top": y_top},
+        info=info,
+    )
+
+
 DETECTORS: dict[str, Callable[..., PartProposal]] = {
     "floor": floor,
     "ceiling": ceiling,
     "lamp": lamp,
     "wall": wall,
+    "equipment": equipment,
 }

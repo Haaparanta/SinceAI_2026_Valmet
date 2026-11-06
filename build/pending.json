@@ -1,0 +1,63 @@
+{
+  "index": 414,
+  "kind": "part",
+  "name": "process_pump_1",
+  "count": 6452,
+  "pool_before": 1389630,
+  "bbox": {
+    "min": [
+      2.978,
+      -1.0686,
+      -1.9554
+    ],
+    "max": [
+      3.3513,
+      -0.1998,
+      -0.762
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0414_20261107-003531.png",
+    "images/0415_20261107-003531.png",
+    "images/0416_20261107-003531.png",
+    "images/0417_20261107-003531.png",
+    "images/0418_20261107-003531.png",
+    "images/0419_20261107-003531.png",
+    "images/0420_20261107-003531.png",
+    "images/0421_20261107-003532.png",
+    "images/0422_20261107-003532.png",
+    "images/0423_20261107-003532.png",
+    "images/0424_20261107-003532.png",
+    "images/0425_20261107-003532.png",
+    "images/0426_20261107-003532.png",
+    "images/0427_20261107-003532.png",
+    "images/0428_20261107-003532.png",
+    "images/0429_20261107-003532.png",
+    "images/0430_20261107-003532.png",
+    "images/0431_20261107-003532.png"
+  ],
+  "label": "Pump 1",
+  "part_kind": "equipment",
+  "params": {
+    "x": 3.17,
+    "y": -0.63,
+    "z": -1.36,
+    "radius": 0.6,
+    "label": "Pump",
+    "cls": "PROCESS_PUMP",
+    "voxel": 0.04,
+    "min_alpha": 0.15,
+    "min_per_voxel": 3,
+    "y_top": 0.62
+  },
+  "info": {
+    "seed": [
+      3.17,
+      -0.63,
+      -1.36
+    ],
+    "components": 13,
+    "voxels": 497
+  }
+}

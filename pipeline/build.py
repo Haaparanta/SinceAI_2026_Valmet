@@ -12,7 +12,8 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
     uv run python pipeline/build.py clean below_floor|behind_wall|outside_envelope|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # e.g. clean behind_wall --set side=left
                                               # propose a cleaning step: image with removed points red, kept grey
-    uv run python pipeline/build.py part floor|ceiling|lamp|wall [--set key=value]   (wall: --set side=back)
+    uv run python pipeline/build.py part floor|ceiling|lamp|wall|equipment [--set key=value]   (wall: --set side=back;
+                                              equipment: --set x=.. --set y=.. --set z=.. --set label=Pump --set cls=PROCESS_PUMP)
                                               # propose the next part: new part red, accepted parts grey,
                                               # points not built yet as a faint backdrop
     uv run python pipeline/build.py accept | reject [--note TEXT]
@@ -253,6 +254,35 @@ def _object_pair(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_id
     return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
 
 
+def _object_four_sides(splats: np.ndarray, sel_idx: np.ndarray, all_idx: np.ndarray, surroundings: float
+                       ) -> R.Frame:
+    """The part from +x, -x, +z and -z in one 2 x 2 image, own colours at 100 %: alone (surroundings = 0), or with
+    every kept point within `surroundings` of its box, so its shape and what it is attached to can be read."""
+    sel = splats[sel_idx]
+    X = xyz_of(sel)
+    lo, hi = np.percentile(X, 1, axis=0), np.percentile(X, 99, axis=0)
+    if surroundings > 0:
+        A = xyz_of(splats[all_idx])
+        near = all_idx[((A >= lo - surroundings) & (A <= hi + surroundings)).all(1)]
+        pts = splats[np.union1d(near, sel_idx)]
+    else:
+        pts = sel
+    w, h = R.WIDTH // 2, (R.HEIGHT - R.BANNER_H) // 2
+    tiles = []
+    for label, d in (("from +x", (-1, -0.2, 0)), ("from -x", (1, -0.2, 0)), ("from +z", (0, -0.2, -1)),
+                     ("from -z", (0, -0.2, 1))):
+        cam = R.framing_camera(lo, hi, np.array(d), fill=0.7, fov_deg=35, width=w, height=h)
+        img = R.render([R.Layer(xyz_of(pts), rgb_of(pts), "p", np.maximum(size_of(pts), 0.012), 3)], cam, w, h,
+                       edl_strength=0.5).image
+        im = Image.fromarray(img)
+        ImageDraw.Draw(im).text((10, h - 30), label, fill=(240, 240, 245), font=R._font(20))
+        tiles.append(np.asarray(im))
+    grid = np.concatenate([np.concatenate(tiles[:2], 1), np.concatenate(tiles[2:], 1)], 0)
+    grid[h - 1:h + 1, :] = (90, 92, 100)
+    grid[:, w - 1:w + 1] = (90, 92, 100)
+    return R.Frame(grid, np.full(grid.shape[:2], np.inf, np.float32), R.Camera((0, 0, 0), (0, 0, -1)), {})
+
+
 def _save_views(frames: list[tuple[str, R.Frame]], title: str, subtitle: str, badge: str,
                 badge_rgb: tuple[int, int, int], kind: str, headline: str = "") -> list[str]:
     """One image per view, each with its own index: '<index> · <title>' and '<view> · <subtitle>', the headline
@@ -312,6 +342,10 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
     if kind == "part" and float(np.max(hi - lo)) < 2.0:          # small part: green | colour pair comes first
         frames.insert(0, ("close-up from the room, green | own colours",
                           _object_pair(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
+        everything = np.concatenate([m.claimed_indices(), pool_idx])
+        frames.insert(1, ("the part alone, own colours, 4 sides", _object_four_sides(splats, sel_idx, everything, 0)))
+        frames.insert(2, ("the part with 35 cm of surroundings, own colours, 4 sides",
+                          _object_four_sides(splats, sel_idx, everything, 0.35)))
     images = _save_views(frames, title, subtitle, "PROPOSED", R.PROPOSED_RGB, kind, headline)
     index = int(Path(images[0]).name[:4])
     np.save(S.PENDING_IDX, sel_idx)
@@ -364,9 +398,15 @@ def cmd_part(args: argparse.Namespace) -> int:
     pool = splats[pool_idx]
     bmin, bmax = _bounds(m)
     try:
-        extra = {"number": 1 + sum(1 for p_ in m.data["parts"] if p_["name"].startswith(f"{args.name}_"))} \
-            if args.name in ("lamp",) else {}
-        prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **extra, **_parse_params(args.set))
+        params = _parse_params(args.set)
+        if args.name == "lamp":
+            prefix = "lamp_"
+        elif args.name == "equipment":
+            prefix = "".join(c if c.isalnum() else "_" for c in str(params.get("cls", "other")).lower()) + "_"
+        else:
+            prefix = None
+        extra = {"number": 1 + sum(1 for p_ in m.data["parts"] if p_["name"].startswith(prefix))} if prefix else {}
+        prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **extra, **params)
     except Exception as exc:  # noqa: BLE001
         return _fail(m, splats, pool_idx, "part", args.name, f"{type(exc).__name__}: {exc}")
     n_parts = len(m.data["parts"])

@@ -96,3 +96,20 @@ def test_wall_takes_the_wall_layer_not_equipment_along_it() -> None:
     assert prop.take[a:b].mean() > 0.97                          # outer skin + main layer
     assert prop.take[b:].sum() == 0                              # pipes 24 cm in front stay
     assert prop.take[:a].mean() < 0.01                           # the room stays
+
+
+def test_equipment_grows_the_object_at_the_seed_only() -> None:
+    from stepbuild.parts import equipment
+    from stepbuild.splats import SH0_DTYPE
+
+    rng = np.random.default_rng(13)
+    pump = np.c_[rng.uniform(3.1, 3.3, 8000), rng.uniform(-1.0, -0.3, 8000), rng.uniform(-1.46, -1.26, 8000)]
+    other = np.c_[rng.uniform(2.1, 2.3, 6000), rng.uniform(-1.0, -0.3, 6000), rng.uniform(-1.46, -1.26, 6000)]  # 1 u away
+    xyz = np.vstack([pump, other]).astype(np.float32)
+    pool = np.zeros(len(xyz), dtype=SH0_DTYPE)
+    pool["opacity"] = 2.0
+    prop = equipment(xyz, xyz.min(0), xyz.max(0), pool=pool, x=3.2, y=-0.6, z=-1.36, radius=0.8, label="Pump",
+                     cls="PROCESS_PUMP", number=1)
+    assert prop.name == "process_pump_1" and prop.label == "Pump 1"
+    assert prop.take[:len(pump)].mean() > 0.95
+    assert not prop.take[len(pump):].any()
