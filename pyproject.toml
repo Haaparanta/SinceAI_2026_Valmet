@@ -1,0 +1,44 @@
+[project]
+name = "a2b"
+version = "0.1.0"
+description = "Approve-to-Build Twin (Valmet x Since AI 2026): offline pipeline, API, contracts"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy>=2.0",
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+  "openpyxl>=3.1",
+  "pydantic>=2",
+  "orjson>=3.10",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "python-multipart>=0.0.9",
+  "anthropic>=0.40",
+  "a2b-contracts",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+a2b-contracts = { path = "contracts/py", editable = true }
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+# scoring/ is the PM scorecard tooling from main (not an AGENTS.md S7 folder); lint only the a2b code here.
+extend-exclude = ["data", "web", "Source-Data-Do-Not_change", "pm_pack", "design", "scoring"]
+
+[tool.ruff.lint.per-file-ignores]
+# These two files are copied byte-for-byte from AGENTS.md (pm_pack/06 S3 and S4.1). Never lint-fix or reformat them;
+# scripts/check_contracts.py and tests/test_contracts.py keep them honest instead.
+"contracts/py/a2b_contracts/models.py" = ["ALL"]
+"pipeline/common/ply_io.py" = ["ALL"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "pipeline"]

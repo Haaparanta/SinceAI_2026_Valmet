@@ -1,0 +1,56 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "fov": {
+      "default": 35,
+      "title": "Fov",
+      "type": "number"
+    },
+    "kind": {
+      "const": "isometric",
+      "default": "isometric",
+      "title": "Kind",
+      "type": "string"
+    },
+    "position": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Position",
+      "type": "array"
+    },
+    "target": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Target",
+      "type": "array"
+    }
+  },
+  "required": [
+    "position",
+    "target"
+  ],
+  "title": "CameraSpec",
+  "type": "object"
+}

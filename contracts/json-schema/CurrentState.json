@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "condition_state": {
+      "enum": [
+        "healthy",
+        "watch",
+        "degraded",
+        "attention_required"
+      ],
+      "title": "Condition State",
+      "type": "string"
+    },
+    "health_score": {
+      "title": "Health Score",
+      "type": "number"
+    },
+    "issue_code": {
+      "title": "Issue Code",
+      "type": "string"
+    },
+    "issue_summary": {
+      "title": "Issue Summary",
+      "type": "string"
+    },
+    "knowledge_doc_id": {
+      "title": "Knowledge Doc Id",
+      "type": "string"
+    },
+    "last_updated": {
+      "format": "date-time",
+      "title": "Last Updated",
+      "type": "string"
+    },
+    "model_confidence": {
+      "title": "Model Confidence",
+      "type": "number"
+    },
+    "recommended_next_check": {
+      "title": "Recommended Next Check",
+      "type": "string"
+    },
+    "urgency": {
+      "title": "Urgency",
+      "type": "string"
+    }
+  },
+  "required": [
+    "health_score",
+    "condition_state",
+    "issue_code",
+    "issue_summary",
+    "urgency",
+    "recommended_next_check",
+    "model_confidence",
+    "last_updated",
+    "knowledge_doc_id"
+  ],
+  "title": "CurrentState",
+  "type": "object"
+}

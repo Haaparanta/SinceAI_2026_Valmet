@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "approved": {
+      "title": "Approved",
+      "type": "integer"
+    },
+    "bound": {
+      "title": "Bound",
+      "type": "integer"
+    },
+    "proposals": {
+      "title": "Proposals",
+      "type": "integer"
+    },
+    "rejected": {
+      "title": "Rejected",
+      "type": "integer"
+    },
+    "skipped": {
+      "title": "Skipped",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "proposals",
+    "approved",
+    "rejected",
+    "skipped",
+    "bound"
+  ],
+  "title": "SceneCounts",
+  "type": "object"
+}
