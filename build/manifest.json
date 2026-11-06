@@ -1470,6 +1470,120 @@
       "event": "after 0057 REJECTED (part ceiling)",
       "kept": 464713,
       "built": 41641
+    },
+    {
+      "index": 64,
+      "kind": "part",
+      "name": "ceiling",
+      "status": "pending",
+      "images": [
+        "images/0064_20261106-225315.png",
+        "images/0065_20261106-225316.png",
+        "images/0066_20261106-225316.png",
+        "images/0067_20261106-225316.png"
+      ],
+      "created_at": "2026-11-06T22:53:16+02:00",
+      "count": 2501,
+      "pool_before": 423072,
+      "bbox": {
+        "min": [
+          -3.926,
+          1.3512,
+          -3.4887
+        ],
+        "max": [
+          5.2411,
+          1.5694,
+          -0.7422
+        ]
+      },
+      "headline": "ADD CEILING · 2,501 points as part 2",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -0.1888,
+            -1.6327,
+            3.3924
+          ],
+          "target": [
+            -0.1888,
+            1.4548,
+            -2.2212
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.2248,
+            -0.1877
+          ],
+          "target": [
+            0.4181,
+            1.3011,
+            -3.2571
+          ],
+          "fov_deg": 70.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 127722,
+          "built": 21679,
+          "selected": 12677
+        },
+        "outside, all points": {
+          "rest": 102608,
+          "built": 23365,
+          "selected": 15919
+        },
+        "overview": {
+          "rest": 123378,
+          "built": 0,
+          "selected": 19002
+        },
+        "before | after": {}
+      },
+      "label": "Ceiling",
+      "part_kind": "structure",
+      "params": {
+        "white": 240,
+        "below": 0.03,
+        "lift": 0.08
+      },
+      "info": {
+        "ceiling_y": 1.3011,
+        "cut_y": 1.3511,
+        "patches": 91,
+        "patches_at_ceiling": 38,
+        "lamp_points": 4646
+      }
     }
   ],
   "parts": [
