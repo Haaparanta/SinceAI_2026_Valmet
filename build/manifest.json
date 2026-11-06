@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "source": {
+    "file": "Industrial Boiler Room (1).ply",
+    "header_rows": 1506136,
+    "real_rows": 502482
+  },
+  "units": "scene_units",
+  "up_axis": "y",
+  "steps": [
+    {
+      "index": 1,
+      "kind": "start",
+      "name": "scan",
+      "status": "info",
+      "image": "images/0001_20261106-215306.png",
+      "created_at": "2026-11-06T21:53:06+02:00",
+      "points": 502482,
+      "camera": {
+        "position": [
+          -0.4181,
+          0.9033,
+          2.3441
+        ],
+        "target": [
+          -0.4181,
+          -0.5291,
+          -2.9043
+        ],
+        "fov_deg": 50.0
+      }
+    }
+  ],
+  "parts": [],
+  "removed": [],
+  "room_bounds_p1_p99": {
+    "min": [
+      -4.6939,
+      -1.4087,
+      -4.3154
+    ],
+    "max": [
+      3.8577,
+      1.1044,
+      -0.7877
+    ]
+  }
+}
