@@ -5,3 +5,6 @@
 # Share these outside git and drop them into Source-Data-Do-Not_change/ locally.
 Source-Data-Do-Not_change/*.ply
 Source-Data-Do-Not_change/*.mp4
+
+# Derived data, regenerate with tools/ply_study.py
+data/derived/
