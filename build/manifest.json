@@ -5880,7 +5880,7 @@
       "index": 511,
       "kind": "part",
       "name": "pipe_1",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0511_20261107-005442.png",
         "images/0512_20261107-005442.png",
@@ -6204,7 +6204,34 @@
         "start": -4.25,
         "end": 4.95,
         "runs": 1
-      }
+      },
+      "decided_at": "2026-11-07T00:56:56+02:00"
+    },
+    {
+      "index": 526,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0526_20261107-005700.png",
+        "images/0527_20261107-005703.png",
+        "images/0528_20261107-005705.png",
+        "images/0529_20261107-005708.png",
+        "images/0530_20261107-005710.png",
+        "images/0531_20261107-005713.png",
+        "images/0532_20261107-005719.png",
+        "images/0533_20261107-005724.png",
+        "images/0534_20261107-005727.png",
+        "images/0535_20261107-005731.png",
+        "images/0536_20261107-005731.png",
+        "images/0537_20261107-005731.png",
+        "images/0538_20261107-005732.png",
+        "images/0539_20261107-005732.png"
+      ],
+      "created_at": "2026-11-07T00:57:32+02:00",
+      "event": "after 0511 ACCEPTED (part pipe_1)",
+      "kept": 1617777,
+      "built": 275256
     }
   ],
   "parts": [
@@ -6410,6 +6437,36 @@
       },
       "indices": "build/parts/0479_pallet_jack_1.idx.npy",
       "ply": "build/parts/0479_pallet_jack_1.ply"
+    },
+    {
+      "index": 511,
+      "name": "pipe_1",
+      "label": "Pipe 1",
+      "kind": "pipe",
+      "count": 24927,
+      "bbox": {
+        "min": [
+          -4.2399,
+          0.7603,
+          -0.4685
+        ],
+        "max": [
+          4.9341,
+          0.9579,
+          -0.2701
+        ]
+      },
+      "params": {
+        "along": "x",
+        "a": -0.4,
+        "b": 0.86,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "indices": "build/parts/0511_pipe_1.idx.npy",
+      "ply": "build/parts/0511_pipe_1.ply"
     }
   ],
   "removed": [
