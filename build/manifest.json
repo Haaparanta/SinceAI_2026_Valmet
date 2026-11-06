@@ -34,7 +34,7 @@
       "index": 8,
       "kind": "clean",
       "name": "below_floor",
-      "status": "pending",
+      "status": "replaced",
       "images": [
         "images/0008_20261106-222927.png",
         "images/0009_20261106-222927.png",
@@ -112,6 +112,230 @@
           "built": 0,
           "selected": 24110
         }
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "floor_y": -1.0703,
+        "floor_rms": 0.0094,
+        "floor_support": 41249,
+        "cut_y": -1.1103,
+        "median_depth": 0.1048
+      },
+      "decided_at": "2026-11-06T22:32:43+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 11,
+      "kind": "clean",
+      "name": "below_floor",
+      "status": "replaced",
+      "images": [
+        "images/0011_20261106-223247.png",
+        "images/0012_20261106-223247.png",
+        "images/0013_20261106-223247.png",
+        "images/0014_20261106-223247.png"
+      ],
+      "created_at": "2026-11-06T22:32:47+02:00",
+      "count": 4547,
+      "pool_before": 502482,
+      "bbox": {
+        "min": [
+          -4.2703,
+          -3.9115,
+          -7.3274
+        ],
+        "max": [
+          5.7968,
+          -1.1103,
+          -0.7394
+        ]
+      },
+      "headline": "REMOVE 4,547 points (0.9 %) · reflections under the floor",
+      "cameras": {
+        "close-up": {
+          "position": [
+            2.0078,
+            0.2674,
+            3.0685
+          ],
+          "target": [
+            2.0078,
+            -1.7417,
+            -2.6719
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            -1.0703,
+            2.4547
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 55.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 104630,
+          "built": 0,
+          "selected": 25776
+        },
+        "outside, all points": {
+          "rest": 133809,
+          "built": 0,
+          "selected": 21924
+        },
+        "diagnostic view": {
+          "rest": 158760,
+          "built": 0,
+          "selected": 24110
+        },
+        "before | after": {}
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "floor_y": -1.0703,
+        "floor_rms": 0.0094,
+        "floor_support": 41249,
+        "cut_y": -1.1103,
+        "median_depth": 0.1048
+      },
+      "decided_at": "2026-11-06T22:33:01+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 15,
+      "kind": "clean",
+      "name": "below_floor",
+      "status": "pending",
+      "images": [
+        "images/0015_20261106-223305.png",
+        "images/0016_20261106-223305.png",
+        "images/0017_20261106-223305.png",
+        "images/0018_20261106-223305.png"
+      ],
+      "created_at": "2026-11-06T22:33:05+02:00",
+      "count": 4547,
+      "pool_before": 502482,
+      "bbox": {
+        "min": [
+          -4.2703,
+          -3.9115,
+          -7.3274
+        ],
+        "max": [
+          5.7968,
+          -1.1103,
+          -0.7394
+        ]
+      },
+      "headline": "REMOVE 4,547 points (0.9 %) · reflections under the floor",
+      "cameras": {
+        "close-up": {
+          "position": [
+            2.0078,
+            0.2674,
+            3.0685
+          ],
+          "target": [
+            2.0078,
+            -1.7417,
+            -2.6719
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            -1.0703,
+            2.4547
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 55.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 104630,
+          "built": 0,
+          "selected": 25776
+        },
+        "outside, all points": {
+          "rest": 133809,
+          "built": 0,
+          "selected": 21924
+        },
+        "diagnostic view": {
+          "rest": 158760,
+          "built": 0,
+          "selected": 24110
+        },
+        "before | after": {}
       },
       "params": {
         "margin": 0.04

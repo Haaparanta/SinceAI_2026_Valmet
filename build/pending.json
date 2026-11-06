@@ -1,5 +1,5 @@
 {
-  "index": 8,
+  "index": 15,
   "kind": "clean",
   "name": "below_floor",
   "count": 4547,
@@ -18,9 +18,10 @@
   },
   "indices": "build/pending.idx.npy",
   "images": [
-    "images/0008_20261106-222927.png",
-    "images/0009_20261106-222927.png",
-    "images/0010_20261106-222927.png"
+    "images/0015_20261106-223305.png",
+    "images/0016_20261106-223305.png",
+    "images/0017_20261106-223305.png",
+    "images/0018_20261106-223305.png"
   ],
   "params": {
     "margin": 0.04

@@ -198,7 +198,8 @@ def top_down_camera(lo: np.ndarray, hi: np.ndarray, eye_y: float, fov_deg: float
 
 
 def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarray,
-                   fill: float = 0.25, fov_deg: float = 50.0) -> Camera:
+                   fill: float = 0.25, fov_deg: float = 50.0, width: int = WIDTH, height: int = HEIGHT - BANNER_H
+                   ) -> Camera:
     """Camera looking along `view_dir` at a box; distance tuned so the box's larger screen share (width or height)
     is `fill` of the frame, leaving the rest for context."""
     center = 0.5 * (obj_min + obj_max)
@@ -209,7 +210,7 @@ def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarra
     dist = radius / (fill * np.tan(np.radians(fov_deg) / 2))
     for _ in range(6):                                       # span ~ 1/dist; converge in a few steps
         cam = Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg)
-        span = max(screen_span(corners, cam))
+        span = max(screen_span(corners, cam, width, height))
         dist *= span / fill
         dist = max(dist, radius * 1.05)                      # never put the camera inside the box
     return Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg)
@@ -229,11 +230,15 @@ def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
 
 
 def compose(frame: Frame, title: str, subtitle: str, legend: list[tuple[tuple[int, int, int], str]],
-            when: datetime, badge: str = "", badge_rgb: tuple[int, int, int] = GREY) -> Image.Image:
-    """Frame (rendered at HEIGHT - BANNER_H) on top, a banner with step text, legend and local time below."""
+            when: datetime, badge: str = "", badge_rgb: tuple[int, int, int] = GREY, headline: str = "",
+            headline_rgb: tuple[int, int, int] = RED) -> Image.Image:
+    """Frame (rendered at HEIGHT - BANNER_H) on top, a banner with step text, legend and local time below, and an
+    optional headline at the top left saying in plain words what this step changes."""
     h, w = frame.image.shape[:2]
     im = Image.new("RGB", (w, h + BANNER_H), (6, 7, 12))
     im.paste(Image.fromarray(frame.image), (0, 0))
+    if headline:
+        draw_headline(im, headline, headline_rgb, max_w=w - BADGE_W - 64)
     d = ImageDraw.Draw(im)
     big, small = _font(22), _font(15)
     y0 = h + 8
@@ -264,6 +269,58 @@ def _fit(d: ImageDraw.ImageDraw, text: str, font, max_w: float) -> str:
     return text + "…"
 
 
+def draw_headline(im: Image.Image, text: str, rgb: tuple[int, int, int], max_w: int, x: int = 16, y: int = 12
+                  ) -> None:
+    """Dark translucent box with a colour chip and the change in plain words, top left of the picture."""
+    font = _font(24)
+    d0 = ImageDraw.Draw(im)
+    text = _fit(d0, text, font, max_w - 40)
+    tw = d0.textlength(text, font=font)
+    over = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(over)
+    d.rectangle((x, y, x + tw + 52, y + 40), fill=(0, 0, 0, 170))
+    d.rectangle((x + 10, y + 10, x + 30, y + 30), fill=(*rgb, 255))
+    d.text((x + 40, y + 6), text, fill=(250, 250, 252, 255), font=font)
+    im.paste(Image.alpha_composite(im.convert("RGBA"), over).convert("RGB"))
+
+
+def draw_box(img: np.ndarray, rect: tuple[int, int, int, int], rgb: tuple[int, int, int], pad: int = 10,
+             thick: int = 3) -> None:
+    """Rectangle outline (in place) around a pixel rect, padded and clipped to the image."""
+    h, w = img.shape[:2]
+    x0, y0, x1, y1 = rect
+    x0, y0 = max(0, x0 - pad), max(0, y0 - pad)
+    x1, y1 = min(w - 1, x1 + pad), min(h - 1, y1 + pad)
+    if x1 <= x0 or y1 <= y0:
+        return
+    img[y0:y0 + thick, x0:x1] = rgb
+    img[y1 - thick:y1, x0:x1] = rgb
+    img[y0:y1, x0:x0 + thick] = rgb
+    img[y0:y1, x1 - thick:x1] = rgb
+
+
+def project_rect(points: np.ndarray, cam: Camera, width: int, height: int) -> tuple[int, int, int, int]:
+    """Pixel bounding rectangle of points in front of the camera."""
+    r, u, f = cam.basis()
+    rel = points.astype(np.float64) - np.asarray(cam.position)
+    z = rel @ f
+    rel, z = rel[z > 0.05], z[z > 0.05]
+    if len(z) == 0:
+        return (0, 0, 0, 0)
+    focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
+    px = width / 2 + focal * (rel @ r) / z
+    py = height / 2 - focal * (rel @ u) / z
+    return (int(px.min()), int(py.min()), int(np.ceil(px.max())), int(np.ceil(py.max())))
+
+
+def tint(rgb: np.ndarray, colour: tuple[int, int, int], amount: float = 0.65) -> np.ndarray:
+    """Mix each point's own colour with a highlight colour: the change stands out but keeps some real colour."""
+    return np.clip(np.rint((1 - amount) * rgb.astype(np.float32) + amount * np.asarray(colour, np.float32)),
+                   0, 255).astype(np.uint8)
+
+
+ADD_RGB = (46, 230, 120)       # highlight for points a step adds to the build
+REMOVE_RGB = RED               # highlight for points a step removes
 BADGE_W = 170
 PROPOSED_RGB = (255, 184, 0)
 ACCEPTED_RGB = (46, 204, 113)
@@ -352,7 +409,9 @@ def render_blend(layers: list[BlendLayer], cam: Camera, width: int = WIDTH, heig
     return Frame(img, depth.reshape(height, width), cam, counts)
 
 
-def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0) -> Camera:
+def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0, width: int = WIDTH,
+                   height: int = HEIGHT - BANNER_H) -> Camera:
     """Fixed view from outside the room (front-right, above), framing the whole scan: the same camera for every
     step of a run, so the outside images line up in the flipbook."""
-    return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg)
+    return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg, width=width,
+                          height=height)

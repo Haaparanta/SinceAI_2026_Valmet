@@ -25,6 +25,7 @@ class CleanProposal:
     info: dict = field(default_factory=dict)
     hide_kept: np.ndarray | None = None     # bool over the pool: kept points left out of this image only (view cut)
     removed_size: float | None = None       # draw removed points at this fixed size (small, sparse points)
+    what: str = ""                          # the change in plain words, for the image headline
 
 
 def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
@@ -38,6 +39,7 @@ def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np
     cam = R.front_elevation_camera(bmin, bmax, eye_y=floor.y)
     n = int(remove.sum())
     return CleanProposal(
+        what="reflections under the floor",
         remove=remove,
         title=f"below-floor reflections (y < {cut:+.3f})",
         subtitle=(f"floor y {floor.y:+.3f} (rms {100 * floor.rms:.1f} cm) · remove {n:,} of {len(xyz):,} "
@@ -64,6 +66,7 @@ def behind_back_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, poo
     rx = (f"recess {prof.depth[recess].mean():+.2f} at x {prof.edges[:-1][recess].min():+.1f}…"
           f"{prof.edges[1:][recess].max():+.1f}") if recess.any() else "no recess"
     return CleanProposal(
+        what="floaters behind the back wall",
         remove=remove,
         title=f"behind the back wall (z < wall(x) - {margin:.2f})",
         subtitle=(f"wall z {prof.global_depth:+.3f} · {rx} · remove {n:,} of {len(xyz):,} "
@@ -89,6 +92,7 @@ def floating_fog(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: n
     remove = ~solid & (dist > gap)
     n, n_see = int(remove.sum()), int((~solid).sum())
     return CleanProposal(
+        what="see-through fog floating in the air",
         remove=remove,
         title=f"floating fog (alpha < {max_alpha:g}, > {100 * gap:.0f} cm from solid)",
         subtitle=(f"remove {n:,} of {len(xyz):,} ({100 * n / len(xyz):.1f} %) · keeps {n_see - n:,} see-through "
@@ -118,6 +122,7 @@ def outside_room(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: n
         view_max[0] = max(bmax[0], float(np.percentile(xyz[right, 0], 99)))
     cam = R.front_elevation_camera(bmin, view_max, eye_y=ceiling.y, look_y=0.5 * (bmin[1] + ceiling.y))
     return CleanProposal(
+        what="strays outside the room",
         remove=remove,
         title=f"outside the room (y > {ceiling.y + margin:+.2f} or x > {edge_x + margin:+.2f})",
         subtitle=(f"ceiling y {ceiling.y:+.3f} (rms {100 * ceiling.rms:.1f} cm) · right edge x {edge_x:+.2f} · "

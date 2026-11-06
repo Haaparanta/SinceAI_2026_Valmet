@@ -32,7 +32,7 @@ import numpy as np
 import orjson
 from common.orientation import FRAME
 from common.ply_io import read_header
-from PIL import Image
+from PIL import Image, ImageDraw
 from stepbuild import render as R
 from stepbuild import state as S
 from stepbuild.cleaning import CLEANERS
@@ -84,7 +84,16 @@ def _bounds(m: S.Manifest) -> tuple[np.ndarray, np.ndarray]:
 
 SEL_ALPHA, BUILT_ALPHA, REST_ALPHA = 0.8, 0.2, 0.08       # selection / accepted parts / everything else
 FAILED_RGB = (231, 76, 60)
-LEGEND = [((235, 235, 235), "selected 80 %"), ((150, 150, 150), "built 20 %"), ((75, 75, 80), "rest 8 %")]
+
+
+def _highlight(kind: str) -> tuple[tuple[int, int, int], str]:
+    """Removed points are tinted red, added points green."""
+    return (R.REMOVE_RGB, "removed") if kind == "clean" else (R.ADD_RGB, "added")
+
+
+def _legend(kind: str) -> list[tuple[tuple[int, int, int], str]]:
+    rgb, word = _highlight(kind)
+    return [(rgb, f"{word} (80 %)"), ((150, 150, 150), "built 20 %"), ((75, 75, 80), "rest 8 %")]
 
 
 def _step_images(m: S.Manifest) -> list[str]:
@@ -124,30 +133,71 @@ def _closeup_camera(pts: np.ndarray) -> R.Camera:
     return R.framing_camera(lo, hi, np.array([0.0, -0.35, -1.0]), fill=fill)
 
 
+def _layers(splats: np.ndarray, built_idx: np.ndarray, sel_idx: np.ndarray, rest_idx: np.ndarray, kind: str,
+            alphas: tuple[float, float, float] = (SEL_ALPHA, BUILT_ALPHA, REST_ALPHA)) -> list[R.BlendLayer]:
+    built, sel, rest = splats[built_idx], splats[sel_idx], splats[rest_idx]
+    hl, _ = _highlight(kind)
+    return [R.BlendLayer(xyz_of(rest), rgb_of(rest), alphas[2], "rest", size_of(rest)),
+            R.BlendLayer(xyz_of(built), rgb_of(built), alphas[1], "built", size_of(built)),
+            R.BlendLayer(xyz_of(sel), R.tint(rgb_of(sel), hl), alphas[0], "selected", np.maximum(size_of(sel), 0.01))]
+
+
 def _render_views(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray,
-                  views: list[tuple[str, R.Camera, np.ndarray | None]]) -> list[tuple[str, R.Frame]]:
-    """Each view in true colours: selection 80 %, accepted parts 20 %, the rest 8 % (optionally minus a per-view
-    hide mask over rest_idx)."""
-    built = splats[m.claimed_indices()]
-    sel = splats[sel_idx]
+                  views: list[tuple[str, R.Camera, np.ndarray | None]], kind: str) -> list[tuple[str, R.Frame]]:
+    """Each view in true colours with the change tinted (red = removed, green = added) at 80 %, accepted parts
+    20 %, the rest 8 % (optionally minus a per-view hide mask over rest_idx). The close-up also gets a box around
+    the change."""
+    built_idx = m.claimed_indices()
+    hl, _ = _highlight(kind)
     out = []
     for name, cam, hide in views:
-        rest = splats[rest_idx if hide is None else rest_idx[~hide]]
-        layers = [R.BlendLayer(xyz_of(rest), rgb_of(rest), REST_ALPHA, "rest", size_of(rest)),
-                  R.BlendLayer(xyz_of(built), rgb_of(built), BUILT_ALPHA, "built", size_of(built)),
-                  R.BlendLayer(xyz_of(sel), rgb_of(sel), SEL_ALPHA, "selected", np.maximum(size_of(sel), 0.01))]
-        out.append((name, R.render_blend(layers, cam)))
+        rest = rest_idx if hide is None else rest_idx[~hide]
+        frame = R.render_blend(_layers(splats, built_idx, sel_idx, rest, kind), cam)
+        if name == "close-up" and len(sel_idx):
+            pts = xyz_of(splats[sel_idx])
+            lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
+            h, w = frame.image.shape[:2]
+            R.draw_box(frame.image, R.project_rect(R.box_corners(lo, hi), cam, w, h), hl)
+        out.append((name, frame))
     return out
 
 
+def _before_after(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray, kind: str
+                  ) -> R.Frame:
+    """BEFORE | AFTER from the outside camera, side by side. Clean step: before = all points (the ones to remove
+    tinted red), after = without them. Part step: before = what is built, after = built + the new part (green)."""
+    bmin, bmax = _bounds(m)
+    hw, h = R.WIDTH // 2, R.HEIGHT - R.BANNER_H
+    cam = R.outside_camera(bmin, bmax, width=hw, height=h)
+    built = m.claimed_indices()
+    none = np.empty(0, np.uint32)
+    if kind == "clean":
+        before = _layers(splats, built, sel_idx, rest_idx, kind, (SEL_ALPHA, 0.35, 0.25))
+        after = _layers(splats, built, none, rest_idx, kind, (SEL_ALPHA, 0.35, 0.25))
+    else:
+        before = _layers(splats, built, none, np.concatenate([sel_idx, rest_idx]), kind, (SEL_ALPHA, SEL_ALPHA, 0.06))
+        after = _layers(splats, built, sel_idx, rest_idx, kind, (SEL_ALPHA, SEL_ALPHA, 0.06))
+    halves = [R.render_blend(before, cam, hw, h).image, R.render_blend(after, cam, hw, h).image]
+    img = np.concatenate(halves, axis=1)
+    img[:, hw - 1:hw + 1] = (90, 92, 100)
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    for i, word in enumerate(("BEFORE", "AFTER")):
+        d.text((i * hw + 16, h - 44), word, fill=(240, 240, 245), font=R._font(28))
+    return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
+
+
 def _save_views(frames: list[tuple[str, R.Frame]], title: str, subtitle: str, badge: str,
-                badge_rgb: tuple[int, int, int]) -> list[str]:
-    """One image per view, each with its own index: '<index> · <title>' and '<view> · <subtitle>'."""
+                badge_rgb: tuple[int, int, int], kind: str, headline: str = "") -> list[str]:
+    """One image per view, each with its own index: '<index> · <title>' and '<view> · <subtitle>', the headline
+    (what changes, in plain words) on top of every picture."""
     paths = []
+    hl, _ = _highlight(kind)
     for view, frame in frames:
         when = S.now_local()
         index = S.next_image_index()
-        im = R.compose(frame, f"{index:04d} · {title}", f"{view} · {subtitle}", LEGEND, when, badge, badge_rgb)
+        im = R.compose(frame, f"{index:04d} · {title}", f"{view} · {subtitle}", _legend(kind), when, badge,
+                       badge_rgb, headline=headline, headline_rgb=hl)
         paths.append(S.rel(_save(im, index, when)))
     return paths
 
@@ -156,8 +206,9 @@ def _fail(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, kind: str, na
     """A failed step still gets an image (outside view of the current state), a FAILED badge and the reason."""
     bmin, bmax = _bounds(m)
     frames = _render_views(splats, m, np.empty(0, np.uint32), pool_idx,
-                           [("outside, all points", R.outside_camera(bmin, bmax), None)])
-    images = _save_views(frames, f"{kind.upper()} · {name}", f"FAILED: {reason}", "FAILED", FAILED_RGB)
+                           [("outside, all points", R.outside_camera(bmin, bmax), None)], kind)
+    images = _save_views(frames, f"{kind.upper()} · {name}", f"FAILED: {reason}", "FAILED", FAILED_RGB, kind,
+                         headline=f"FAILED · no change · {reason}")
     m.add_step(index=int(Path(images[0]).name[:4]), kind=kind, name=name, status="failed", images=images,
                created_at=S.now_local().isoformat(timespec="seconds"), note=reason)
     m.save()
@@ -167,7 +218,7 @@ def _fail(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, kind: str, na
 
 def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: np.ndarray, *, kind: str,
              name: str, title: str, subtitle: str, extra: tuple[str, R.Camera, np.ndarray | None] | None,
-             record: dict) -> int:
+             record: dict, headline: str) -> int:
     sel_idx = pool_idx[sel_mask]
     if len(sel_idx) == 0:
         return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
@@ -176,8 +227,9 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
              ("outside, all points", R.outside_camera(bmin, bmax), None)]
     if extra is not None:
         views.append(extra)
-    frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views)
-    images = _save_views(frames, title, subtitle, "PROPOSED", R.PROPOSED_RGB)
+    frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views, kind)
+    frames.append(("before | after", _before_after(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
+    images = _save_views(frames, title, subtitle, "PROPOSED", R.PROPOSED_RGB, kind, headline)
     index = int(Path(images[0]).name[:4])
     np.save(S.PENDING_IDX, sel_idx)
     pts = xyz_of(splats[sel_idx])
@@ -187,7 +239,7 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
     S.PENDING.write_bytes(orjson.dumps(pending, option=orjson.OPT_INDENT_2) + b"\n")
     m.add_step(index=index, kind=kind, name=name, status="pending", images=images,
                created_at=S.now_local().isoformat(timespec="seconds"), count=len(sel_idx), pool_before=len(pool_idx),
-               bbox=bbox, cameras={v: f.camera.to_dict() for v, f in frames},
+               bbox=bbox, headline=headline, cameras={v: f.camera.to_dict() for v, f in frames},
                layer_share={v: f.counts for v, f in frames}, **record)
     m.save()
     print(f"{index:04d} PROPOSED {kind}/{name}: {len(sel_idx):,} of {len(pool_idx):,} pool points")
@@ -212,11 +264,12 @@ def cmd_clean(args: argparse.Namespace) -> int:
         return _fail(m, splats, pool_idx, "clean", args.name, f"{type(exc).__name__}: {exc}")
     rm = prop.remove
     hide = None if prop.hide_kept is None else prop.hide_kept[~rm]
-    n_clean = sum(1 for s in m.data["steps"] if s["kind"] == "clean") + 1
+    n_clean = len(m.data["removed"]) + 1                  # numbered by accepted cleanings: drafts do not count
     return _propose(m, splats, pool_idx, rm, kind="clean", name=args.name,
                     title=f"CLEAN {n_clean} · {prop.title}", subtitle=prop.subtitle,
                     extra=("diagnostic view", prop.camera, hide),
-                    record={"params": prop.params, "info": prop.info})
+                    record={"params": prop.params, "info": prop.info},
+                    headline=f"REMOVE {int(rm.sum()):,} points ({100 * rm.mean():.1f} %) · {prop.what}")
 
 
 def cmd_part(args: argparse.Namespace) -> int:
@@ -235,7 +288,8 @@ def cmd_part(args: argparse.Namespace) -> int:
     return _propose(m, splats, pool_idx, prop.take, kind="part", name=prop.name,
                     title=f"PART {n_parts + 1} · {prop.title}", subtitle=prop.subtitle,
                     extra=("overview", prop.camera, None),
-                    record={"label": prop.label, "part_kind": prop.kind, "params": prop.params, "info": prop.info})
+                    record={"label": prop.label, "part_kind": prop.kind, "params": prop.params, "info": prop.info},
+                    headline=f"ADD {prop.label.upper()} · {int(prop.take.sum()):,} points as part {n_parts + 1}")
 
 
 def write_current(splats: np.ndarray, m: S.Manifest) -> int:
