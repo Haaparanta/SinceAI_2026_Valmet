@@ -353,7 +353,7 @@
       "index": 19,
       "kind": "clean",
       "name": "behind_back_wall",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0019_20261106-223544.png",
         "images/0020_20261106-223544.png",
@@ -600,7 +600,8 @@
             -3.4091
           ]
         ]
-      }
+      },
+      "decided_at": "2026-11-06T22:36:50+02:00"
     }
   ],
   "parts": [],
@@ -613,6 +614,16 @@
         "margin": 0.04
       },
       "indices": "build/removed/0015_below_floor.idx.npy"
+    },
+    {
+      "index": 19,
+      "name": "behind_back_wall",
+      "count": 14768,
+      "params": {
+        "margin": 0.04,
+        "strip": 0.25
+      },
+      "indices": "build/removed/0019_behind_back_wall.idx.npy"
     }
   ],
   "frame": "world-rotz180-v1",
