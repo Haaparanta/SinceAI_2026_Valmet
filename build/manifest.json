@@ -1806,7 +1806,7 @@
       "index": 91,
       "kind": "part",
       "name": "ceiling",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0091_20261106-225959.png",
         "images/0092_20261106-225959.png",
@@ -1916,7 +1916,23 @@
         "patches": 91,
         "patches_at_ceiling": 38,
         "lamp_points": 4646
-      }
+      },
+      "decided_at": "2026-11-06T23:01:08+02:00"
+    },
+    {
+      "index": 95,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0095_20261106-230109.png",
+        "images/0096_20261106-230110.png",
+        "images/0097_20261106-230110.png"
+      ],
+      "created_at": "2026-11-06T23:01:10+02:00",
+      "event": "after 0091 ACCEPTED (part ceiling)",
+      "kept": 464713,
+      "built": 42028
     }
   ],
   "parts": [
@@ -1943,6 +1959,34 @@
       },
       "indices": "build/parts/0039_floor.idx.npy",
       "ply": "build/parts/0039_floor.ply"
+    },
+    {
+      "index": 91,
+      "name": "ceiling",
+      "label": "Ceiling",
+      "kind": "structure",
+      "count": 387,
+      "bbox": {
+        "min": [
+          -3.926,
+          1.5002,
+          -3.4554
+        ],
+        "max": [
+          4.9573,
+          1.5694,
+          -0.7599
+        ]
+      },
+      "params": {
+        "white": 240,
+        "below": 0.03,
+        "lift": 0.0,
+        "lo": 1.5,
+        "hi": 1.6
+      },
+      "indices": "build/parts/0091_ceiling.idx.npy",
+      "ply": "build/parts/0091_ceiling.ply"
     }
   ],
   "removed": [
