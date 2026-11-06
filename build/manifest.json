@@ -2986,7 +2986,7 @@
       "index": 309,
       "kind": "part",
       "name": "lamp_1",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0309_20261107-001256.png",
         "images/0310_20261107-001256.png",
@@ -3327,7 +3327,34 @@
           191
         ],
         "noise": 1902
-      }
+      },
+      "decided_at": "2026-11-07T00:18:37+02:00"
+    },
+    {
+      "index": 325,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0325_20261107-001841.png",
+        "images/0326_20261107-001844.png",
+        "images/0327_20261107-001846.png",
+        "images/0328_20261107-001848.png",
+        "images/0329_20261107-001851.png",
+        "images/0330_20261107-001855.png",
+        "images/0331_20261107-001901.png",
+        "images/0332_20261107-001906.png",
+        "images/0333_20261107-001911.png",
+        "images/0334_20261107-001914.png",
+        "images/0335_20261107-001914.png",
+        "images/0336_20261107-001915.png",
+        "images/0337_20261107-001915.png",
+        "images/0338_20261107-001915.png"
+      ],
+      "created_at": "2026-11-07T00:19:15+02:00",
+      "event": "after 0309 ACCEPTED (part lamp_1)",
+      "kept": 1617777,
+      "built": 188701
     }
   ],
   "parts": [
@@ -3382,6 +3409,33 @@
       },
       "indices": "build/parts/0280_ceiling.idx.npy",
       "ply": "build/parts/0280_ceiling.ply"
+    },
+    {
+      "index": 309,
+      "name": "lamp_1",
+      "label": "Lamp 1",
+      "kind": "equipment",
+      "count": 1839,
+      "bbox": {
+        "min": [
+          -2.3717,
+          1.1985,
+          -2.8742
+        ],
+        "max": [
+          -0.9711,
+          1.4566,
+          -2.4825
+        ]
+      },
+      "params": {
+        "white": 240,
+        "min_y": 1.13,
+        "eps": 0.04,
+        "min_samples": 8
+      },
+      "indices": "build/parts/0309_lamp_1.idx.npy",
+      "ply": "build/parts/0309_lamp_1.ply"
     }
   ],
   "removed": [
