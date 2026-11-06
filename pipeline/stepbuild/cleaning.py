@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from stepbuild import render as R
-from stepbuild.geometry import horizontal_plane
+from stepbuild.geometry import back_wall_profile, horizontal_plane
 
 
 @dataclass
@@ -21,6 +21,7 @@ class CleanProposal:
     camera: R.Camera
     params: dict = field(default_factory=dict)
     info: dict = field(default_factory=dict)
+    hide_kept: np.ndarray | None = None     # bool over the pool: kept points left out of this image only (view cut)
 
 
 def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: float = 0.04) -> CleanProposal:
@@ -44,6 +45,34 @@ def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: flo
     )
 
 
+def behind_back_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: float = 0.04,
+                     strip: float = 0.25, hide_above: float = 0.9) -> CleanProposal:
+    """2b: floaters behind the back wall. The wall depth (z) is found per `strip` of x, so the cut follows the recess
+    between x -1.6 and 0; remove z < wall(x) - margin. Image: plan view from above with kept points above
+    `hide_above` (ceiling band) hidden, so the wall line and the room behind the red cut are visible."""
+    prof = back_wall_profile(xyz[:, 0], xyz[:, 2], strip=strip)
+    wall = prof.at(xyz[:, 0])
+    remove = xyz[:, 2] < wall - margin
+    n = int(remove.sum())
+    zlo = min(float(np.percentile(xyz[remove, 2], 2)) if n else bmin[2], prof.global_depth - 0.6)
+    cam = R.top_down_camera(np.array([bmin[0], 0, zlo]), np.array([bmax[0], 0, bmax[2]]), eye_y=bmax[1] + 1.0)
+    recess = prof.depth < prof.global_depth - 0.03
+    rx = (f"recess {prof.depth[recess].mean():+.2f} at x {prof.edges[:-1][recess].min():+.1f}…"
+          f"{prof.edges[1:][recess].max():+.1f}") if recess.any() else "no recess"
+    return CleanProposal(
+        remove=remove,
+        title=f"behind the back wall (z < wall(x) - {margin:.2f})",
+        subtitle=(f"wall z {prof.global_depth:+.3f} · {rx} · remove {n:,} of {len(xyz):,} "
+                  f"({100 * n / len(xyz):.1f} %) · top view, ceiling hidden"),
+        camera=cam,
+        params={"margin": margin, "strip": strip},
+        info={"wall_z": round(prof.global_depth, 4),
+              "profile": [[round(float(a), 3), round(float(d), 4)] for a, d in zip(prof.edges[:-1], prof.depth)]},
+        hide_kept=xyz[:, 1] > hide_above,
+    )
+
+
 CLEANERS: dict[str, Callable[..., CleanProposal]] = {
     "below_floor": below_floor,
+    "behind_back_wall": behind_back_wall,
 }

@@ -185,6 +185,18 @@ def front_elevation_camera(bmin: np.ndarray, bmax: np.ndarray, eye_y: float, loo
     return Camera(pos, (float(c[0]), ty, float(c[2])), fov_deg)
 
 
+def top_down_camera(lo: np.ndarray, hi: np.ndarray, eye_y: float, fov_deg: float = 35.0) -> Camera:
+    """Plan view straight down at the x/z rectangle lo..hi (y ignored), back wall (low z) at the top of the image.
+    The eye is raised until the rectangle fits; a narrow fov keeps it close to an orthographic plan."""
+    cx, cz = 0.5 * (lo[0] + hi[0]), 0.5 * (lo[2] + hi[2])
+    t = np.tan(np.radians(fov_deg) / 2)
+    aspect = WIDTH / (HEIGHT - BANNER_H)
+    h = max(0.5 * (hi[0] - lo[0]) * 1.06 / (t * aspect), 0.5 * (hi[2] - lo[2]) * 1.06 / t)
+    floor_guess = eye_y - 3.0
+    return Camera((float(cx), float(floor_guess + h), float(cz)), (float(cx), float(floor_guess), float(cz)),
+                  fov_deg, up=(0.0, 0.0, -1.0))
+
+
 def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarray,
                    fill: float = 0.25, fov_deg: float = 50.0) -> Camera:
     """Camera looking along `view_dir` at a box; distance tuned so the box's larger screen share (width or height)
@@ -225,12 +237,12 @@ def compose(frame: Frame, title: str, subtitle: str, legend: list[tuple[tuple[in
     d = ImageDraw.Draw(im)
     big, small = _font(22), _font(15)
     y0 = h + 8
-    d.text((16, y0), title, fill=(235, 238, 245), font=big)
-    d.text((16, y0 + 30), subtitle, fill=(150, 156, 170), font=small)
     x = w - 16
     stamp = when.strftime("%Y-%m-%d %H:%M:%S")
     tw = d.textlength(stamp, font=small)
     d.text((x - tw, y0 + 30), stamp, fill=(150, 156, 170), font=small)
+    d.text((16, y0), title, fill=(235, 238, 245), font=big)
+    d.text((16, y0 + 30), _fit(d, subtitle, small, w - 16 - tw - 24 - 16), fill=(150, 156, 170), font=small)
     for rgb, label in reversed(legend):
         tw = d.textlength(label, font=small)
         x -= tw
@@ -241,6 +253,15 @@ def compose(frame: Frame, title: str, subtitle: str, legend: list[tuple[tuple[in
     if badge:
         draw_badge(im, badge, badge_rgb)
     return im
+
+
+def _fit(d: ImageDraw.ImageDraw, text: str, font, max_w: float) -> str:
+    """Cut `text` with an ellipsis so it never runs into the timestamp."""
+    if d.textlength(text, font=font) <= max_w:
+        return text
+    while text and d.textlength(text + "…", font=font) > max_w:
+        text = text[:-1]
+    return text + "…"
 
 
 BADGE_W = 170

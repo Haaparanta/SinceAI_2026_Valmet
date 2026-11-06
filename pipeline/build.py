@@ -100,7 +100,8 @@ def cmd_clean(args: argparse.Namespace) -> int:
     bmin, bmax = _bounds(m)
     prop = CLEANERS[args.name](xyz, bmin, bmax, **params)
     rm = prop.remove
-    frame = R.render([R.Layer(xyz[~rm], R.GREY, "kept", size[~rm]), R.Layer(xyz[rm], R.RED, "removed", size[rm])],
+    show = ~rm if prop.hide_kept is None else ~rm & ~prop.hide_kept
+    frame = R.render([R.Layer(xyz[show], R.GREY, "kept", size[show]), R.Layer(xyz[rm], R.RED, "removed", size[rm])],
                      prop.camera, R.WIDTH, R.HEIGHT - R.BANNER_H)
     when = S.now_local()
     index = S.next_image_index()
