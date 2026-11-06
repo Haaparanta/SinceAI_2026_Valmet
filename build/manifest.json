@@ -52,7 +52,7 @@
       "index": 143,
       "kind": "clean",
       "name": "below_floor",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0143_20261106-232424.png",
         "images/0144_20261106-232424.png",
@@ -175,11 +175,37 @@
         "floor_support": 179540,
         "cut_y": -1.2133,
         "median_depth": 0.098
-      }
+      },
+      "decided_at": "2026-11-06T23:26:29+02:00"
+    },
+    {
+      "index": 148,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0148_20261106-232632.png",
+        "images/0149_20261106-232634.png",
+        "images/0150_20261106-232638.png"
+      ],
+      "created_at": "2026-11-06T23:26:38+02:00",
+      "event": "after 0143 ACCEPTED (clean below_floor)",
+      "kept": 1647182,
+      "built": 0
     }
   ],
   "parts": [],
-  "removed": [],
+  "removed": [
+    {
+      "index": 143,
+      "name": "below_floor",
+      "count": 29299,
+      "params": {
+        "margin": 0.04
+      },
+      "indices": "build/removed/0143_below_floor.idx.npy"
+    }
+  ],
   "frame": "world-rotz180-v1",
   "previous_runs": [
     {
