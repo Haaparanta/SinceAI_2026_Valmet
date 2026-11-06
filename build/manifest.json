@@ -9500,6 +9500,35 @@
       "event": "after 0772 ACCEPTED (part pipe_10)",
       "kept": 1617777,
       "built": 387738
+    },
+    {
+      "index": 804,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0804_20261107-014418.png",
+        "images/0805_20261107-014424.png",
+        "images/0806_20261107-014503.png",
+        "images/0807_20261107-014507.png",
+        "images/0808_20261107-014510.png",
+        "images/0809_20261107-014511.png",
+        "images/0810_20261107-014513.png",
+        "images/0811_20261107-014515.png",
+        "images/0812_20261107-014518.png",
+        "images/0813_20261107-014524.png",
+        "images/0814_20261107-014528.png",
+        "images/0815_20261107-014532.png",
+        "images/0816_20261107-014535.png",
+        "images/0817_20261107-014535.png",
+        "images/0818_20261107-014536.png",
+        "images/0819_20261107-014536.png",
+        "images/0820_20261107-014537.png"
+      ],
+      "created_at": "2026-11-07T01:45:37+02:00",
+      "event": "Gaussian splat renderer added (no decision)",
+      "kept": 1617777,
+      "built": 387738
     }
   ],
   "parts": [

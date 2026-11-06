@@ -485,7 +485,17 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
                   ("built 3D world, top view", R.plan_camera(bmin, bmax), built)]
         if has_cut:
             views.append(("built 3D world, dollhouse", R.outside_camera(bmin, bmax), cut_built))
+    splat_views = [("GAUSSIAN SPLATS: whole kept room, inside (START camera)", start_cam, kept)]
+    if len(built):
+        splat_views = [("GAUSSIAN SPLATS: built 3D world, outside", R.outside_camera(bmin, bmax), built),
+                       ("GAUSSIAN SPLATS: built 3D world, inside (START camera)", start_cam, built), *splat_views]
     images = []
+    for view, cam, idx in splat_views:                  # real splat rendering (ellipses, opacity), see render.py
+        frame = R.splat_picture(splats[idx], cam)
+        when = S.now_local()
+        index = S.next_image_index()
+        im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} · {facts}", [], when, "SPLATS", STATE_RGB)
+        images.append(S.rel(_save(im, index, when)))
     for view, cam, idx in views:
         sub = splats[idx]
         frame = R.render([R.Layer(xyz_of(sub), rgb_of(sub), view, size_of(sub))], cam, R.WIDTH, R.HEIGHT - R.BANNER_H,
