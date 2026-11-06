@@ -1,0 +1,60 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "title": "Action",
+      "type": "string"
+    },
+    "downtime_h": {
+      "title": "Downtime H",
+      "type": "number"
+    },
+    "duration_h": {
+      "title": "Duration H",
+      "type": "number"
+    },
+    "knowledge_doc_id": {
+      "title": "Knowledge Doc Id",
+      "type": "string"
+    },
+    "maintenance_type": {
+      "title": "Maintenance Type",
+      "type": "string"
+    },
+    "opened_at": {
+      "format": "date-time",
+      "title": "Opened At",
+      "type": "string"
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "string"
+    },
+    "result": {
+      "title": "Result",
+      "type": "string"
+    },
+    "role": {
+      "title": "Role",
+      "type": "string"
+    },
+    "work_order_id": {
+      "title": "Work Order Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "work_order_id",
+    "opened_at",
+    "action",
+    "maintenance_type",
+    "priority",
+    "result",
+    "duration_h",
+    "downtime_h",
+    "role",
+    "knowledge_doc_id"
+  ],
+  "title": "WorkOrderRow",
+  "type": "object"
+}

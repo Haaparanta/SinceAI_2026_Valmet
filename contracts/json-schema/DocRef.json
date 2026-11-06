@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "content": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Content"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "document_role": {
+      "title": "Document Role",
+      "type": "string"
+    },
+    "scope": {
+      "title": "Scope",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "doc_id",
+    "title",
+    "scope",
+    "document_role"
+  ],
+  "title": "DocRef",
+  "type": "object"
+}

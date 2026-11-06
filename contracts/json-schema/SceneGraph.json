@@ -1,0 +1,354 @@
+{
+  "$defs": {
+    "ApprovedObject": {
+      "additionalProperties": false,
+      "properties": {
+        "approved_at": {
+          "format": "date-time",
+          "title": "Approved At",
+          "type": "string"
+        },
+        "approved_by": {
+          "title": "Approved By",
+          "type": "string"
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "class_guess": {
+          "enum": [
+            "CONTROL_VALVE",
+            "PROCESS_PUMP",
+            "ELECTRIC_MOTOR",
+            "PRESSURE_TRANSMITTER",
+            "VIBRATION_SENSOR",
+            "pipe",
+            "tank",
+            "boiler",
+            "cabinet",
+            "structure",
+            "other"
+          ],
+          "title": "Class Guess",
+          "type": "string"
+        },
+        "confidence_auto": {
+          "title": "Confidence Auto",
+          "type": "number"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "mapping_confidence": {
+          "title": "Mapping Confidence",
+          "type": "number"
+        },
+        "mapping_method": {
+          "enum": [
+            "human_approved",
+            "procedural",
+            "none"
+          ],
+          "title": "Mapping Method",
+          "type": "string"
+        },
+        "mesh_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mesh Uri"
+        },
+        "obb": {
+          "$ref": "#/$defs/OBB"
+        },
+        "object_id": {
+          "title": "Object Id",
+          "type": "string"
+        },
+        "point_indices_uri": {
+          "title": "Point Indices Uri",
+          "type": "string"
+        },
+        "snapshot_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Uri"
+        },
+        "source_proposal_id": {
+          "title": "Source Proposal Id",
+          "type": "string"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag"
+        }
+      },
+      "required": [
+        "object_id",
+        "source_proposal_id",
+        "label",
+        "class_guess",
+        "confidence_auto",
+        "obb",
+        "point_indices_uri",
+        "mapping_confidence",
+        "mapping_method",
+        "approved_by",
+        "approved_at"
+      ],
+      "title": "ApprovedObject",
+      "type": "object"
+    },
+    "OBB": {
+      "additionalProperties": false,
+      "properties": {
+        "center": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Center",
+          "type": "array"
+        },
+        "rotation": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation",
+          "type": "array"
+        },
+        "size": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Size",
+          "type": "array"
+        }
+      },
+      "required": [
+        "center",
+        "size",
+        "rotation"
+      ],
+      "title": "OBB",
+      "type": "object"
+    },
+    "SceneCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "approved": {
+          "title": "Approved",
+          "type": "integer"
+        },
+        "bound": {
+          "title": "Bound",
+          "type": "integer"
+        },
+        "proposals": {
+          "title": "Proposals",
+          "type": "integer"
+        },
+        "rejected": {
+          "title": "Rejected",
+          "type": "integer"
+        },
+        "skipped": {
+          "title": "Skipped",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "proposals",
+        "approved",
+        "rejected",
+        "skipped",
+        "bound"
+      ],
+      "title": "SceneCounts",
+      "type": "object"
+    },
+    "SceneInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "bounds_max": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Bounds Max",
+          "type": "array"
+        },
+        "bounds_min": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Bounds Min",
+          "type": "array"
+        },
+        "floor_y": {
+          "title": "Floor Y",
+          "type": "number"
+        },
+        "grid_resolution": {
+          "default": 0.05,
+          "title": "Grid Resolution",
+          "type": "number"
+        },
+        "is_synthetic_metadata": {
+          "default": true,
+          "title": "Is Synthetic Metadata",
+          "type": "boolean"
+        },
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "units": {
+          "default": "scene_units",
+          "enum": [
+            "scene_units",
+            "metres"
+          ],
+          "title": "Units",
+          "type": "string"
+        },
+        "up_axis": {
+          "const": "y",
+          "default": "y",
+          "title": "Up Axis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_file",
+        "bounds_min",
+        "bounds_max",
+        "floor_y"
+      ],
+      "title": "SceneInfo",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "counts": {
+      "$ref": "#/$defs/SceneCounts"
+    },
+    "objects": {
+      "items": {
+        "$ref": "#/$defs/ApprovedObject"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "scene": {
+      "$ref": "#/$defs/SceneInfo"
+    },
+    "target_object_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Object Id"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "scene",
+    "objects",
+    "counts"
+  ],
+  "title": "SceneGraph",
+  "type": "object"
+}
