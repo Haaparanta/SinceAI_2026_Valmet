@@ -82,6 +82,15 @@ def _bounds(m: S.Manifest) -> tuple[np.ndarray, np.ndarray]:
     return np.array(b["min"]), np.array(b["max"])
 
 
+SEL_ALPHA, BUILT_ALPHA, REST_ALPHA = 0.8, 0.2, 0.08       # selection / accepted parts / everything else
+FAILED_RGB = (231, 76, 60)
+LEGEND = [((235, 235, 235), "selected 80 %"), ((150, 150, 150), "built 20 %"), ((75, 75, 80), "rest 8 %")]
+
+
+def _step_images(m: S.Manifest) -> list[str]:
+    return [img for s in m.data["steps"] for img in s.get("images", [s.get("image")]) if img]
+
+
 def _close_pending(m: S.Manifest, status: str, badge_rgb: tuple[int, int, int], note: str = "") -> dict:
     pending = orjson.loads(S.PENDING.read_bytes())
     step = m.step(pending["index"])
@@ -89,7 +98,8 @@ def _close_pending(m: S.Manifest, status: str, badge_rgb: tuple[int, int, int], 
     step["decided_at"] = S.now_local().isoformat(timespec="seconds")
     if note:
         step["note"] = note
-    _stamp(step["image"], status.upper(), badge_rgb)
+    for image in step.get("images", [step.get("image")]):
+        _stamp(image, status.upper(), badge_rgb)
     return pending
 
 
@@ -106,97 +116,126 @@ def _check_pending(m: S.Manifest, replace: bool) -> bool:
     return True
 
 
+def _closeup_camera(pts: np.ndarray) -> R.Camera:
+    """Close-up of the selection: its p2..p98 box from the open front side, slightly above. An object fills ~30 % of
+    the frame (context stays visible); a room-scale selection (> 2 u) fills ~80 %."""
+    lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
+    fill = 0.3 if float(np.max(hi - lo)) < 2.0 else 0.8
+    return R.framing_camera(lo, hi, np.array([0.0, -0.35, -1.0]), fill=fill)
+
+
+def _render_views(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray,
+                  views: list[tuple[str, R.Camera, np.ndarray | None]]) -> list[tuple[str, R.Frame]]:
+    """Each view in true colours: selection 80 %, accepted parts 20 %, the rest 8 % (optionally minus a per-view
+    hide mask over rest_idx)."""
+    built = splats[m.claimed_indices()]
+    sel = splats[sel_idx]
+    out = []
+    for name, cam, hide in views:
+        rest = splats[rest_idx if hide is None else rest_idx[~hide]]
+        layers = [R.BlendLayer(xyz_of(rest), rgb_of(rest), REST_ALPHA, "rest", size_of(rest)),
+                  R.BlendLayer(xyz_of(built), rgb_of(built), BUILT_ALPHA, "built", size_of(built)),
+                  R.BlendLayer(xyz_of(sel), rgb_of(sel), SEL_ALPHA, "selected", np.maximum(size_of(sel), 0.01))]
+        out.append((name, R.render_blend(layers, cam)))
+    return out
+
+
+def _save_views(frames: list[tuple[str, R.Frame]], title: str, subtitle: str, badge: str,
+                badge_rgb: tuple[int, int, int]) -> list[str]:
+    """One image per view, each with its own index: '<index> · <title>' and '<view> · <subtitle>'."""
+    paths = []
+    for view, frame in frames:
+        when = S.now_local()
+        index = S.next_image_index()
+        im = R.compose(frame, f"{index:04d} · {title}", f"{view} · {subtitle}", LEGEND, when, badge, badge_rgb)
+        paths.append(S.rel(_save(im, index, when)))
+    return paths
+
+
+def _fail(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, kind: str, name: str, reason: str) -> int:
+    """A failed step still gets an image (outside view of the current state), a FAILED badge and the reason."""
+    bmin, bmax = _bounds(m)
+    frames = _render_views(splats, m, np.empty(0, np.uint32), pool_idx,
+                           [("outside, all points", R.outside_camera(bmin, bmax), None)])
+    images = _save_views(frames, f"{kind.upper()} · {name}", f"FAILED: {reason}", "FAILED", FAILED_RGB)
+    m.add_step(index=int(Path(images[0]).name[:4]), kind=kind, name=name, status="failed", images=images,
+               created_at=S.now_local().isoformat(timespec="seconds"), note=reason)
+    m.save()
+    print(f"FAILED {kind}/{name}: {reason}\n  image {images[0]}")
+    return 1
+
+
+def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: np.ndarray, *, kind: str,
+             name: str, title: str, subtitle: str, extra: tuple[str, R.Camera, np.ndarray | None] | None,
+             record: dict) -> int:
+    sel_idx = pool_idx[sel_mask]
+    if len(sel_idx) == 0:
+        return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
+    bmin, bmax = _bounds(m)
+    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx])), None),
+             ("outside, all points", R.outside_camera(bmin, bmax), None)]
+    if extra is not None:
+        views.append(extra)
+    frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views)
+    images = _save_views(frames, title, subtitle, "PROPOSED", R.PROPOSED_RGB)
+    index = int(Path(images[0]).name[:4])
+    np.save(S.PENDING_IDX, sel_idx)
+    pts = xyz_of(splats[sel_idx])
+    bbox = {"min": [round(float(v), 4) for v in pts.min(0)], "max": [round(float(v), 4) for v in pts.max(0)]}
+    pending = {"index": index, "kind": kind, "name": name, "count": len(sel_idx), "pool_before": len(pool_idx),
+               "bbox": bbox, "indices": S.rel(S.PENDING_IDX), "images": images, **record}
+    S.PENDING.write_bytes(orjson.dumps(pending, option=orjson.OPT_INDENT_2) + b"\n")
+    m.add_step(index=index, kind=kind, name=name, status="pending", images=images,
+               created_at=S.now_local().isoformat(timespec="seconds"), count=len(sel_idx), pool_before=len(pool_idx),
+               bbox=bbox, cameras={v: f.camera.to_dict() for v, f in frames},
+               layer_share={v: f.counts for v, f in frames}, **record)
+    m.save()
+    print(f"{index:04d} PROPOSED {kind}/{name}: {len(sel_idx):,} of {len(pool_idx):,} pool points")
+    print(f"  {subtitle}")
+    for img in images:
+        print(f"  image {img}")
+    print("  -> `build.py accept` or `build.py reject`")
+    return 0
+
+
 def cmd_clean(args: argparse.Namespace) -> int:
     m = S.Manifest.load()
     if not _check_pending(m, args.replace):
         return 1
-    params = _parse_params(args.set)
     splats = load_real_splats(args.ply, CACHE)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
     pool = splats[pool_idx]
-    xyz, size = xyz_of(pool), size_of(pool)
     bmin, bmax = _bounds(m)
-    prop = CLEANERS[args.name](xyz, bmin, bmax, pool=pool, **params)
+    try:
+        prop = CLEANERS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **_parse_params(args.set))
+    except Exception as exc:  # noqa: BLE001 - a failed detector is a step outcome, shown as an image
+        return _fail(m, splats, pool_idx, "clean", args.name, f"{type(exc).__name__}: {exc}")
     rm = prop.remove
-    show = ~rm if prop.hide_kept is None else ~rm & ~prop.hide_kept
-    rm_size = size[rm] if prop.removed_size is None else prop.removed_size
-    frame = R.render([R.Layer(xyz[show], R.GREY, "kept", size[show]), R.Layer(xyz[rm], R.RED, "removed", rm_size)],
-                     prop.camera, R.WIDTH, R.HEIGHT - R.BANNER_H)
-    when = S.now_local()
-    index = S.next_image_index()
-    im = R.compose(frame, f"{index:04d} · CLEAN · {prop.title}", prop.subtitle,
-                   [(R.RED, "removed by this step"), (R.GREY, "kept")], when, "PROPOSED", R.PROPOSED_RGB)
-    path = _save(im, index, when)
-    np.save(S.PENDING_IDX, pool_idx[rm])
-    pending = {"index": index, "kind": "clean", "name": args.name, "params": prop.params, "info": prop.info,
-               "count": int(rm.sum()), "pool_before": len(pool_idx), "indices": S.rel(S.PENDING_IDX),
-               "image": S.rel(path)}
-    S.PENDING.write_bytes(orjson.dumps(pending, option=orjson.OPT_INDENT_2) + b"\n")
-    m.add_step(index=index, kind="clean", name=args.name, status="pending", image=S.rel(path),
-               created_at=when.isoformat(timespec="seconds"), count=pending["count"],
-               pool_before=pending["pool_before"], params=prop.params, info=prop.info, camera=prop.camera.to_dict(),
-               visible_pixels=frame.counts)
-    m.save()
-    print(f"{index:04d} PROPOSED clean/{args.name}: remove {pending['count']:,} of {len(pool_idx):,} pool points")
-    print(f"  {prop.subtitle}")
-    print(f"  image {S.rel(path)}   -> `build.py accept` or `build.py reject`")
-    return 0
-
-
-def render_parts(splats: np.ndarray, m: S.Manifest, candidate: np.ndarray, context: np.ndarray, cam: R.Camera
-                 ) -> R.Frame:
-    """New part red over the accepted parts in grey (one z-buffer); the points not built yet drawn faint, only where
-    no part covers the pixel, so they give orientation without hiding the build."""
-    h = R.HEIGHT - R.BANNER_H
-    built = splats[m.claimed_indices()]
-    cand = splats[candidate]
-    layers = [R.Layer(xyz_of(built), R.GREY, "accepted", size_of(built)),
-              R.Layer(xyz_of(cand), R.RED, "new", size_of(cand))]
-    front = R.render(layers, cam, R.WIDTH, h)
-    ctx = splats[context]
-    back = R.render([R.Layer(xyz_of(ctx), R.FAINT, "not built", 0.008, 1)], cam, R.WIDTH, h, edl_strength=0)
-    covered = np.isfinite(front.depth)
-    img = np.where(covered[..., None], front.image, back.image)
-    counts = dict(front.counts)
-    counts["not built"] = int((np.isfinite(back.depth) & ~covered).sum())
-    return R.Frame(img, np.where(covered, front.depth, back.depth), cam, counts)
+    hide = None if prop.hide_kept is None else prop.hide_kept[~rm]
+    n_clean = sum(1 for s in m.data["steps"] if s["kind"] == "clean") + 1
+    return _propose(m, splats, pool_idx, rm, kind="clean", name=args.name,
+                    title=f"CLEAN {n_clean} · {prop.title}", subtitle=prop.subtitle,
+                    extra=("diagnostic view", prop.camera, hide),
+                    record={"params": prop.params, "info": prop.info})
 
 
 def cmd_part(args: argparse.Namespace) -> int:
     m = S.Manifest.load()
     if not _check_pending(m, args.replace):
         return 1
-    params = _parse_params(args.set)
     splats = load_real_splats(args.ply, CACHE)
     pool_idx = np.flatnonzero(m.pool_mask()).astype(np.uint32)
     pool = splats[pool_idx]
     bmin, bmax = _bounds(m)
-    prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **params)
-    take_idx = pool_idx[prop.take]
-    frame = render_parts(splats, m, take_idx, pool_idx[~prop.take], prop.camera)
-    when = S.now_local()
-    index = S.next_image_index()
+    try:
+        prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **_parse_params(args.set))
+    except Exception as exc:  # noqa: BLE001
+        return _fail(m, splats, pool_idx, "part", args.name, f"{type(exc).__name__}: {exc}")
     n_parts = len(m.data["parts"])
-    im = R.compose(frame, f"{index:04d} · PART {n_parts + 1} · {prop.title}", prop.subtitle,
-                   [(R.RED, "new part"), (R.GREY, f"accepted ({n_parts})"), (R.FAINT, "not built yet")], when,
-                   "PROPOSED", R.PROPOSED_RGB)
-    path = _save(im, index, when)
-    np.save(S.PENDING_IDX, take_idx)
-    pts = xyz_of(splats[take_idx])
-    bbox = {"min": [round(float(v), 4) for v in pts.min(0)], "max": [round(float(v), 4) for v in pts.max(0)]}
-    pending = {"index": index, "kind": "part", "name": prop.name, "label": prop.label, "part_kind": prop.kind,
-               "params": prop.params, "info": prop.info, "count": len(take_idx), "pool_before": len(pool_idx),
-               "bbox": bbox, "indices": S.rel(S.PENDING_IDX), "image": S.rel(path)}
-    S.PENDING.write_bytes(orjson.dumps(pending, option=orjson.OPT_INDENT_2) + b"\n")
-    m.add_step(index=index, kind="part", name=prop.name, status="pending", image=S.rel(path),
-               created_at=when.isoformat(timespec="seconds"), count=len(take_idx), pool_before=len(pool_idx),
-               label=prop.label, part_kind=prop.kind, bbox=bbox, params=prop.params, info=prop.info,
-               camera=prop.camera.to_dict(), visible_pixels=frame.counts)
-    m.save()
-    print(f"{index:04d} PROPOSED part/{prop.name}: {len(take_idx):,} of {len(pool_idx):,} pool points")
-    print(f"  {prop.subtitle}")
-    print(f"  image {S.rel(path)}   -> `build.py accept` or `build.py reject`")
-    return 0
+    return _propose(m, splats, pool_idx, prop.take, kind="part", name=prop.name,
+                    title=f"PART {n_parts + 1} · {prop.title}", subtitle=prop.subtitle,
+                    extra=("overview", prop.camera, None),
+                    record={"label": prop.label, "part_kind": prop.kind, "params": prop.params, "info": prop.info})
 
 
 def write_current(splats: np.ndarray, m: S.Manifest) -> int:
@@ -322,7 +361,9 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(f"parts    {len(m.data['parts'])} accepted, {len(m.claimed_indices()):,} rows in current.ply")
     print(f"pool     {pool:,} rows not yet removed or claimed")
     for s in m.data["steps"]:
-        print(f"  {s['index']:04d}  {s['kind']:<8} {s['name']:<24} {s['status']:<9} {s['image']}")
+        imgs = s.get("images", [s.get("image")])
+        more = f" (+{len(imgs) - 1} more)" if len(imgs) > 1 else ""
+        print(f"  {s['index']:04d}  {s['kind']:<8} {s['name']:<24} {s['status']:<9} {imgs[0]}{more}")
     return 0
 
 

@@ -1,0 +1,35 @@
+{
+  "index": 8,
+  "kind": "clean",
+  "name": "below_floor",
+  "count": 4547,
+  "pool_before": 502482,
+  "bbox": {
+    "min": [
+      -4.2703,
+      -3.9115,
+      -7.3274
+    ],
+    "max": [
+      5.7968,
+      -1.1103,
+      -0.7394
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0008_20261106-222927.png",
+    "images/0009_20261106-222927.png",
+    "images/0010_20261106-222927.png"
+  ],
+  "params": {
+    "margin": 0.04
+  },
+  "info": {
+    "floor_y": -1.0703,
+    "floor_rms": 0.0094,
+    "floor_support": 41249,
+    "cut_y": -1.1103,
+    "median_depth": 0.1048
+  }
+}

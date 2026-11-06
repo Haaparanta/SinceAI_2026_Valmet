@@ -60,3 +60,17 @@ def test_nearest_point_wins() -> None:
     frame = R.render([far, near], cam, 64, 48, edl_strength=0)
     assert tuple(frame.image[24, 32]) == R.RED
     assert frame.counts["near"] > 0 and frame.counts["far"] == 0
+
+
+def test_blend_composites_front_to_back() -> None:
+    cam = R.Camera((0.0, 0.0, 5.0), (0.0, 0.0, 0.0), 40.0)
+    red = np.array([[255, 0, 0]], dtype=np.uint8)
+    blue = np.array([[0, 0, 255]], dtype=np.uint8)
+    one = R.render_blend([R.BlendLayer(np.array([[0.0, 0.0, 0.0]], np.float32), red, 0.8)], cam, 64, 48,
+                         background=(0, 0, 0))
+    assert tuple(one.image[24, 32]) == (204, 0, 0)                       # 0.8 x 255
+    two = R.render_blend([R.BlendLayer(np.array([[0.0, 0.0, -1.0]], np.float32), blue, 1.0),
+                          R.BlendLayer(np.array([[0.0, 0.0, 1.0]], np.float32), red, 0.5)], cam, 64, 48,
+                         background=(0, 0, 0))
+    got = two.image[24, 32].astype(int)                                   # half red in front of opaque blue
+    assert np.abs(got - np.array([128, 0, 128])).max() <= 1              # (alpha is capped at 0.999)

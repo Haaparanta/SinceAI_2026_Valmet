@@ -29,6 +29,100 @@
         ],
         "fov_deg": 50.0
       }
+    },
+    {
+      "index": 8,
+      "kind": "clean",
+      "name": "below_floor",
+      "status": "pending",
+      "images": [
+        "images/0008_20261106-222927.png",
+        "images/0009_20261106-222927.png",
+        "images/0010_20261106-222927.png"
+      ],
+      "created_at": "2026-11-06T22:29:27+02:00",
+      "count": 4547,
+      "pool_before": 502482,
+      "bbox": {
+        "min": [
+          -4.2703,
+          -3.9115,
+          -7.3274
+        ],
+        "max": [
+          5.7968,
+          -1.1103,
+          -0.7394
+        ]
+      },
+      "cameras": {
+        "close-up": {
+          "position": [
+            2.0078,
+            0.2674,
+            3.0685
+          ],
+          "target": [
+            2.0078,
+            -1.7417,
+            -2.6719
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            -1.0703,
+            2.4547
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 55.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 104630,
+          "built": 0,
+          "selected": 25776
+        },
+        "outside, all points": {
+          "rest": 133809,
+          "built": 0,
+          "selected": 21924
+        },
+        "diagnostic view": {
+          "rest": 158760,
+          "built": 0,
+          "selected": 24110
+        }
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "floor_y": -1.0703,
+        "floor_rms": 0.0094,
+        "floor_support": 41249,
+        "cut_y": -1.1103,
+        "median_depth": 0.1048
+      }
     }
   ],
   "parts": [],

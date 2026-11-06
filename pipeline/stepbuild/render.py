@@ -278,3 +278,81 @@ def draw_badge(im: Image.Image, text: str, rgb: tuple[int, int, int]) -> None:
     d.rectangle((w - 16 - BADGE_W, 12, w - 16, 46), fill=rgb)
     tw = d.textlength(text, font=big)
     d.text((w - 16 - BADGE_W + (BADGE_W - tw) / 2, 15), text, fill=(10, 10, 14), font=big)
+
+
+# ---------------------------------------------------------------- see-through colour rendering
+
+
+@dataclass
+class BlendLayer:
+    """Points in their own colours drawn at one opacity (0..1), e.g. the selection at 0.8 and the rest at 0.08."""
+    xyz: np.ndarray
+    rgb: np.ndarray                             # uint8[n, 3]
+    alpha: float
+    name: str = ""
+    world_size: float | np.ndarray = 0.012
+    max_radius_px: int = 2
+
+
+def render_blend(layers: list[BlendLayer], cam: Camera, width: int = WIDTH, height: int = HEIGHT - BANNER_H,
+                 background: tuple[int, int, int] = BACKGROUND) -> Frame:
+    """Front-to-back alpha compositing of every point footprint per pixel: C = sum a_i c_i prod_{j<i} (1 - a_j)
+    + prod (1 - a) * background. Nothing hides anything completely, so a selection behind a wall still shows."""
+    r, u, f = cam.basis()
+    focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
+    pix_l, dep_l, col_l, a_l, lay_l = [], [], [], [], []
+    for li, layer in enumerate(layers):
+        if len(layer.xyz) == 0 or layer.alpha <= 0:
+            continue
+        rel = layer.xyz.astype(np.float64) - np.asarray(cam.position)
+        z = rel @ f
+        front = z > 0.05
+        rel, z = rel[front], z[front]
+        px = width / 2 + focal * (rel @ r) / z
+        py = height / 2 - focal * (rel @ u) / z
+        col = layer.rgb[front]
+        ws = layer.world_size[front] if isinstance(layer.world_size, np.ndarray) else layer.world_size
+        rad = np.clip(np.rint(0.5 * focal * ws / z), 0, layer.max_radius_px).astype(int)
+        for rr in np.unique(rad):
+            sel = rad == rr
+            for dx, dy in _disc_offsets(int(rr)):
+                xi = np.rint(px[sel]).astype(np.int64) + dx
+                yi = np.rint(py[sel]).astype(np.int64) + dy
+                ok = (xi >= 0) & (xi < width) & (yi >= 0) & (yi < height)
+                pix_l.append(yi[ok] * width + xi[ok])
+                dep_l.append(z[sel][ok].astype(np.float32))
+                col_l.append(col[sel][ok])
+                a_l.append(np.full(int(ok.sum()), layer.alpha, dtype=np.float64))
+                lay_l.append(np.full(int(ok.sum()), li, dtype=np.int16))
+    n_pix = width * height
+    bg = np.asarray(background, dtype=np.float64)
+    if not pix_l:
+        img = np.broadcast_to(bg.astype(np.uint8), (height, width, 3)).copy()
+        return Frame(img, np.full((height, width), np.inf, np.float32), cam, {layer.name: 0 for layer in layers})
+    pix, dep = np.concatenate(pix_l), np.concatenate(dep_l)
+    col, a, lay = np.concatenate(col_l), np.concatenate(a_l), np.concatenate(lay_l)
+    order = np.lexsort((dep, pix))                          # by pixel, nearest first
+    pix, dep, col, a, lay = pix[order], dep[order], col[order], a[order], lay[order]
+    first = np.ones(len(pix), dtype=bool)
+    first[1:] = pix[1:] != pix[:-1]
+    la = np.log1p(-np.minimum(a, 0.999))
+    cs = np.cumsum(la)
+    start = np.flatnonzero(first)
+    group = np.cumsum(first) - 1
+    base = (cs[start] - la[start])[group]                   # log transmittance before each pixel's first fragment
+    w = a * np.exp(cs - la - base)                          # this fragment's share of the pixel colour
+    out = np.stack([np.bincount(pix, weights=w * col[:, k], minlength=n_pix) for k in range(3)], 1)
+    trans = np.exp(np.bincount(pix, weights=la, minlength=n_pix))
+    out += trans[:, None] * bg
+    depth = np.full(n_pix, np.inf, dtype=np.float32)
+    depth[pix[first]] = dep[first]
+    share = np.bincount(lay, weights=w, minlength=len(layers))  # how much of the picture each layer makes
+    counts = {layer.name: int(np.rint(share[i])) for i, layer in enumerate(layers)}
+    img = np.clip(np.rint(out), 0, 255).astype(np.uint8).reshape(height, width, 3)
+    return Frame(img, depth.reshape(height, width), cam, counts)
+
+
+def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0) -> Camera:
+    """Fixed view from outside the room (front-right, above), framing the whole scan: the same camera for every
+    step of a run, so the outside images line up in the flipbook."""
+    return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg)
