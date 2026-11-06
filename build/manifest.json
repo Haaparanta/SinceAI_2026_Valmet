@@ -290,7 +290,7 @@
       "index": 5,
       "kind": "clean",
       "name": "outside_room",
-      "status": "pending",
+      "status": "accepted",
       "image": "images/0005_20261106-220733.png",
       "created_at": "2026-11-06T22:07:33+02:00",
       "count": 4347,
@@ -321,7 +321,8 @@
       "visible_pixels": {
         "kept": 275072,
         "removed": 15169
-      }
+      },
+      "decided_at": "2026-11-06T22:08:33+02:00"
     }
   ],
   "parts": [],
@@ -354,6 +355,15 @@
         "gap": 0.05
       },
       "indices": "build/removed/0004_floating_fog.idx.npy"
+    },
+    {
+      "index": 5,
+      "name": "outside_room",
+      "count": 4347,
+      "params": {
+        "margin": 0.04
+      },
+      "indices": "build/removed/0005_outside_room.idx.npy"
     }
   ],
   "room_bounds_p1_p99": {
