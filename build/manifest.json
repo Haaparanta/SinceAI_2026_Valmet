@@ -978,7 +978,7 @@
       "index": 39,
       "kind": "part",
       "name": "floor",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0039_20261106-224326.png",
         "images/0040_20261106-224326.png",
@@ -1081,10 +1081,51 @@
       "info": {
         "floor_y": -1.0703,
         "floor_rms": 0.0093
-      }
+      },
+      "decided_at": "2026-11-06T22:45:15+02:00"
+    },
+    {
+      "index": 43,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0043_20261106-224516.png",
+        "images/0044_20261106-224517.png",
+        "images/0045_20261106-224517.png"
+      ],
+      "created_at": "2026-11-06T22:45:17+02:00",
+      "event": "after 0039 ACCEPTED (part floor)",
+      "kept": 464713,
+      "built": 41641
     }
   ],
-  "parts": [],
+  "parts": [
+    {
+      "index": 39,
+      "name": "floor",
+      "label": "Floor",
+      "kind": "structure",
+      "count": 41641,
+      "bbox": {
+        "min": [
+          -1.0764,
+          -1.1103,
+          -3.5178
+        ],
+        "max": [
+          5.9423,
+          -1.0403,
+          -0.7385
+        ]
+      },
+      "params": {
+        "above": 0.03
+      },
+      "indices": "build/parts/0039_floor.idx.npy",
+      "ply": "build/parts/0039_floor.ply"
+    }
+  ],
   "removed": [
     {
       "index": 15,
