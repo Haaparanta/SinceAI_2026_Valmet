@@ -47,6 +47,135 @@
       "event": "START: the new master scan, right way up, nothing removed yet",
       "kept": 1676481,
       "built": 0
+    },
+    {
+      "index": 143,
+      "kind": "clean",
+      "name": "below_floor",
+      "status": "pending",
+      "images": [
+        "images/0143_20261106-232424.png",
+        "images/0144_20261106-232424.png",
+        "images/0145_20261106-232424.png",
+        "images/0146_20261106-232424.png",
+        "images/0147_20261106-232424.png"
+      ],
+      "created_at": "2026-11-06T23:24:24+02:00",
+      "count": 29299,
+      "pool_before": 1676481,
+      "bbox": {
+        "min": [
+          -5.7531,
+          -4.8065,
+          -6.343
+        ],
+        "max": [
+          6.3542,
+          -1.2133,
+          4.902
+        ]
+      },
+      "headline": "REMOVE 29,299 points (1.7 %) · reflections under the floor",
+      "cameras": {
+        "close-up": {
+          "position": [
+            0.4647,
+            1.4531,
+            9.2746
+          ],
+          "target": [
+            0.4647,
+            -1.8393,
+            -0.1322
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.3445,
+            -1.1733,
+            5.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 55.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 227405,
+          "built": 0,
+          "selected": 54927
+        },
+        "outside, all points": {
+          "rest": 247409,
+          "built": 0,
+          "selected": 51016
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 181158,
+          "built": 0,
+          "selected": 57240
+        },
+        "diagnostic view": {
+          "rest": 361178,
+          "built": 0,
+          "selected": 85386
+        },
+        "before | after": {}
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "floor_y": -1.1733,
+        "floor_rms": 0.015,
+        "floor_support": 179540,
+        "cut_y": -1.2133,
+        "median_depth": 0.098
+      }
     }
   ],
   "parts": [],
