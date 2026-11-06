@@ -1992,6 +1992,229 @@
       "event": "after 0208 ACCEPTED (clean outside_envelope)",
       "kept": 1617777,
       "built": 0
+    },
+    {
+      "index": 225,
+      "kind": "part",
+      "name": "floor",
+      "status": "pending",
+      "images": [
+        "images/0225_20261106-234452.png",
+        "images/0226_20261106-234452.png",
+        "images/0227_20261106-234452.png",
+        "images/0228_20261106-234453.png",
+        "images/0229_20261106-234453.png",
+        "images/0230_20261106-234453.png",
+        "images/0231_20261106-234453.png",
+        "images/0232_20261106-234453.png",
+        "images/0233_20261106-234453.png",
+        "images/0234_20261106-234453.png"
+      ],
+      "created_at": "2026-11-06T23:44:53+02:00",
+      "count": 187759,
+      "pool_before": 1617777,
+      "bbox": {
+        "min": [
+          -4.2586,
+          -1.2133,
+          -3.8033
+        ],
+        "max": [
+          4.939,
+          -1.1439,
+          3.5919
+        ]
+      },
+      "headline": "ADD FLOOR · 187,759 points as part 1",
+      "cameras": {
+        "close-up": {
+          "position": [
+            0.5709,
+            1.7723,
+            8.2532
+          ],
+          "target": [
+            0.5709,
+            -1.1773,
+            -0.1743
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -5.5986,
+            1.3161,
+            3.3877
+          ],
+          "target": [
+            0.5709,
+            -1.1773,
+            -0.1743
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            6.7405,
+            1.3161,
+            3.3877
+          ],
+          "target": [
+            0.5709,
+            -1.1773,
+            -0.1743
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            0.5709,
+            12.7349,
+            -0.1757
+          ],
+          "target": [
+            0.5709,
+            -1.1773,
+            -0.1743
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "overview": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 248787,
+          "built": 0,
+          "selected": 88782
+        },
+        "close-up from the left": {
+          "rest": 337929,
+          "built": 0,
+          "selected": 124099
+        },
+        "close-up from the right": {
+          "rest": 290341,
+          "built": 0,
+          "selected": 145792
+        },
+        "close-up from above": {
+          "rest": 137519,
+          "built": 0,
+          "selected": 57274
+        },
+        "outside, all points": {
+          "rest": 220153,
+          "built": 0,
+          "selected": 76376
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 154200,
+          "built": 0,
+          "selected": 88765
+        },
+        "outside from the opposite corner": {
+          "rest": 217490,
+          "built": 0,
+          "selected": 71637
+        },
+        "inside the room (START camera)": {
+          "rest": 295221,
+          "built": 0,
+          "selected": 131659
+        },
+        "overview": {
+          "rest": 295221,
+          "built": 0,
+          "selected": 131659
+        },
+        "before | after": {}
+      },
+      "label": "Floor",
+      "part_kind": "structure",
+      "params": {
+        "above": 0.03
+      },
+      "info": {
+        "floor_y": -1.1739,
+        "floor_rms": 0.0148
+      }
     }
   ],
   "parts": [],
