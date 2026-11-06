@@ -1475,7 +1475,7 @@
       "index": 64,
       "kind": "part",
       "name": "ceiling",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/0064_20261106-225315.png",
         "images/0065_20261106-225316.png",
@@ -1583,7 +1583,24 @@
         "patches": 91,
         "patches_at_ceiling": 38,
         "lamp_points": 4646
-      }
+      },
+      "decided_at": "2026-11-06T22:55:16+02:00",
+      "note": "user: still wrong; wants a look-up image from the middle of the room to see the level"
+    },
+    {
+      "index": 68,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0068_20261106-225517.png",
+        "images/0069_20261106-225518.png",
+        "images/0070_20261106-225518.png"
+      ],
+      "created_at": "2026-11-06T22:55:18+02:00",
+      "event": "after 0064 REJECTED (part ceiling)",
+      "kept": 464713,
+      "built": 41641
     }
   ],
   "parts": [
