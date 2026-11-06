@@ -2233,7 +2233,7 @@
       "index": 113,
       "kind": "part",
       "name": "lamp_1",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0113_20261106-230824.png",
         "images/0114_20261106-230824.png",
@@ -2365,7 +2365,23 @@
           30
         ],
         "noise": 918
-      }
+      },
+      "decided_at": "2026-11-06T23:09:41+02:00"
+    },
+    {
+      "index": 118,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0118_20261106-230942.png",
+        "images/0119_20261106-230943.png",
+        "images/0120_20261106-230944.png"
+      ],
+      "created_at": "2026-11-06T23:09:44+02:00",
+      "event": "after 0113 ACCEPTED (part lamp_1)",
+      "kept": 464713,
+      "built": 43958
     }
   ],
   "parts": [
@@ -2420,6 +2436,33 @@
       },
       "indices": "build/parts/0091_ceiling.idx.npy",
       "ply": "build/parts/0091_ceiling.ply"
+    },
+    {
+      "index": 113,
+      "name": "lamp_1",
+      "label": "Lamp 1",
+      "kind": "equipment",
+      "count": 1930,
+      "bbox": {
+        "min": [
+          -2.2778,
+          1.236,
+          -2.6058
+        ],
+        "max": [
+          -0.7271,
+          1.4884,
+          -2.3034
+        ]
+      },
+      "params": {
+        "white": 240,
+        "min_y": 1.13,
+        "eps": 0.04,
+        "min_samples": 8
+      },
+      "indices": "build/parts/0113_lamp_1.idx.npy",
+      "ply": "build/parts/0113_lamp_1.ply"
     }
   ],
   "removed": [
