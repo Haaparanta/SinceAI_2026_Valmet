@@ -254,6 +254,24 @@ def _object_pair(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_id
     return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
 
 
+def _parts_only(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, kind: str) -> list[tuple[str, R.Frame]]:
+    """The new room with only the parts: every accepted part at 100 % in its own colours plus this step's change
+    (tinted green for an addition, red for a removal), nothing else, from the outside camera, the opposite corner
+    and straight above."""
+    bmin, bmax = _bounds(m)
+    built = splats[m.claimed_indices()]
+    sel = splats[sel_idx]
+    hl, _ = _highlight(kind)
+    layers = [R.Layer(xyz_of(built), rgb_of(built), "built", size_of(built)),
+              R.Layer(xyz_of(sel), R.tint(rgb_of(sel), hl), "new", np.maximum(size_of(sel), 0.012))]
+    out = []
+    for view, cam in (("only the parts (built 100 % + new), outside", R.outside_camera(bmin, bmax)),
+                      ("only the parts, opposite corner", R.outside_camera(bmin, bmax, opposite=True)),
+                      ("only the parts, from above", R.plan_camera(bmin, bmax))):
+        out.append((view, R.render(layers, cam, R.WIDTH, R.HEIGHT - R.BANNER_H, edl_strength=0.5)))
+    return out
+
+
 def _object_four_sides(splats: np.ndarray, sel_idx: np.ndarray, all_idx: np.ndarray, surroundings: float
                        ) -> R.Frame:
     """The part from +x, -x, +z and -z in one 2 x 2 image, own colours at 100 %: alone (surroundings = 0), or with
@@ -338,6 +356,8 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
             frames[i] = (view, R.Frame(R.draw_axis_guides(frame.image, frame.camera, bmin, bmax, guides or []),
                                        frame.depth, frame.camera, frame.counts))
     frames.append(("before | after", _before_after(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
+    if kind == "part":
+        frames += _parts_only(splats, m, sel_idx, kind)
     lo, hi = np.percentile(pts_all := xyz_of(splats[sel_idx]), 2, axis=0), np.percentile(pts_all, 98, axis=0)
     if kind == "part" and float(np.max(hi - lo)) < 2.0:          # small part: green | colour pair comes first
         frames.insert(0, ("close-up from the room, green | own colours",
