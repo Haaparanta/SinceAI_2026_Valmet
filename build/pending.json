@@ -1,0 +1,58 @@
+{
+  "index": 714,
+  "kind": "part",
+  "name": "pipe_8",
+  "count": 9376,
+  "pool_before": 1258077,
+  "bbox": {
+    "min": [
+      -4.2303,
+      0.5806,
+      0.4608
+    ],
+    "max": [
+      1.7995,
+      0.7888,
+      0.6688
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0714_20261107-012331.png",
+    "images/0715_20261107-012331.png",
+    "images/0716_20261107-012331.png",
+    "images/0717_20261107-012331.png",
+    "images/0718_20261107-012332.png",
+    "images/0719_20261107-012332.png",
+    "images/0720_20261107-012332.png",
+    "images/0721_20261107-012332.png",
+    "images/0722_20261107-012332.png",
+    "images/0723_20261107-012332.png",
+    "images/0724_20261107-012332.png",
+    "images/0725_20261107-012332.png",
+    "images/0726_20261107-012332.png",
+    "images/0727_20261107-012332.png",
+    "images/0728_20261107-012332.png"
+  ],
+  "label": "Pipe 8",
+  "part_kind": "pipe",
+  "params": {
+    "along": "x",
+    "a": 0.56,
+    "b": 0.7,
+    "search": 0.15,
+    "shell": 0.03,
+    "gap": 0.3,
+    "min_alpha": 0.1
+  },
+  "info": {
+    "axis": [
+      0.5651,
+      0.684
+    ],
+    "radius": 0.0749,
+    "start": -4.25,
+    "end": 1.8,
+    "runs": 4
+  }
+}
