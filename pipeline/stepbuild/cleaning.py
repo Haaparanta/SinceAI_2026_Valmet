@@ -8,9 +8,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from stepbuild import render as R
 from stepbuild.geometry import back_wall_profile, horizontal_plane
+from stepbuild.splats import alpha_of
 
 
 @dataclass
@@ -22,9 +24,11 @@ class CleanProposal:
     params: dict = field(default_factory=dict)
     info: dict = field(default_factory=dict)
     hide_kept: np.ndarray | None = None     # bool over the pool: kept points left out of this image only (view cut)
+    removed_size: float | None = None       # draw removed points at this fixed size (small, sparse points)
 
 
-def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: float = 0.04) -> CleanProposal:
+def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+                margin: float = 0.04) -> CleanProposal:
     """2a: mirror images of the room under the glossy floor. Remove everything more than `margin` below the floor
     plane (floor = densest thin y-slab in the lower half; its RMS thickness is ~2 cm)."""
     floor = horizontal_plane(xyz[:, 1], lower=True)
@@ -45,8 +49,8 @@ def below_floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: flo
     )
 
 
-def behind_back_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin: float = 0.04,
-                     strip: float = 0.25, hide_above: float = 0.9) -> CleanProposal:
+def behind_back_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+                     margin: float = 0.04, strip: float = 0.25, hide_above: float = 0.9) -> CleanProposal:
     """2b: floaters behind the back wall. The wall depth (z) is found per `strip` of x, so the cut follows the recess
     between x -1.6 and 0; remove z < wall(x) - margin. Image: plan view from above with kept points above
     `hide_above` (ceiling band) hidden, so the wall line and the room behind the red cut are visible."""
@@ -72,7 +76,33 @@ def behind_back_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, margin
     )
 
 
+def floating_fog(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray,
+                 max_alpha: float = 0.05, gap: float = 0.05) -> CleanProposal:
+    """2c: see-through splats floating in the air. Most low-opacity splats hug real surfaces (median 1.4 cm from a
+    solid splat) and are kept; remove only those with alpha < max_alpha AND more than `gap` from every splat with
+    alpha >= max_alpha."""
+    alpha = alpha_of(pool)
+    solid = alpha >= max_alpha
+    dist = np.zeros(len(xyz))
+    if solid.any() and (~solid).any():
+        dist[~solid], _ = cKDTree(xyz[solid]).query(xyz[~solid], k=1)
+    remove = ~solid & (dist > gap)
+    n, n_see = int(remove.sum()), int((~solid).sum())
+    return CleanProposal(
+        remove=remove,
+        title=f"floating fog (alpha < {max_alpha:g}, > {100 * gap:.0f} cm from solid)",
+        subtitle=(f"remove {n:,} of {len(xyz):,} ({100 * n / len(xyz):.1f} %) · keeps {n_see - n:,} see-through "
+                  f"splats on surfaces · solid = alpha >= {max_alpha:g}"),
+        camera=R.overview_camera(bmin, bmax),
+        params={"max_alpha": max_alpha, "gap": gap},
+        info={"see_through": n_see, "solid": int(solid.sum()),
+              "removed_gap_p50": round(float(np.median(dist[remove])), 4) if n else 0.0},
+        removed_size=0.01,
+    )
+
+
 CLEANERS: dict[str, Callable[..., CleanProposal]] = {
     "below_floor": below_floor,
     "behind_back_wall": behind_back_wall,
+    "floating_fog": floating_fog,
 }

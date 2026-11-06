@@ -1,0 +1,18 @@
+{
+  "index": 4,
+  "kind": "clean",
+  "name": "floating_fog",
+  "params": {
+    "max_alpha": 0.05,
+    "gap": 0.05
+  },
+  "info": {
+    "see_through": 94755,
+    "solid": 345349,
+    "removed_gap_p50": 0.0875
+  },
+  "count": 13041,
+  "pool_before": 440104,
+  "indices": "build/pending.idx.npy",
+  "image": "images/0004_20261106-220449.png"
+}

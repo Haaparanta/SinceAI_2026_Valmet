@@ -248,6 +248,42 @@
         "removed": 84072
       },
       "decided_at": "2026-11-06T22:02:46+02:00"
+    },
+    {
+      "index": 4,
+      "kind": "clean",
+      "name": "floating_fog",
+      "status": "pending",
+      "image": "images/0004_20261106-220449.png",
+      "created_at": "2026-11-06T22:04:49+02:00",
+      "count": 13041,
+      "pool_before": 440104,
+      "params": {
+        "max_alpha": 0.05,
+        "gap": 0.05
+      },
+      "info": {
+        "see_through": 94755,
+        "solid": 345349,
+        "removed_gap_p50": 0.0875
+      },
+      "camera": {
+        "position": [
+          -0.4181,
+          0.9034,
+          2.3441
+        ],
+        "target": [
+          -0.4181,
+          -0.5291,
+          -2.9043
+        ],
+        "fov_deg": 50.0
+      },
+      "visible_pixels": {
+        "kept": 377332,
+        "removed": 62758
+      }
     }
   ],
   "parts": [],

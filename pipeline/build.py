@@ -6,7 +6,7 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
     uv run python pipeline/build.py status    # what is in the build so far
     uv run python pipeline/build.py preview --out FILE [--rgb] [--fill 0.25 --box xmin ymin zmin xmax ymax zmax]
                                               # render without touching state or images/ (camera checks)
-    uv run python pipeline/build.py clean below_floor [--set margin=0.04]
+    uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog [--set key=value]
                                               # propose a cleaning step: image with removed points red, kept grey
     uv run python pipeline/build.py accept | reject [--note TEXT]
                                               # decide the pending proposal; the image gets an ACCEPTED/REJECTED badge
@@ -98,10 +98,11 @@ def cmd_clean(args: argparse.Namespace) -> int:
     pool = splats[pool_idx]
     xyz, size = xyz_of(pool), size_of(pool)
     bmin, bmax = _bounds(m)
-    prop = CLEANERS[args.name](xyz, bmin, bmax, **params)
+    prop = CLEANERS[args.name](xyz, bmin, bmax, pool=pool, **params)
     rm = prop.remove
     show = ~rm if prop.hide_kept is None else ~rm & ~prop.hide_kept
-    frame = R.render([R.Layer(xyz[show], R.GREY, "kept", size[show]), R.Layer(xyz[rm], R.RED, "removed", size[rm])],
+    rm_size = size[rm] if prop.removed_size is None else prop.removed_size
+    frame = R.render([R.Layer(xyz[show], R.GREY, "kept", size[show]), R.Layer(xyz[rm], R.RED, "removed", rm_size)],
                      prop.camera, R.WIDTH, R.HEIGHT - R.BANNER_H)
     when = S.now_local()
     index = S.next_image_index()
