@@ -1,0 +1,629 @@
+{
+  "$defs": {
+    "CurrentState": {
+      "additionalProperties": false,
+      "properties": {
+        "condition_state": {
+          "enum": [
+            "healthy",
+            "watch",
+            "degraded",
+            "attention_required"
+          ],
+          "title": "Condition State",
+          "type": "string"
+        },
+        "health_score": {
+          "title": "Health Score",
+          "type": "number"
+        },
+        "issue_code": {
+          "title": "Issue Code",
+          "type": "string"
+        },
+        "issue_summary": {
+          "title": "Issue Summary",
+          "type": "string"
+        },
+        "knowledge_doc_id": {
+          "title": "Knowledge Doc Id",
+          "type": "string"
+        },
+        "last_updated": {
+          "format": "date-time",
+          "title": "Last Updated",
+          "type": "string"
+        },
+        "model_confidence": {
+          "title": "Model Confidence",
+          "type": "number"
+        },
+        "recommended_next_check": {
+          "title": "Recommended Next Check",
+          "type": "string"
+        },
+        "urgency": {
+          "title": "Urgency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "health_score",
+        "condition_state",
+        "issue_code",
+        "issue_summary",
+        "urgency",
+        "recommended_next_check",
+        "model_confidence",
+        "last_updated",
+        "knowledge_doc_id"
+      ],
+      "title": "CurrentState",
+      "type": "object"
+    },
+    "DataQualityRow": {
+      "additionalProperties": false,
+      "properties": {
+        "issue_id": {
+          "title": "Issue Id",
+          "type": "string"
+        },
+        "issue_type": {
+          "title": "Issue Type",
+          "type": "string"
+        },
+        "recommended_handling": {
+          "title": "Recommended Handling",
+          "type": "string"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_sheet": {
+          "title": "Source Sheet",
+          "type": "string"
+        }
+      },
+      "required": [
+        "issue_id",
+        "issue_type",
+        "severity",
+        "source_sheet",
+        "recommended_handling"
+      ],
+      "title": "DataQualityRow",
+      "type": "object"
+    },
+    "DocRef": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content"
+        },
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "document_role": {
+          "title": "Document Role",
+          "type": "string"
+        },
+        "scope": {
+          "title": "Scope",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "doc_id",
+        "title",
+        "scope",
+        "document_role"
+      ],
+      "title": "DocRef",
+      "type": "object"
+    },
+    "EventRow": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "event_code": {
+          "title": "Event Code",
+          "type": "string"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "title": "Event Type",
+          "type": "string"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "timestamp",
+        "event_type",
+        "severity",
+        "event_code",
+        "description",
+        "source",
+        "status"
+      ],
+      "title": "EventRow",
+      "type": "object"
+    },
+    "OBB": {
+      "additionalProperties": false,
+      "properties": {
+        "center": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Center",
+          "type": "array"
+        },
+        "rotation": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation",
+          "type": "array"
+        },
+        "size": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Size",
+          "type": "array"
+        }
+      },
+      "required": [
+        "center",
+        "size",
+        "rotation"
+      ],
+      "title": "OBB",
+      "type": "object"
+    },
+    "TelemetryRow": {
+      "additionalProperties": false,
+      "properties": {
+        "bearing_temp_c": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bearing Temp C"
+        },
+        "load_for_opening_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Load For Opening Pct"
+        },
+        "motor_current_a": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Motor Current A"
+        },
+        "pneumatic_supply_bar": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pneumatic Supply Bar"
+        },
+        "position_actual_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Actual Pct"
+        },
+        "position_setpoint_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Setpoint Pct"
+        },
+        "process_flow_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Process Flow Pct"
+        },
+        "process_pressure_bar": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Process Pressure Bar"
+        },
+        "sensor_bias": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sensor Bias"
+        },
+        "signal_quality_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal Quality Pct"
+        },
+        "speed_rpm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speed Rpm"
+        },
+        "stiction_index": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stiction Index"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "vibration_mm_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vibration Mm S"
+        }
+      },
+      "required": [
+        "timestamp"
+      ],
+      "title": "TelemetryRow",
+      "type": "object"
+    },
+    "WorkOrderRow": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "downtime_h": {
+          "title": "Downtime H",
+          "type": "number"
+        },
+        "duration_h": {
+          "title": "Duration H",
+          "type": "number"
+        },
+        "knowledge_doc_id": {
+          "title": "Knowledge Doc Id",
+          "type": "string"
+        },
+        "maintenance_type": {
+          "title": "Maintenance Type",
+          "type": "string"
+        },
+        "opened_at": {
+          "format": "date-time",
+          "title": "Opened At",
+          "type": "string"
+        },
+        "priority": {
+          "title": "Priority",
+          "type": "string"
+        },
+        "result": {
+          "title": "Result",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "work_order_id": {
+          "title": "Work Order Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "work_order_id",
+        "opened_at",
+        "action",
+        "maintenance_type",
+        "priority",
+        "result",
+        "duration_h",
+        "downtime_h",
+        "role",
+        "knowledge_doc_id"
+      ],
+      "title": "WorkOrderRow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "anchor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OBB"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "area_id": {
+      "title": "Area Id",
+      "type": "string"
+    },
+    "area_name": {
+      "title": "Area Name",
+      "type": "string"
+    },
+    "asset_class": {
+      "title": "Asset Class",
+      "type": "string"
+    },
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "connectivity_profile": {
+      "title": "Connectivity Profile",
+      "type": "string"
+    },
+    "criticality": {
+      "title": "Criticality",
+      "type": "string"
+    },
+    "current_state": {
+      "$ref": "#/$defs/CurrentState"
+    },
+    "data_quality": {
+      "items": {
+        "$ref": "#/$defs/DataQualityRow"
+      },
+      "title": "Data Quality",
+      "type": "array"
+    },
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/DocRef"
+      },
+      "title": "Documents",
+      "type": "array"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/EventRow"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "installation_date": {
+      "format": "date-time",
+      "title": "Installation Date",
+      "type": "string"
+    },
+    "last_service_date": {
+      "format": "date-time",
+      "title": "Last Service Date",
+      "type": "string"
+    },
+    "maintenance_history": {
+      "items": {
+        "$ref": "#/$defs/WorkOrderRow"
+      },
+      "title": "Maintenance History",
+      "type": "array"
+    },
+    "object_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Object Id"
+    },
+    "process_context": {
+      "title": "Process Context",
+      "type": "string"
+    },
+    "service_interval_days": {
+      "title": "Service Interval Days",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "OK",
+        "WATCH",
+        "ALERT",
+        "UNKNOWN"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tag": {
+      "title": "Tag",
+      "type": "string"
+    },
+    "telemetry_window": {
+      "items": {
+        "$ref": "#/$defs/TelemetryRow"
+      },
+      "title": "Telemetry Window",
+      "type": "array"
+    }
+  },
+  "required": [
+    "asset_id",
+    "tag",
+    "asset_class",
+    "area_id",
+    "area_name",
+    "process_context",
+    "criticality",
+    "installation_date",
+    "last_service_date",
+    "service_interval_days",
+    "connectivity_profile",
+    "current_state",
+    "status",
+    "telemetry_window",
+    "events",
+    "maintenance_history",
+    "documents",
+    "data_quality"
+  ],
+  "title": "AssetRecord",
+  "type": "object"
+}

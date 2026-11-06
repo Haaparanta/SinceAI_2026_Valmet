@@ -6,5 +6,17 @@
 Source-Data-Do-Not_change/*.ply
 Source-Data-Do-Not_change/*.mp4
 
-# Derived data, regenerate with tools/ply_study.py
-data/derived/
+# a2b scaffold (see AGENTS.md S2)
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+data/raw
+data/derived/*
+!data/derived/.gitkeep
+data/snapshots/*
+!data/snapshots/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+web/node_modules/
+web/dist/
