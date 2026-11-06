@@ -8736,7 +8736,7 @@
       "index": 743,
       "kind": "part",
       "name": "pipe_9",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0743_20261107-012614.png",
         "images/0744_20261107-012614.png",
@@ -9060,7 +9060,35 @@
         "start": -4.0,
         "end": 3.6,
         "runs": 2
-      }
+      },
+      "decided_at": "2026-11-07T01:28:02+02:00",
+      "note": "user: accepted; also show the room with only the parts in every step"
+    },
+    {
+      "index": 758,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0758_20261107-012807.png",
+        "images/0759_20261107-012810.png",
+        "images/0760_20261107-012812.png",
+        "images/0761_20261107-012814.png",
+        "images/0762_20261107-012816.png",
+        "images/0763_20261107-012820.png",
+        "images/0764_20261107-012827.png",
+        "images/0765_20261107-012832.png",
+        "images/0766_20261107-012836.png",
+        "images/0767_20261107-012839.png",
+        "images/0768_20261107-012840.png",
+        "images/0769_20261107-012841.png",
+        "images/0770_20261107-012842.png",
+        "images/0771_20261107-012843.png"
+      ],
+      "created_at": "2026-11-07T01:28:43+02:00",
+      "event": "after 0743 ACCEPTED (part pipe_9)",
+      "kept": 1617777,
+      "built": 378572
     }
   ],
   "parts": [
@@ -9506,6 +9534,36 @@
       },
       "indices": "build/parts/0714_pipe_8.idx.npy",
       "ply": "build/parts/0714_pipe_8.ply"
+    },
+    {
+      "index": 743,
+      "name": "pipe_9",
+      "label": "Pipe 9",
+      "kind": "pipe",
+      "count": 9496,
+      "bbox": {
+        "min": [
+          -3.997,
+          0.6985,
+          -3.6572
+        ],
+        "max": [
+          3.5977,
+          0.9444,
+          -3.4113
+        ]
+      },
+      "params": {
+        "along": "x",
+        "a": -3.56,
+        "b": 0.86,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "indices": "build/parts/0743_pipe_9.idx.npy",
+      "ply": "build/parts/0743_pipe_9.ply"
     }
   ],
   "removed": [
