@@ -79,3 +79,58 @@ def test_floor_follows_a_tilted_plane() -> None:
     assert prop.take[n:n + m].sum() == 0                       # nothing standing higher
     assert prop.take[n + m:].sum() == 0                         # a box 4-5 cm above the low corner stays
     # (a flat cut at the mean floor height + 3 cm would take it: the low corner is 2.3 cm below the mean)
+
+
+def test_wall_takes_the_wall_layer_not_equipment_along_it() -> None:
+    from stepbuild.parts import wall
+
+    rng = np.random.default_rng(12)
+    room = np.c_[rng.uniform(-4, 4.8, 60000), rng.uniform(-1.1, 1.2, 60000), rng.uniform(-3.4, 3.4, 60000)]
+    skin = np.c_[rng.uniform(-4, 4.8, 3000), rng.uniform(-1.1, 1.2, 3000), rng.normal(-3.75, 0.01, 3000)]
+    layer = np.c_[rng.uniform(-4, 4.8, 20000), rng.uniform(-1.1, 1.2, 20000), rng.normal(-3.68, 0.012, 20000)]
+    pipes = np.c_[rng.uniform(-4, 4.8, 15000), rng.uniform(-1.1, 1.2, 15000), rng.normal(-3.44, 0.02, 15000)]
+    xyz = np.vstack([room, skin, layer, pipes]).astype(np.float32)
+    prop = wall(xyz, xyz.min(0), xyz.max(0), side="back")
+    a, b = len(room), len(room) + len(skin) + len(layer)
+    assert prop.name == "wall_back" and abs(prop.info["main_layer_median"] + 3.68) < 0.02
+    assert prop.take[a:b].mean() > 0.97                          # outer skin + main layer
+    assert prop.take[b:].sum() == 0                              # pipes 24 cm in front stay
+    assert prop.take[:a].mean() < 0.01                           # the room stays
+
+
+def test_equipment_grows_the_object_at_the_seed_only() -> None:
+    from stepbuild.parts import equipment
+    from stepbuild.splats import SH0_DTYPE
+
+    rng = np.random.default_rng(13)
+    pump = np.c_[rng.uniform(3.1, 3.3, 8000), rng.uniform(-1.0, -0.3, 8000), rng.uniform(-1.46, -1.26, 8000)]
+    other = np.c_[rng.uniform(2.1, 2.3, 6000), rng.uniform(-1.0, -0.3, 6000), rng.uniform(-1.46, -1.26, 6000)]  # 1 u away
+    xyz = np.vstack([pump, other]).astype(np.float32)
+    pool = np.zeros(len(xyz), dtype=SH0_DTYPE)
+    pool["opacity"] = 2.0
+    prop = equipment(xyz, xyz.min(0), xyz.max(0), pool=pool, x=3.2, y=-0.6, z=-1.36, radius=0.8, label="Pump",
+                     cls="PROCESS_PUMP", number=1)
+    assert prop.name == "process_pump_1" and prop.label == "Pump 1"
+    assert prop.take[:len(pump)].mean() > 0.95
+    assert not prop.take[len(pump):].any()
+
+
+def test_pipe_fits_the_cylinder_and_stops_at_a_gap() -> None:
+    from stepbuild.parts import pipe
+    from stepbuild.splats import SH0_DTYPE
+
+    rng = np.random.default_rng(14)
+    n = 20000
+    t = np.r_[rng.uniform(-4, 1.0, n // 2), rng.uniform(1.6, 4.5, n // 2)]           # 0.6 u gap at x 1.0..1.6
+    ang = rng.uniform(0, 2 * np.pi, n)
+    tube = np.c_[t, 0.86 + 0.07 * np.sin(ang), -0.37 + 0.07 * np.cos(ang)]           # radius 0.07, along x
+    nb = np.c_[rng.uniform(-4, 4.5, 8000), 0.86 + 0.07 * np.sin(ang[:8000]),
+               -0.10 + 0.07 * np.cos(ang[:8000])]                                    # a neighbour 27 cm away
+    xyz = np.vstack([tube, nb]).astype(np.float32)
+    pool = np.zeros(len(xyz), dtype=SH0_DTYPE)
+    pool["opacity"] = 2.0
+    prop = pipe(xyz, xyz.min(0), xyz.max(0), pool=pool, along="x", a=-0.40, b=0.86)
+    assert abs(prop.info["radius"] - 0.07) < 0.01
+    assert abs(prop.info["axis"][0] + 0.37) < 0.01 and abs(prop.info["axis"][1] - 0.86) < 0.01
+    assert prop.take[:n // 2].mean() > 0.97 and prop.take[n // 2:n].sum() == 0      # the longer stretch only
+    assert prop.take[n:].sum() == 0                                                  # not the neighbour

@@ -573,3 +573,113 @@ def draw_axis_guides(img: np.ndarray, cam: Camera, lo: np.ndarray, hi: np.ndarra
             d.line((x0, y0, x1, y1), fill=rgb, width=2)
             d.text((w - 200, y1 - 20 - 16 * i), f"{label}", fill=rgb, font=small)
     return np.asarray(im)
+
+
+# ---------------------------------------------------------------- Gaussian splatting (CPU, EWA)
+
+
+def _composite(pix: np.ndarray, dep: np.ndarray, col: np.ndarray, a: np.ndarray, n_pix: int,
+               background: tuple[int, int, int]) -> tuple[np.ndarray, np.ndarray]:
+    """Front-to-back alpha compositing of fragments (pixel, depth, colour, alpha) -> (rgb float[n_pix, 3], depth)."""
+    order = np.lexsort((dep, pix))
+    pix, dep, col, a = pix[order], dep[order], col[order], a[order]
+    first = np.ones(len(pix), dtype=bool)
+    first[1:] = pix[1:] != pix[:-1]
+    la = np.log1p(-np.minimum(a, 0.999).astype(np.float64))
+    cs = np.cumsum(la)
+    start = np.flatnonzero(first)
+    group = np.cumsum(first) - 1
+    base = (cs[start] - la[start])[group]
+    w = a * np.exp(cs - la - base)
+    out = np.stack([np.bincount(pix, weights=w * col[:, k], minlength=n_pix) for k in range(3)], 1)
+    trans = np.exp(np.bincount(pix, weights=la, minlength=n_pix))
+    out += trans[:, None] * np.asarray(background, np.float64)
+    depth = np.full(n_pix, np.inf, dtype=np.float32)
+    depth[pix[first]] = dep[first]
+    return out, depth
+
+
+def render_gaussians(splats: np.ndarray, cam: Camera, width: int = WIDTH, height: int = HEIGHT - BANNER_H,
+                     max_radius_px: int = 10, near: float = 0.1, background: tuple[int, int, int] = BACKGROUND,
+                     chunk: int = 150_000) -> Frame:
+    """Real 3D Gaussian splatting on the CPU: every splat's 3D covariance (scale + rotation) is projected to a 2D
+    ellipse (EWA, with a 0.3 px low-pass), rasterised over its 3-sigma footprint (capped at `max_radius_px`), and the
+    fragments alpha = opacity * exp(-d^T S^-1 d / 2) are blended front to back with the splats' own colours (SH degree
+    0). `splats` is a structured SH0 array (splats.SH0_DTYPE)."""
+    r, u, f = cam.basis()
+    W = np.stack([r, u, f])                                           # world -> camera rows
+    focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
+    n_pix = width * height
+    pix_l, dep_l, col_l, a_l = [], [], [], []
+    for c0 in range(0, len(splats), chunk):
+        s = splats[c0:c0 + chunk]
+        p = np.stack([s["x"], s["y"], s["z"]], 1).astype(np.float64) - np.asarray(cam.position)
+        t = p @ W.T                                                   # camera coords (x right, y up, z forward)
+        keep = t[:, 2] > near
+        s, t = s[keep], t[:, :][keep]
+        if len(s) == 0:
+            continue
+        sc = np.exp(np.clip(np.stack([s["scale_0"], s["scale_1"], s["scale_2"]], 1), -30, 2)).astype(np.float64)
+        q = np.stack([s["rot_0"], s["rot_1"], s["rot_2"], s["rot_3"]], 1).astype(np.float64)
+        q /= np.linalg.norm(q, axis=1, keepdims=True)
+        qw, qx, qy, qz = q.T
+        Rm = np.stack([
+            np.stack([1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - qw * qz), 2 * (qx * qz + qw * qy)], 1),
+            np.stack([2 * (qx * qy + qw * qz), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - qw * qx)], 1),
+            np.stack([2 * (qx * qz - qw * qy), 2 * (qy * qz + qw * qx), 1 - 2 * (qx * qx + qy * qy)], 1),
+        ], 1)                                                         # (n, 3, 3)
+        M = (W[None] @ Rm) * sc[:, None, :]                           # camera-space R S
+        cov = M @ np.transpose(M, (0, 2, 1))                          # (n, 3, 3)
+        x, y, z = t.T
+        J = np.zeros((len(s), 2, 3))
+        J[:, 0, 0] = focal / z
+        J[:, 0, 2] = -focal * x / (z * z)
+        J[:, 1, 1] = -focal / z                                       # screen y grows downwards
+        J[:, 1, 2] = focal * y / (z * z)
+        c2 = J @ cov @ np.transpose(J, (0, 2, 1))
+        a_, b_, d_ = c2[:, 0, 0] + 0.3, c2[:, 0, 1], c2[:, 1, 1] + 0.3
+        det = a_ * d_ - b_ * b_
+        ok = det > 1e-12
+        mid = 0.5 * (a_ + d_)
+        lam = mid + np.sqrt(np.maximum(mid * mid - det, 0))
+        rad = np.minimum(np.ceil(3 * np.sqrt(lam)), max_radius_px).astype(int)
+        px = width / 2 + focal * x / z
+        py = height / 2 - focal * y / z
+        ok &= (px + rad >= 0) & (px - rad < width) & (py + rad >= 0) & (py - rad < height)
+        ia, ib, id_ = d_ / det, -b_ / det, a_ / det                    # inverse 2D covariance
+        opa = 1.0 / (1.0 + np.exp(-np.clip(s["opacity"].astype(np.float64), -30, 30)))
+        dc = np.stack([s["f_dc_0"], s["f_dc_1"], s["f_dc_2"]], 1).astype(np.float64)
+        rgb = np.clip(0.5 + 0.28209479 * dc, 0, 1) * 255.0
+        for rr in np.unique(rad[ok]):
+            sel = np.flatnonzero(ok & (rad == rr))
+            cx, cy = np.rint(px[sel]).astype(np.int64), np.rint(py[sel]).astype(np.int64)
+            fx, fy = px[sel] - cx, py[sel] - cy
+            for dy in range(-rr, rr + 1):
+                for dx in range(-rr, rr + 1):
+                    ex, ey = dx - fx, dy - fy
+                    power = -0.5 * (ia[sel] * ex * ex + 2 * ib[sel] * ex * ey + id_[sel] * ey * ey)
+                    alpha = opa[sel] * np.exp(np.maximum(power, -30))
+                    xi, yi = cx + dx, cy + dy
+                    m = (alpha >= 1 / 255) & (xi >= 0) & (xi < width) & (yi >= 0) & (yi < height)
+                    if not m.any():
+                        continue
+                    pix_l.append(yi[m] * width + xi[m])
+                    dep_l.append(z[sel][m].astype(np.float32))
+                    col_l.append(rgb[sel][m].astype(np.float32))
+                    a_l.append(np.minimum(alpha[m], 0.99).astype(np.float32))
+    if not pix_l:
+        img = np.broadcast_to(np.asarray(background, np.uint8), (height, width, 3)).copy()
+        return Frame(img, np.full((height, width), np.inf, np.float32), cam, {})
+    out, depth = _composite(np.concatenate(pix_l), np.concatenate(dep_l), np.concatenate(col_l),
+                            np.concatenate(a_l), n_pix, background)
+    img = np.clip(np.rint(out), 0, 255).astype(np.uint8).reshape(height, width, 3)
+    return Frame(img, depth.reshape(height, width), cam, {"fragments": int(sum(len(v) for v in pix_l))})
+
+
+def splat_picture(splats: np.ndarray, cam: Camera, scale: int = 2, max_radius_px: int = 12) -> Frame:
+    """render_gaussians at 1/`scale` resolution, upscaled to the full picture size (Lanczos): about 4x faster and the
+    footprint cap is 2x larger, so big splats are not cut into squares (full room ~80 s, built parts ~5 s on an M1)."""
+    w, h = WIDTH // scale, (HEIGHT - BANNER_H) // scale
+    f = render_gaussians(splats, cam, w, h, max_radius_px=max_radius_px)
+    img = np.asarray(Image.fromarray(f.image).resize((WIDTH, HEIGHT - BANNER_H), Image.LANCZOS))
+    return Frame(img, np.full(img.shape[:2], np.inf, np.float32), cam, f.counts)

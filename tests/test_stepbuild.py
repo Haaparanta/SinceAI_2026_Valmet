@@ -74,3 +74,20 @@ def test_blend_composites_front_to_back() -> None:
                          background=(0, 0, 0))
     got = two.image[24, 32].astype(int)                                   # half red in front of opaque blue
     assert np.abs(got - np.array([128, 0, 128])).max() <= 1              # (alpha is capped at 0.999)
+
+
+def test_gaussian_splat_is_an_ellipse_with_its_colour_and_opacity() -> None:
+    from stepbuild.splats import SH0_DTYPE
+
+    g = np.zeros(1, dtype=SH0_DTYPE)
+    g["rot_0"] = 1.0
+    g["scale_0"], g["scale_1"], g["scale_2"] = np.log(0.2), np.log(0.05), np.log(0.05)   # long along x
+    g["opacity"] = 10.0                                                                   # alpha ~1
+    g["f_dc_0"] = (1.0 - 0.5) / 0.28209479                                                # red 255
+    g["f_dc_1"] = g["f_dc_2"] = (0.0 - 0.5) / 0.28209479
+    cam = R.Camera((0.0, 0.0, 5.0), (0.0, 0.0, 0.0), 40.0)
+    f = R.render_gaussians(g, cam, 200, 150, max_radius_px=40, background=(0, 0, 0))
+    centre = f.image[75, 100]
+    assert centre[0] > 240 and centre[1] < 10                                             # opaque red centre
+    row, col = f.image[75, :, 0], f.image[:, 100, 0]
+    assert (row > 128).sum() > 2.5 * (col > 128).sum()                                    # wider than tall
