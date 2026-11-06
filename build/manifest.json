@@ -5460,6 +5460,421 @@
       "event": "after 0447 ACCEPTED (part process_pump_1)",
       "kept": 1617777,
       "built": 246763
+    },
+    {
+      "index": 479,
+      "kind": "part",
+      "name": "pallet_jack_1",
+      "status": "accepted",
+      "images": [
+        "images/0479_20261107-005150.png",
+        "images/0480_20261107-005150.png",
+        "images/0481_20261107-005150.png",
+        "images/0482_20261107-005150.png",
+        "images/0483_20261107-005150.png",
+        "images/0484_20261107-005150.png",
+        "images/0485_20261107-005150.png",
+        "images/0486_20261107-005150.png",
+        "images/0487_20261107-005150.png",
+        "images/0488_20261107-005150.png",
+        "images/0489_20261107-005150.png",
+        "images/0490_20261107-005151.png",
+        "images/0491_20261107-005151.png",
+        "images/0492_20261107-005151.png",
+        "images/0493_20261107-005151.png",
+        "images/0494_20261107-005151.png",
+        "images/0495_20261107-005151.png",
+        "images/0496_20261107-005151.png"
+      ],
+      "created_at": "2026-11-07T00:51:51+02:00",
+      "count": 3566,
+      "pool_before": 1371014,
+      "bbox": {
+        "min": [
+          2.5005,
+          -1.1465,
+          -2.4911
+        ],
+        "max": [
+          3.186,
+          -0.1007,
+          -2.0219
+        ]
+      },
+      "headline": "ADD PALLET JACK 1 · 3,566 points as part 7",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            0.3445,
+            -0.3646,
+            -0.1341
+          ],
+          "target": [
+            2.7155,
+            -0.616,
+            -2.2428
+          ],
+          "fov_deg": 53.048186152123264
+        },
+        "the part alone, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "the part with 35 cm of surroundings, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up": {
+          "position": [
+            2.7155,
+            0.6739,
+            1.4427
+          ],
+          "target": [
+            2.7155,
+            -0.616,
+            -2.2428
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -0.6232,
+            0.7333,
+            -0.3152
+          ],
+          "target": [
+            2.7155,
+            -0.616,
+            -2.2428
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            6.0542,
+            0.7333,
+            -0.3152
+          ],
+          "target": [
+            2.7155,
+            -0.616,
+            -2.2428
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            2.7155,
+            0.7847,
+            -2.2429
+          ],
+          "target": [
+            2.7155,
+            -0.616,
+            -2.2428
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "axis view from the top (looking down -Y)": {
+          "position": [
+            0.3445,
+            151.7607,
+            -0.1493
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the right (looking -X)": {
+          "position": [
+            91.3647,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the left (looking +X)": {
+          "position": [
+            -90.6757,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the front (looking -Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            110.884
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the back (looking +Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            -111.1522
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "overview": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "the part alone, own colours, 4 sides": {},
+        "the part with 35 cm of surroundings, own colours, 4 sides": {},
+        "close-up": {
+          "rest": 207050,
+          "built": 99494,
+          "selected": 5809
+        },
+        "close-up from the left": {
+          "rest": 203836,
+          "built": 95476,
+          "selected": 5739
+        },
+        "close-up from the right": {
+          "rest": 225497,
+          "built": 109410,
+          "selected": 4133
+        },
+        "close-up from above": {
+          "rest": 11970,
+          "built": 45926,
+          "selected": 18994
+        },
+        "outside, all points": {
+          "rest": 214150,
+          "built": 43452,
+          "selected": 441
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 148371,
+          "built": 49904,
+          "selected": 816
+        },
+        "outside from the opposite corner": {
+          "rest": 185438,
+          "built": 77470,
+          "selected": 551
+        },
+        "inside the room (START camera)": {
+          "rest": 274589,
+          "built": 102553,
+          "selected": 1267
+        },
+        "axis view from the top (looking down -Y)": {
+          "rest": 256125,
+          "built": 77738,
+          "selected": 595
+        },
+        "axis view from the right (looking -X)": {
+          "rest": 283842,
+          "built": 42360,
+          "selected": 3260
+        },
+        "axis view from the left (looking +X)": {
+          "rest": 295918,
+          "built": 30956,
+          "selected": 1171
+        },
+        "axis view from the front (looking -Z)": {
+          "rest": 250682,
+          "built": 34439,
+          "selected": 1115
+        },
+        "axis view from the back (looking +Z)": {
+          "rest": 216502,
+          "built": 67421,
+          "selected": 2595
+        },
+        "overview": {
+          "rest": 274589,
+          "built": 102553,
+          "selected": 1267
+        },
+        "before | after": {}
+      },
+      "label": "Pallet jack 1",
+      "part_kind": "equipment",
+      "params": {
+        "x": 2.64,
+        "y": -0.82,
+        "z": -2.27,
+        "radius": 0.8,
+        "label": "Pallet jack",
+        "cls": "pallet_jack",
+        "voxel": 0.04,
+        "min_alpha": 0.08,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "2.35,3.90,-1.17,0.62,-2.70,-0.35",
+        "min_group": 40
+      },
+      "info": {
+        "seed": [
+          2.64,
+          -0.82,
+          -2.27
+        ],
+        "components": 73,
+        "voxels": 271,
+        "box": [
+          2.35,
+          3.9,
+          -1.17,
+          0.62,
+          -2.7,
+          -0.35
+        ]
+      },
+      "decided_at": "2026-11-07T00:52:09+02:00",
+      "note": "user: 'the second one is pumppukarry' (pallet jack, probe 0446 piece 2)"
+    },
+    {
+      "index": 497,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0497_20261107-005213.png",
+        "images/0498_20261107-005216.png",
+        "images/0499_20261107-005218.png",
+        "images/0500_20261107-005219.png",
+        "images/0501_20261107-005221.png",
+        "images/0502_20261107-005223.png",
+        "images/0503_20261107-005229.png",
+        "images/0504_20261107-005233.png",
+        "images/0505_20261107-005237.png",
+        "images/0506_20261107-005240.png",
+        "images/0507_20261107-005241.png",
+        "images/0508_20261107-005241.png",
+        "images/0509_20261107-005241.png",
+        "images/0510_20261107-005242.png"
+      ],
+      "created_at": "2026-11-07T00:52:42+02:00",
+      "event": "after 0479 ACCEPTED (part pallet_jack_1)",
+      "kept": 1617777,
+      "built": 250329
     }
   ],
   "parts": [
@@ -5630,6 +6045,41 @@
       },
       "indices": "build/parts/0447_process_pump_1.idx.npy",
       "ply": "build/parts/0447_process_pump_1.ply"
+    },
+    {
+      "index": 479,
+      "name": "pallet_jack_1",
+      "label": "Pallet jack 1",
+      "kind": "equipment",
+      "count": 3566,
+      "bbox": {
+        "min": [
+          2.5005,
+          -1.1465,
+          -2.4911
+        ],
+        "max": [
+          3.186,
+          -0.1007,
+          -2.0219
+        ]
+      },
+      "params": {
+        "x": 2.64,
+        "y": -0.82,
+        "z": -2.27,
+        "radius": 0.8,
+        "label": "Pallet jack",
+        "cls": "pallet_jack",
+        "voxel": 0.04,
+        "min_alpha": 0.08,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "2.35,3.90,-1.17,0.62,-2.70,-0.35",
+        "min_group": 40
+      },
+      "indices": "build/parts/0479_pallet_jack_1.idx.npy",
+      "ply": "build/parts/0479_pallet_jack_1.ply"
     }
   ],
   "removed": [
