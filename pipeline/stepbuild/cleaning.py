@@ -11,7 +11,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from stepbuild import render as R
-from stepbuild.geometry import back_wall_profile, horizontal_plane, outer_edge
+from stepbuild.geometry import back_wall_profile, horizontal_plane, outer_edge_gap, top_layer_edge
 from stepbuild.splats import alpha_of
 
 
@@ -106,32 +106,40 @@ def floating_fog(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: n
 
 
 def outside_room(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
-                 margin: float = 0.04) -> CleanProposal:
-    """2d: strays above the ceiling and past the right-hand side. Ceiling = densest thin y-slab in the upper half
-    (flat at 1.07 where scanned). On the right, material continues ~25 cm past the first wall layer (x 3.62), so the
-    cut is past the outer edge of all of it, where the x density drops below 5 % of its peak. The open front and the
-    thinning left side are real clutter and stay."""
-    ceiling = horizontal_plane(xyz[:, 1], lower=False)
-    edge_x = outer_edge(xyz[:, 0])
-    above = xyz[:, 1] > ceiling.y + margin
-    right = xyz[:, 0] > edge_x + margin
-    remove = above | right
+                 margin: float = 0.04, max_gap: float = 0.5) -> CleanProposal:
+    """Strays above the real ceiling and past the side edges of the room.
+
+    Ceiling: in this room the densest upper layer is the band of insulated pipes (y ~0.88); the real ceiling is the
+    weaker layer above it (y ~1.28). So the ceiling is the topmost dense layer and the cut is where the density above
+    it falls under 10 % of that layer (geometry.top_layer_edge). Sides: past the outer edge of the dense material on
+    each side of x, but only on a side with a sharp wall (edge within `max_gap` of the densest layer): on the other
+    side the scan just thins out through real clutter, so nothing is cut there. The open front and the floor are
+    handled elsewhere."""
+    ceiling_y, top_edge = top_layer_edge(xyz[:, 1])
+    hi_x, hi_gap = outer_edge_gap(xyz[:, 0])
+    lo_x, lo_gap = outer_edge_gap(-xyz[:, 0])
+    lo_x = -lo_x
+    hi_x = hi_x if hi_gap <= max_gap else np.inf
+    lo_x = lo_x if lo_gap <= max_gap else -np.inf
+    above = xyz[:, 1] > top_edge + margin
+    side = (xyz[:, 0] > hi_x + margin) | (xyz[:, 0] < lo_x - margin)
+    remove = above | side
     n = int(remove.sum())
-    view_max = bmax.copy()
-    if right.any():
-        view_max[0] = max(bmax[0], float(np.percentile(xyz[right, 0], 99)))
-    cam = R.front_elevation_camera(bmin, view_max, eye_y=ceiling.y, look_y=0.5 * (bmin[1] + ceiling.y))
+    cam = R.front_elevation_camera(bmin, bmax, eye_y=top_edge + margin, look_y=0.5 * (bmin[1] + top_edge))
     return CleanProposal(
-        what="strays outside the room",
+        what="strays above the ceiling and past the sides",
         remove=remove,
-        title=f"outside the room (y > {ceiling.y + margin:+.2f} or x > {edge_x + margin:+.2f})",
-        subtitle=(f"ceiling y {ceiling.y:+.3f} (rms {100 * ceiling.rms:.1f} cm) · right edge x {edge_x:+.2f} · "
-                  f"above {int(above.sum()):,} + right {int((right & ~above).sum()):,} = {n:,} "
-                  f"({100 * n / len(xyz):.1f} %) · eye at ceiling height"),
+        title=f"outside the room (y > {top_edge + margin:+.2f}, x < {lo_x - margin:+.2f} or > {hi_x + margin:+.2f})"
+              .replace("inf", "none"),
+        subtitle=(f"ceiling layer y {ceiling_y:+.2f} (pipes below it) · top edge {top_edge:+.2f} · "
+                  f"above {int(above.sum()):,} + sides {int((side & ~above).sum()):,} = {n:,} "
+                  f"({100 * n / len(xyz):.1f} %) · eye at the cut height"),
         camera=cam,
         params={"margin": margin},
-        info={"ceiling_y": round(ceiling.y, 4), "ceiling_rms": round(ceiling.rms, 4), "right_edge_x": round(edge_x, 4),
-              "above": int(above.sum()), "right_only": int((right & ~above).sum())},
+        info={"ceiling_y": round(ceiling_y, 4), "top_edge_y": round(top_edge, 4),
+              "x_edges": [None if np.isinf(v) else round(float(v), 4) for v in (lo_x, hi_x)],
+              "x_gaps": [round(lo_gap, 3), round(hi_gap, 3)], "above": int(above.sum()),
+              "sides_only": int((side & ~above).sum())},
         removed_size=0.012,
     )
 

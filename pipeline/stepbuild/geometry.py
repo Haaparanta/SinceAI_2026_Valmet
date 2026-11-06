@@ -83,8 +83,31 @@ def back_wall_profile(run: np.ndarray, depth: np.ndarray, strip: float = 0.25, b
 def outer_edge(values: np.ndarray, bin_size: float = 0.05, rel: float = 0.05) -> float:
     """High-side edge of a dense block of points along one axis: walking outward from the densest bin on the high
     half, the first bin holding less than `rel` x that peak. Sparse strays beyond it are outside the room."""
+    return outer_edge_gap(values, bin_size, rel)[0]
+
+
+def outer_edge_gap(values: np.ndarray, bin_size: float = 0.05, rel: float = 0.05) -> tuple[float, float]:
+    """(edge, gap): the outer_edge and how far it lies past the densest bin. A small gap means a sharp wall; a large
+    gap means the scan just thins out (real clutter, not a boundary)."""
     lo, hi = np.percentile(values, 50), values.max()
     counts, e = np.histogram(values, bins=np.arange(lo, hi + bin_size, bin_size))
     k = int(np.argmax(counts))
     below = np.flatnonzero(counts[k:] < rel * counts[k])
-    return float(e[k + below[0]]) if len(below) else float(e[-1])
+    edge = float(e[k + below[0]]) if len(below) else float(e[-1])
+    return edge, edge - float(e[k])
+
+
+def top_layer_edge(y: np.ndarray, bin_size: float = 0.04, rel_peak: float = 0.02, rel_edge: float = 0.10
+                   ) -> tuple[float, float]:
+    """(ceiling_y, edge_y) for a room whose ceiling is NOT its densest upper layer (pipes hang below it). Ceiling =
+    the topmost local maximum of the y histogram holding at least `rel_peak` x the global maximum; edge = walking up
+    from it, the first bin under `rel_edge` x the ceiling peak. Points above the edge are strays."""
+    lo, hi = np.percentile(y, 50), y.max()
+    counts, e = np.histogram(y, bins=np.arange(lo, hi + bin_size, bin_size))
+    c = np.convolve(counts, np.ones(3) / 3, mode="same")
+    peaks = [i for i in range(1, len(c) - 1) if c[i] >= c[i - 1] and c[i] >= c[i + 1] and c[i] >= rel_peak * c.max()]
+    k = peaks[-1] if peaks else int(np.argmax(c))
+    ceiling = float(0.5 * (e[k] + e[k + 1]))
+    above = np.flatnonzero(c[k:] < rel_edge * c[k])
+    edge = float(e[k + above[0]]) if len(above) else float(e[-1])
+    return ceiling, edge

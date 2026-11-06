@@ -1,0 +1,43 @@
+{
+  "index": 33,
+  "kind": "clean",
+  "name": "outside_room",
+  "count": 2285,
+  "pool_before": 466998,
+  "bbox": {
+    "min": [
+      -5.9931,
+      -0.4567,
+      -3.5117
+    ],
+    "max": [
+      5.2985,
+      4.4742,
+      -0.741
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0033_20261106-224207.png",
+    "images/0034_20261106-224207.png",
+    "images/0035_20261106-224207.png",
+    "images/0036_20261106-224208.png"
+  ],
+  "params": {
+    "margin": 0.04
+  },
+  "info": {
+    "ceiling_y": 1.2695,
+    "top_edge_y": 1.5295,
+    "x_edges": [
+      -3.8994,
+      null
+    ],
+    "x_gaps": [
+      0.3,
+      2.3
+    ],
+    "above": 1374,
+    "sides_only": 911
+  }
+}

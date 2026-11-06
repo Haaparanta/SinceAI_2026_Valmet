@@ -726,6 +726,238 @@
       "event": "after 0023 ACCEPTED (clean floating_fog)",
       "kept": 466998,
       "built": 0
+    },
+    {
+      "index": 29,
+      "kind": "clean",
+      "name": "outside_room",
+      "status": "replaced",
+      "images": [
+        "images/0029_20261106-224128.png",
+        "images/0030_20261106-224128.png",
+        "images/0031_20261106-224129.png",
+        "images/0032_20261106-224129.png"
+      ],
+      "created_at": "2026-11-06T22:41:29+02:00",
+      "count": 13988,
+      "pool_before": 466998,
+      "bbox": {
+        "min": [
+          -5.9931,
+          -1.1094,
+          -3.5117
+        ],
+        "max": [
+          6.0791,
+          4.4742,
+          -0.7385
+        ]
+      },
+      "headline": "REMOVE 13,988 points (3.0 %) · strays above the ceiling and past the sides",
+      "cameras": {
+        "close-up": {
+          "position": [
+            0.4166,
+            3.5453,
+            6.3019
+          ],
+          "target": [
+            0.4166,
+            0.6349,
+            -2.0136
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            1.5695,
+            2.4547
+          ],
+          "target": [
+            0.4181,
+            0.2126,
+            -2.5516
+          ],
+          "fov_deg": 55.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 73580,
+          "built": 0,
+          "selected": 38809
+        },
+        "outside, all points": {
+          "rest": 109761,
+          "built": 0,
+          "selected": 55262
+        },
+        "diagnostic view": {
+          "rest": 138098,
+          "built": 0,
+          "selected": 31169
+        },
+        "before | after": {}
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "ceiling_y": 1.2695,
+        "top_edge_y": 1.5295,
+        "x_edges": [
+          -3.8994,
+          4.0006
+        ],
+        "above": 1374,
+        "sides_only": 12614
+      },
+      "decided_at": "2026-11-06T22:42:04+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 33,
+      "kind": "clean",
+      "name": "outside_room",
+      "status": "pending",
+      "images": [
+        "images/0033_20261106-224207.png",
+        "images/0034_20261106-224207.png",
+        "images/0035_20261106-224207.png",
+        "images/0036_20261106-224208.png"
+      ],
+      "created_at": "2026-11-06T22:42:08+02:00",
+      "count": 2285,
+      "pool_before": 466998,
+      "bbox": {
+        "min": [
+          -5.9931,
+          -0.4567,
+          -3.5117
+        ],
+        "max": [
+          5.2985,
+          4.4742,
+          -0.741
+        ]
+      },
+      "headline": "REMOVE 2,285 points (0.5 %) · strays above the ceiling and past the sides",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -0.643,
+            3.9905,
+            5.9048
+          ],
+          "target": [
+            -0.643,
+            1.1879,
+            -2.1028
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            1.5695,
+            2.4547
+          ],
+          "target": [
+            0.4181,
+            0.2126,
+            -2.5516
+          ],
+          "fov_deg": 55.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 82469,
+          "built": 0,
+          "selected": 16333
+        },
+        "outside, all points": {
+          "rest": 118149,
+          "built": 0,
+          "selected": 16987
+        },
+        "diagnostic view": {
+          "rest": 140884,
+          "built": 0,
+          "selected": 13319
+        },
+        "before | after": {}
+      },
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "ceiling_y": 1.2695,
+        "top_edge_y": 1.5295,
+        "x_edges": [
+          -3.8994,
+          null
+        ],
+        "x_gaps": [
+          0.3,
+          2.3
+        ],
+        "above": 1374,
+        "sides_only": 911
+      }
     }
   ],
   "parts": [],

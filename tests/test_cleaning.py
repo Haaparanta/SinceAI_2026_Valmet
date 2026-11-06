@@ -82,4 +82,18 @@ def test_outside_room_keeps_thick_right_side_and_cuts_strays() -> None:
     n0 = len(xyz) + len(wall)
     assert prop.remove[n0:].all()                              # strays past the right side and above the ceiling
     assert prop.remove[len(xyz):n0].sum() == 0                 # the 30 cm thick right-hand material stays
-    assert abs(prop.info["ceiling_y"] - 1.07) < 0.005
+    assert abs(prop.info["ceiling_y"] - 1.07) < 0.03                  # 4 cm histogram bins
+
+
+def test_ceiling_is_the_top_layer_not_the_denser_pipe_band() -> None:
+    from stepbuild.geometry import top_layer_edge
+
+    rng = np.random.default_rng(6)
+    y = np.r_[rng.normal(-1.07, 0.01, 30000),                     # floor
+              rng.uniform(-1.0, 0.6, 40000),                      # room
+              rng.normal(0.88, 0.04, 40000),                      # dense pipe band
+              rng.normal(1.28, 0.05, 6000),                       # weaker real ceiling above it
+              rng.uniform(1.6, 2.2, 150)]                          # strays
+    ceiling, edge = top_layer_edge(y)
+    assert abs(ceiling - 1.28) < 0.05
+    assert 1.38 < edge < 1.6

@@ -246,7 +246,8 @@ def compose(frame: Frame, title: str, subtitle: str, legend: list[tuple[tuple[in
     stamp = when.strftime("%Y-%m-%d %H:%M:%S")
     tw = d.textlength(stamp, font=small)
     d.text((x - tw, y0 + 30), stamp, fill=(150, 156, 170), font=small)
-    d.text((16, y0), title, fill=(235, 238, 245), font=big)
+    legend_w = sum(d.textlength(label, font=small) + 40 for _, label in legend)
+    d.text((16, y0), _fit(d, title, big, w - 16 - legend_w - 24 - 16), fill=(235, 238, 245), font=big)
     d.text((16, y0 + 30), _fit(d, subtitle, small, w - 16 - tw - 24 - 16), fill=(150, 156, 170), font=small)
     for rgb, label in reversed(legend):
         tw = d.textlength(label, font=small)
