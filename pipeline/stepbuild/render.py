@@ -141,18 +141,15 @@ def _eye_dome(img: np.ndarray, depth: np.ndarray, strength: float, radius: int =
 # ---------------------------------------------------------------- cameras
 
 
-def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 50.0) -> Camera:
-    """Room overview from the open (camera) side, +z, just under the ceiling, looking at the middle of the back half.
-
-    The scan has no front wall and was captured from +z, so this is the side the room can be seen from without
-    looking through a wall or the ceiling."""
-    c = 0.5 * (bmin + bmax)
+def overview_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 80.0, opposite: bool = False) -> Camera:
+    """Room overview from INSIDE the room, like a security camera: in the -x/-z corner at ~55 % of the room height,
+    looking diagonally down the length of the room. Picked from six candidate corners on the Equipment Room scan
+    (closed on all sides) as the one with the clearest view; the first scan's camera stood outside its open front."""
     size = bmax - bmin
-    target = np.array([c[0], bmin[1] + 0.35 * size[1], bmin[2] + 0.4 * size[2]])
-    half_w = 0.5 * size[0] * 1.08
-    aspect = WIDTH / (HEIGHT - BANNER_H)
-    dist = half_w / (np.tan(np.radians(fov_deg) / 2) * aspect)
-    pos = np.array([c[0], bmax[1] - 0.08 * size[1], bmax[2] + dist * 0.55])
+    a, b = (np.array([0.92, 0.55, 0.92]), np.array([0.15, 0.30, 0.20])) if opposite else \
+        (np.array([0.08, 0.55, 0.08]), np.array([0.85, 0.30, 0.80]))
+    pos = bmin + a * size
+    target = bmin + b * size
     return Camera(tuple(map(float, pos)), tuple(map(float, target)), fov_deg)
 
 
@@ -443,11 +440,25 @@ def render_blend(layers: list[BlendLayer], cam: Camera, width: int = WIDTH, heig
 
 
 def outside_camera(bmin: np.ndarray, bmax: np.ndarray, fov_deg: float = 45.0, width: int = WIDTH,
-                   height: int = HEIGHT - BANNER_H) -> Camera:
-    """Fixed view from outside the room (front-right, above), framing the whole scan: the same camera for every
-    step of a run, so the outside images line up in the flipbook."""
-    return framing_camera(bmin, bmax, np.array([-0.55, -0.55, -1.0]), fill=0.92, fov_deg=fov_deg, width=width,
-                          height=height)
+                   height: int = HEIGHT - BANNER_H, opposite: bool = False) -> Camera:
+    """Fixed view from outside the room, above, framing the whole scan: from the front-right corner, or with
+    `opposite` from the back-left corner. The same cameras for every step of a run, so the images line up."""
+    d = np.array([0.55, -0.55, 1.0]) if opposite else np.array([-0.55, -0.55, -1.0])
+    return framing_camera(bmin, bmax, d, fill=0.92, fov_deg=fov_deg, width=width, height=height)
+
+
+def plan_camera(lo: np.ndarray, hi: np.ndarray, fill: float = 0.85, width: int = WIDTH,
+                height: int = HEIGHT - BANNER_H) -> Camera:
+    """Straight down onto the box lo..hi, back wall (-z) at the top of the picture."""
+    return framing_camera(lo, hi, np.array([0.0, -1.0, 1e-4]), fill=fill, width=width, height=height,
+                          up=(0.0, 0.0, -1.0))
+
+
+def turned(view_dir: tuple[float, float, float] | np.ndarray, degrees: float) -> np.ndarray:
+    """A view direction turned about the vertical axis (positive = counter-clockwise seen from above)."""
+    a = np.radians(degrees)
+    d = np.asarray(view_dir, dtype=np.float64)
+    return np.array([d[0] * np.cos(a) + d[2] * np.sin(a), d[1], -d[0] * np.sin(a) + d[2] * np.cos(a)])
 
 
 # ---------------------------------------------------------------- probes (help the user judge a level)
@@ -502,4 +513,63 @@ def level_chart(xyz: np.ndarray, rgb: np.ndarray, levels: list[tuple[float, str]
         d.text((plot_w - 60, r - 9), f"{yv:+.1f}", fill=(120, 124, 136), font=_font(14))
     d.text((plot_w + 10, 8), "points per", fill=(150, 156, 170), font=_font(14))
     d.text((plot_w + 10, 24), "height", fill=(150, 156, 170), font=_font(14))
+    return np.asarray(im)
+
+
+# ---------------------------------------------------------------- axis views (near-orthographic, with a height ruler)
+
+AXIS_VIEWS = {  # name: (view direction, up)
+    "from the top (looking down -Y)": ((0.0, -1.0, 1e-4), (0.0, 0.0, -1.0)),
+    "from the right (looking -X)": ((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+    "from the left (looking +X)": ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+    "from the front (looking -Z)": ((0.0, 0.0, -1.0), (0.0, 1.0, 0.0)),
+    "from the back (looking +Z)": ((0.0, 0.0, 1.0), (0.0, 1.0, 0.0)),
+}
+
+
+def axis_camera(lo: np.ndarray, hi: np.ndarray, name: str, fill: float = 0.92, width: int = WIDTH,
+                height: int = HEIGHT - BANNER_H) -> Camera:
+    """Straight along one axis with a 3 degree lens from far away: close to an orthographic drawing, so heights and
+    levels can be read off the picture."""
+    d, up = AXIS_VIEWS[name]
+    return framing_camera(lo, hi, np.array(d), fill=fill, fov_deg=3.0, width=width, height=height, up=up)
+
+
+def _project(points: np.ndarray, cam: Camera, width: int, height: int) -> np.ndarray:
+    r, u, f = cam.basis()
+    rel = points.astype(np.float64) - np.asarray(cam.position)
+    z = np.maximum(rel @ f, 1e-6)
+    focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
+    return np.c_[width / 2 + focal * (rel @ r) / z, height / 2 - focal * (rel @ u) / z]
+
+
+def draw_axis_guides(img: np.ndarray, cam: Camera, lo: np.ndarray, hi: np.ndarray,
+                     guides: list[tuple[str, float, float, float, tuple[int, int, int]]]) -> np.ndarray:
+    """For a side view (camera up = +y): a height ruler on the left (every 0.1 u, labelled every 0.2 u) and each
+    guide plane y = a*x + b*z + c drawn as a labelled line across the room (through the room's middle)."""
+    h, w = img.shape[:2]
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    c = 0.5 * (lo + hi)
+    small = _font(14)
+    if abs(cam.up[1]) > 0.5:
+        for yv in np.arange(np.floor(lo[1] * 10) / 10, hi[1] + 1e-6, 0.1):
+            _, py = _project(np.array([[c[0], yv, c[2]]]), cam, w, h)[0]
+            if 0 <= py < h:
+                major = abs(round(yv * 10) % 2) == 0
+                d.line((0, py, 18 if major else 10, py), fill=(200, 204, 214), width=1)
+                if major:
+                    d.text((22, py - 8), f"y {yv:+.1f}", fill=(200, 204, 214), font=small)
+        f = np.asarray(cam.target) - np.asarray(cam.position)
+        run = 2 if abs(f[0]) > abs(f[2]) else 0            # the horizontal axis on screen
+        for i, (label, a, b, cc, rgb) in enumerate(guides):
+            ends = []
+            for t in (lo[run], hi[run]):
+                pnt = c.copy()
+                pnt[run] = t
+                pnt[1] = a * pnt[0] + b * pnt[2] + cc
+                ends.append(pnt)
+            (x0, y0), (x1, y1) = _project(np.array(ends), cam, w, h)
+            d.line((x0, y0, x1, y1), fill=rgb, width=2)
+            d.text((w - 200, y1 - 20 - 16 * i), f"{label}", fill=rgb, font=small)
     return np.asarray(im)

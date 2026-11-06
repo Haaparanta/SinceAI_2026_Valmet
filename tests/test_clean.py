@@ -1,5 +1,6 @@
 """M1 definition of done (AGENTS.md S8): clean.npz / scene_points.bin from pipeline/01_clean.py."""
 
+import json
 import struct
 from pathlib import Path
 
@@ -25,8 +26,12 @@ def clean() -> dict[str, np.ndarray]:
 
 
 def test_kept_count_in_range(clean: dict[str, np.ndarray]) -> None:
+    """clean_mask keeps the opaque, finite, in-room splats: 70-80 % of the real rows on both scans so far
+    (boiler room 77.4 %, Equipment Room 73.9 %)."""
     n = len(clean["xyz"])
-    assert 350_000 <= n <= 500_000, f"kept {n:,} points, expected 350-500 k"
+    stats = json.loads((DERIVED / "clean_stats.json").read_text())
+    share = n / stats["real_rows"]
+    assert 0.5 <= share <= 0.95, f"kept {n:,} of {stats['real_rows']:,} real rows ({share:.1%})"
 
 
 def test_bounds_within_room_limit(clean: dict[str, np.ndarray]) -> None:

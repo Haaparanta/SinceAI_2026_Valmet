@@ -151,3 +151,38 @@ def ceiling_height_by_cells(xyz: np.ndarray, zone_lo: float, cell: float = 0.25,
     mode = e[int(np.argmax(np.convolve(h, np.ones(3), mode="same")))] + 0.5 * bin_size
     near = np.abs(tops - mode) <= 0.04
     return float(np.median(tops[near])), len(tops), int(near.sum())
+
+
+def envelope_edge(values: np.ndarray, high: bool, bin_size: float = 0.04, band: float = 0.6, rel: float = 0.25,
+                  outer_pct: float = 0.1) -> float:
+    """Outer surface of the room on one side of one axis, found from OUTSIDE: start at the p99.9 (or p0.1) value,
+    look at the outermost `band` of the data, and walk inward to the first `bin_size` bin holding at least `rel` x
+    the densest bin of that band (the wall / ceiling / floor layer). Returns the outer side of that bin. Unlike
+    outer_edge this does not start from the densest layer of the whole half, so equipment inside the room never
+    decides where the wall is."""
+    v = values if high else -values
+    outer = float(np.percentile(v, 100 - outer_pct))
+    edges = np.arange(outer - band, outer + bin_size, bin_size)
+    counts, e = np.histogram(v, bins=edges)
+    ok = np.flatnonzero(counts >= rel * counts.max())
+    edge = float(e[ok[-1] + 1])
+    return edge if high else -edge
+
+
+def fit_floor_plane(xyz: np.ndarray, band: float = 0.04, iterations: int = 4) -> tuple[float, float, float, float]:
+    """(a, b, c, rms) of the floor plane y = a*x + b*z + c: start from the densest low slab (horizontal_plane), take
+    the points within `band` of it and fit by least squares, re-fitting on the inliers (|residual| < 2.5 rms). The
+    Equipment Room floor is tilted ~0.3 deg (5 cm across the room), so a flat cut is too high on one side."""
+    y0 = horizontal_plane(xyz[:, 1], lower=True).y
+    sel = np.abs(xyz[:, 1] - y0) <= band
+    p = xyz[sel]
+    a = b = 0.0
+    c = y0
+    rms = band
+    for _ in range(iterations):
+        A = np.c_[p[:, 0], p[:, 2], np.ones(len(p))]
+        (a, b, c), *_ = np.linalg.lstsq(A, p[:, 1], rcond=None)
+        r = p[:, 1] - A @ np.array([a, b, c])
+        rms = float(np.sqrt(np.mean(r ** 2)))
+        p = p[np.abs(r) < 2.5 * rms]
+    return float(a), float(b), float(c), rms

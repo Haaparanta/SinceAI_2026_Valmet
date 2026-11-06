@@ -11,7 +11,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from stepbuild import render as R
-from stepbuild.geometry import back_wall_profile, horizontal_plane, outer_edge_gap, top_layer_edge
+from stepbuild.geometry import back_wall_profile, envelope_edge, horizontal_plane, outer_edge_gap, top_layer_edge
 from stepbuild.splats import alpha_of
 
 
@@ -144,9 +144,103 @@ def outside_room(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: n
     )
 
 
+WALL_SIDES = {  # side: (depth axis, run axis, sign so that the wall is at the LOW end of sign * coordinate)
+    "back": (2, 0, 1.0), "front": (2, 0, -1.0), "left": (0, 2, 1.0), "right": (0, 2, -1.0),
+}
+WALL_LABEL = {"back": "back wall (-z)", "front": "front wall (+z)", "left": "left wall (-x)", "right": "right wall (+x)"}
+
+
+def behind_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+                side: str = "back", margin: float = 0.04, strip: float = 0.25, hide_above: float = 0.5,
+                max_gap: float = 0.5) -> CleanProposal:
+    """Floaters behind one wall (`side` = back | front | left | right). The wall depth is found per `strip` along
+    the wall (geometry.back_wall_profile on the mirrored axis), and points more than `margin` behind it go. A side
+    whose outer edge is not sharp (more than `max_gap` past its densest layer) has no wall in the scan: the
+    detector then raises instead of cutting into the room (the Equipment Room scan has sharp walls only at the back
+    and on the left). Image: top view, everything above `hide_above` hidden."""
+    if side not in WALL_SIDES:
+        raise ValueError(f"side must be one of {sorted(WALL_SIDES)}")
+    ax, run_ax, sign = WALL_SIDES[side]
+    depth = sign * xyz[:, ax]
+    edge, gap = outer_edge_gap(-depth)
+    outer = -edge                                    # outer edge of ALL dense material on this side (depth coords)
+    if gap > max_gap:
+        raise ValueError(f"no sharp {WALL_LABEL[side]} in the scan: its edge lies {gap:.2f} u past the densest layer "
+                         f"(a wall is within {max_gap})")
+    prof = back_wall_profile(xyz[:, run_ax], depth, strip=strip)
+    # never cut inside the outer edge of the dense material: on the Equipment Room's left side a second, 15 cm thick
+    # dense layer sits behind the main wall layer, and per-strip walls alone sliced through it (images 0164-0173)
+    cut = np.minimum(prof.at(xyz[:, run_ax]), outer) - margin
+    remove = depth < cut
+    n = int(remove.sum())
+    wall = sign * prof.global_depth
+    lo, hi = bmin.copy(), bmax.copy()
+    if n:
+        far = np.percentile(xyz[remove, ax], 2 if sign > 0 else 98)
+        lo[ax], hi[ax] = min(lo[ax], far), max(hi[ax], far)
+    cam = R.top_down_camera(lo, hi, eye_y=bmax[1] + 1.0)
+    wall_med = sign * float(np.median(prof.depth[prof.measured])) if prof.measured.any() else wall
+    layers = (f"wall layer {'xyz'[ax]} {wall_med:+.2f} (median of strips, range "
+              f"{sign * prof.depth.max():+.2f}…{sign * prof.depth.min():+.2f})"
+              + (f"; denser layer in front at {wall:+.2f}" if abs(wall_med - wall) > 0.05 else "")
+              + f"; dense material ends at {sign * outer:+.2f}")
+    return CleanProposal(
+        what=f"floaters behind the {WALL_LABEL[side]}",
+        remove=remove,
+        title=f"behind the {WALL_LABEL[side]} (wall layer {'xyz'[ax]} {wall_med:+.2f})",
+        subtitle=(f"{layers} · cut {100 * margin:.0f} cm behind the wall and the dense material · remove {n:,} of {len(xyz):,} "
+                  f"({100 * n / len(xyz):.1f} %) · top view, above y {hide_above:+.1f} hidden"),
+        camera=cam,
+        params={"side": side, "margin": margin, "strip": strip},
+        info={"outer_edge": round(float(sign * outer), 4), "densest_layer": round(float(wall), 4), "wall_layer_median": round(wall_med, 4), "edge_gap": round(float(gap), 3),
+              "profile": [[round(float(a), 3), round(float(sign * d), 4)] for a, d in zip(prof.edges[:-1], prof.depth)]},
+        hide_kept=xyz[:, 1] > hide_above,
+    )
+
+
+def outside_envelope(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+                     margin: float = 0.04) -> CleanProposal:
+    """Everything OUTSIDE the room and nothing inside it (the user's rule after rejecting the room-wide fog step):
+    the room is a box whose six faces are found from outside (geometry.envelope_edge: walking in from the outermost
+    points, the first dense layer is the wall, ceiling or floor); points more than `margin` beyond any face go,
+    whatever their opacity. Diagnostic view: top view of the whole scan."""
+    faces = {
+        "left (-x)": (0, envelope_edge(xyz[:, 0], high=False), -1),
+        "right (+x)": (0, envelope_edge(xyz[:, 0], high=True), 1),
+        "floor (-y)": (1, envelope_edge(xyz[:, 1], high=False), -1),
+        "ceiling (+y)": (1, envelope_edge(xyz[:, 1], high=True), 1),
+        "back (-z)": (2, envelope_edge(xyz[:, 2], high=False), -1),
+        "front (+z)": (2, envelope_edge(xyz[:, 2], high=True), 1),
+    }
+    remove = np.zeros(len(xyz), dtype=bool)
+    per_face = {}
+    for name, (ax, edge, sgn) in faces.items():
+        out = sgn * (xyz[:, ax] - edge) > margin
+        per_face[name] = int((out & ~remove).sum())
+        remove |= out
+    n = int(remove.sum())
+    lo, hi = xyz.min(0), xyz.max(0)
+    cam = R.top_down_camera(np.percentile(xyz, 0.05, axis=0), np.percentile(xyz, 99.95, axis=0), eye_y=hi[1] + 1.0)
+    box = " · ".join(f"{k.split()[0]} {e:+.2f}" for k, (_, e, _) in faces.items())
+    counts = ", ".join(f"{k.split()[0]} {v:,}" for k, v in per_face.items() if v)
+    return CleanProposal(
+        what="points outside the room (beyond walls, ceiling, floor)",
+        remove=remove,
+        title="outside the room envelope (nothing inside the room)",
+        subtitle=f"room box: {box} · remove {n:,} ({100 * n / len(xyz):.1f} %): {counts}",
+        camera=cam,
+        params={"margin": margin},
+        info={"faces": {k: round(float(e), 4) for k, (_, e, _) in faces.items()}, "per_face": per_face,
+              "scan_min": [round(float(v), 3) for v in lo], "scan_max": [round(float(v), 3) for v in hi]},
+        removed_size=0.015,
+    )
+
+
 CLEANERS: dict[str, Callable[..., CleanProposal]] = {
     "below_floor": below_floor,
     "behind_back_wall": behind_back_wall,
     "floating_fog": floating_fog,
     "outside_room": outside_room,
+    "behind_wall": behind_wall,
+    "outside_envelope": outside_envelope,
 }

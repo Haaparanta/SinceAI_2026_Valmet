@@ -97,3 +97,42 @@ def test_ceiling_is_the_top_layer_not_the_denser_pipe_band() -> None:
     ceiling, edge = top_layer_edge(y)
     assert abs(ceiling - 1.28) < 0.05
     assert 1.38 < edge < 1.6
+
+
+def test_behind_wall_any_side_and_refuses_a_side_without_a_wall() -> None:
+    import pytest
+    from stepbuild.cleaning import behind_wall
+
+    rng = np.random.default_rng(9)
+    room = np.c_[rng.uniform(-3.9, 4.5, 60000), rng.uniform(-1.1, 1.0, 60000), rng.uniform(-3.6, 1.0, 60000)]
+    left_wall = np.c_[rng.normal(-3.94, 0.01, 20000), rng.uniform(-1.1, 1.0, 20000), rng.uniform(-3.6, 3.0, 20000)]
+    behind_left = np.c_[rng.uniform(-5.0, -4.1, 800), rng.uniform(-1.1, 1.0, 800), rng.uniform(-3.6, 3.0, 800)]
+    fade_right = np.c_[4.5 + rng.exponential(0.6, 6000), rng.uniform(-1.1, 1.0, 6000), rng.uniform(-3.6, 3.0, 6000)]
+    xyz = np.vstack([room, left_wall, behind_left, fade_right]).astype(np.float32)
+    prop = behind_wall(xyz, xyz.min(0), xyz.max(0), side="left")
+    n0 = len(room) + len(left_wall)
+    assert prop.remove[n0:n0 + len(behind_left)].all()              # floaters behind the left wall go
+    assert prop.remove[:n0].mean() < 0.01                            # the room and the wall stay
+    with pytest.raises(ValueError, match="no sharp right wall"):
+        behind_wall(xyz, xyz.min(0), xyz.max(0), side="right")    # the right side just fades out: no cut
+
+
+def test_outside_envelope_removes_only_points_outside_the_room_box() -> None:
+    from stepbuild.cleaning import outside_envelope
+
+    rng = np.random.default_rng(10)
+    inside = np.c_[rng.uniform(-4.0, 4.8, 80000), rng.uniform(-1.17, 1.45, 80000), rng.uniform(-3.7, 3.5, 80000)]
+    shell = []
+    for ax, lo_v, hi_v in ((0, -4.2, 4.88), (1, -1.19, 1.48), (2, -3.75, 3.52)):     # dense wall/floor/ceiling layers
+        for v in (lo_v, hi_v):
+            p = np.c_[rng.uniform(-4.0, 4.8, 15000), rng.uniform(-1.17, 1.45, 15000), rng.uniform(-3.7, 3.5, 15000)]
+            p[:, ax] = rng.normal(v, 0.01, 15000)
+            shell.append(p)
+    out = np.c_[rng.uniform(5.0, 5.6, 500), rng.uniform(-1, 1, 500), rng.uniform(-3, 3, 500)]     # past the right wall
+    sky = np.c_[rng.uniform(-3, 4, 500), rng.uniform(1.6, 2.2, 500), rng.uniform(-3, 3, 500)]     # above the ceiling
+    xyz = np.vstack([inside, *shell, out, sky]).astype(np.float32)
+    prop = outside_envelope(xyz, xyz.min(0), xyz.max(0))
+    n_in = len(inside) + sum(len(s) for s in shell)
+    assert prop.remove[n_in:].mean() > 0.97                         # outside points go
+    assert prop.remove[:len(inside)].sum() == 0                     # nothing inside the room
+    assert prop.remove[len(inside):n_in].mean() < 0.01             # walls, floor and ceiling stay
