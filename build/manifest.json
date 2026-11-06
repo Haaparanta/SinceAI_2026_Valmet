@@ -4581,7 +4581,7 @@
       "index": 414,
       "kind": "part",
       "name": "process_pump_1",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/0414_20261107-003531.png",
         "images/0415_20261107-003531.png",
@@ -4952,7 +4952,35 @@
         ],
         "components": 13,
         "voxels": 497
-      }
+      },
+      "decided_at": "2026-11-07T00:41:58+02:00",
+      "note": "user: the pump is way bigger; look from all angles and detect the full thing"
+    },
+    {
+      "index": 432,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0432_20261107-004202.png",
+        "images/0433_20261107-004205.png",
+        "images/0434_20261107-004206.png",
+        "images/0435_20261107-004208.png",
+        "images/0436_20261107-004209.png",
+        "images/0437_20261107-004212.png",
+        "images/0438_20261107-004217.png",
+        "images/0439_20261107-004222.png",
+        "images/0440_20261107-004225.png",
+        "images/0441_20261107-004228.png",
+        "images/0442_20261107-004228.png",
+        "images/0443_20261107-004229.png",
+        "images/0444_20261107-004229.png",
+        "images/0445_20261107-004229.png"
+      ],
+      "created_at": "2026-11-07T00:42:29+02:00",
+      "event": "after 0414 REJECTED (part process_pump_1)",
+      "kept": 1617777,
+      "built": 228147
     }
   ],
   "parts": [
