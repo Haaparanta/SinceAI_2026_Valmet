@@ -11,7 +11,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from stepbuild import render as R
-from stepbuild.geometry import back_wall_profile, horizontal_plane, outer_edge_gap, top_layer_edge
+from stepbuild.geometry import back_wall_profile, envelope_edge, horizontal_plane, outer_edge_gap, top_layer_edge
 from stepbuild.splats import alpha_of
 
 
@@ -198,10 +198,49 @@ def behind_wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np
     )
 
 
+def outside_envelope(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+                     margin: float = 0.04) -> CleanProposal:
+    """Everything OUTSIDE the room and nothing inside it (the user's rule after rejecting the room-wide fog step):
+    the room is a box whose six faces are found from outside (geometry.envelope_edge: walking in from the outermost
+    points, the first dense layer is the wall, ceiling or floor); points more than `margin` beyond any face go,
+    whatever their opacity. Diagnostic view: top view of the whole scan."""
+    faces = {
+        "left (-x)": (0, envelope_edge(xyz[:, 0], high=False), -1),
+        "right (+x)": (0, envelope_edge(xyz[:, 0], high=True), 1),
+        "floor (-y)": (1, envelope_edge(xyz[:, 1], high=False), -1),
+        "ceiling (+y)": (1, envelope_edge(xyz[:, 1], high=True), 1),
+        "back (-z)": (2, envelope_edge(xyz[:, 2], high=False), -1),
+        "front (+z)": (2, envelope_edge(xyz[:, 2], high=True), 1),
+    }
+    remove = np.zeros(len(xyz), dtype=bool)
+    per_face = {}
+    for name, (ax, edge, sgn) in faces.items():
+        out = sgn * (xyz[:, ax] - edge) > margin
+        per_face[name] = int((out & ~remove).sum())
+        remove |= out
+    n = int(remove.sum())
+    lo, hi = xyz.min(0), xyz.max(0)
+    cam = R.top_down_camera(np.percentile(xyz, 0.05, axis=0), np.percentile(xyz, 99.95, axis=0), eye_y=hi[1] + 1.0)
+    box = " · ".join(f"{k.split()[0]} {e:+.2f}" for k, (_, e, _) in faces.items())
+    counts = ", ".join(f"{k.split()[0]} {v:,}" for k, v in per_face.items() if v)
+    return CleanProposal(
+        what="points outside the room (beyond walls, ceiling, floor)",
+        remove=remove,
+        title="outside the room envelope (nothing inside the room)",
+        subtitle=f"room box: {box} · remove {n:,} ({100 * n / len(xyz):.1f} %): {counts}",
+        camera=cam,
+        params={"margin": margin},
+        info={"faces": {k: round(float(e), 4) for k, (_, e, _) in faces.items()}, "per_face": per_face,
+              "scan_min": [round(float(v), 3) for v in lo], "scan_max": [round(float(v), 3) for v in hi]},
+        removed_size=0.015,
+    )
+
+
 CLEANERS: dict[str, Callable[..., CleanProposal]] = {
     "below_floor": below_floor,
     "behind_back_wall": behind_back_wall,
     "floating_fog": floating_fog,
     "outside_room": outside_room,
     "behind_wall": behind_wall,
+    "outside_envelope": outside_envelope,
 }

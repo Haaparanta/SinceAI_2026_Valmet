@@ -1,0 +1,63 @@
+{
+  "index": 208,
+  "kind": "clean",
+  "name": "outside_envelope",
+  "count": 12764,
+  "pool_before": 1630541,
+  "bbox": {
+    "min": [
+      -4.3616,
+      -1.2132,
+      -3.7795
+    ],
+    "max": [
+      6.8692,
+      4.8103,
+      5.59
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0208_20261106-234139.png",
+    "images/0209_20261106-234139.png",
+    "images/0210_20261106-234139.png",
+    "images/0211_20261106-234140.png",
+    "images/0212_20261106-234140.png",
+    "images/0213_20261106-234140.png",
+    "images/0214_20261106-234140.png",
+    "images/0215_20261106-234140.png",
+    "images/0216_20261106-234140.png",
+    "images/0217_20261106-234140.png"
+  ],
+  "params": {
+    "margin": 0.04
+  },
+  "info": {
+    "faces": {
+      "left (-x)": -4.2255,
+      "right (+x)": 4.901,
+      "floor (-y)": -1.2109,
+      "ceiling (+y)": 1.5005,
+      "back (-z)": -3.7681,
+      "front (+z)": 3.5534
+    },
+    "per_face": {
+      "left (-x)": 1631,
+      "right (+x)": 2977,
+      "floor (-y)": 0,
+      "ceiling (+y)": 4227,
+      "back (-z)": 0,
+      "front (+z)": 3929
+    },
+    "scan_min": [
+      -4.362,
+      -1.213,
+      -3.804
+    ],
+    "scan_max": [
+      6.869,
+      4.81,
+      5.59
+    ]
+  }
+}
