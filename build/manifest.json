@@ -9094,7 +9094,7 @@
       "index": 772,
       "kind": "part",
       "name": "pipe_10",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0772_20261107-013055.png",
         "images/0773_20261107-013055.png",
@@ -9472,7 +9472,34 @@
         "start": -3.45,
         "end": 2.45,
         "runs": 2
-      }
+      },
+      "decided_at": "2026-11-07T01:32:50+02:00"
+    },
+    {
+      "index": 790,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0790_20261107-013300.png",
+        "images/0791_20261107-013308.png",
+        "images/0792_20261107-013312.png",
+        "images/0793_20261107-013315.png",
+        "images/0794_20261107-013316.png",
+        "images/0795_20261107-013324.png",
+        "images/0796_20261107-013330.png",
+        "images/0797_20261107-013339.png",
+        "images/0798_20261107-013351.png",
+        "images/0799_20261107-013401.png",
+        "images/0800_20261107-013403.png",
+        "images/0801_20261107-013404.png",
+        "images/0802_20261107-013405.png",
+        "images/0803_20261107-013407.png"
+      ],
+      "created_at": "2026-11-07T01:34:07+02:00",
+      "event": "after 0772 ACCEPTED (part pipe_10)",
+      "kept": 1617777,
+      "built": 387738
     }
   ],
   "parts": [
@@ -9948,6 +9975,36 @@
       },
       "indices": "build/parts/0743_pipe_9.idx.npy",
       "ply": "build/parts/0743_pipe_9.ply"
+    },
+    {
+      "index": 772,
+      "name": "pipe_10",
+      "label": "Pipe 10",
+      "kind": "pipe",
+      "count": 9166,
+      "bbox": {
+        "min": [
+          -1.2468,
+          0.7541,
+          -3.4455
+        ],
+        "max": [
+          -1.003,
+          0.9953,
+          2.4485
+        ]
+      },
+      "params": {
+        "along": "z",
+        "a": -1.12,
+        "b": 0.86,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "indices": "build/parts/0772_pipe_10.idx.npy",
+      "ply": "build/parts/0772_pipe_10.ply"
     }
   ],
   "removed": [
