@@ -2586,6 +2586,49 @@
       "event": "after 0242 ACCEPTED (part floor)",
       "kept": 1617777,
       "built": 184361
+    },
+    {
+      "index": 271,
+      "kind": "probe",
+      "name": "ceiling_levels",
+      "status": "info",
+      "images": [
+        "images/0271_20261107-000628.png",
+        "images/0272_20261107-000632.png",
+        "images/0273_20261107-000635.png",
+        "images/0274_20261107-000638.png",
+        "images/0275_20261107-000639.png",
+        "images/0276_20261107-000641.png",
+        "images/0277_20261107-000643.png",
+        "images/0278_20261107-000645.png",
+        "images/0279_20261107-000645.png"
+      ],
+      "created_at": "2026-11-07T00:06:45+02:00",
+      "levels": [
+        0.85,
+        1.2,
+        1.27,
+        1.46
+      ],
+      "labels": [
+        "densest band (pipes)",
+        "gap above the pipes",
+        "upper flat layer (per-patch top)",
+        "spike at the room's top edge"
+      ],
+      "camera": {
+        "position": [
+          0.3445,
+          -0.17,
+          -0.1341
+        ],
+        "target": [
+          0.3445,
+          0.83,
+          -0.1341
+        ],
+        "fov_deg": 100.0
+      }
     }
   ],
   "parts": [
