@@ -41,3 +41,22 @@ def test_ceiling_is_the_flat_top_layer_not_pipes_running_under_it() -> None:
     assert prop.take[b0:b0 + n_high].mean() < 0.1                       # pipes under it stay
     assert not prop.take[-n_lamp:].any()                                # lamps are left for their own part
     assert prop.take[:b0].sum() == 0
+
+
+def test_lamp_takes_the_largest_white_cluster_up_high() -> None:
+    from stepbuild.parts import lamp
+    from stepbuild.splats import SH0_DTYPE
+
+    rng = np.random.default_rng(8)
+    big = np.c_[rng.uniform(-2.2, -0.8, 1500), rng.normal(1.35, 0.03, 1500), rng.normal(-2.45, 0.03, 1500)]
+    small = np.c_[rng.uniform(0.4, 1.1, 500), rng.normal(1.35, 0.03, 500), rng.normal(-2.45, 0.03, 500)]
+    low_white = np.c_[rng.uniform(-2, 2, 800), rng.normal(0.85, 0.03, 800), rng.uniform(-3, -1, 800)]  # white pipes
+    grey = np.c_[rng.uniform(-3, 3, 3000), rng.uniform(-1, 1.5, 3000), rng.uniform(-3.4, -0.8, 3000)]
+    xyz = np.vstack([big, small, low_white, grey]).astype(np.float32)
+    pool = np.zeros(len(xyz), dtype=SH0_DTYPE)
+    n_white = len(big) + len(small) + len(low_white)
+    pool["f_dc_0"][:n_white] = pool["f_dc_1"][:n_white] = pool["f_dc_2"][:n_white] = 3.0
+    prop = lamp(xyz, xyz.min(0), xyz.max(0), pool=pool, number=1)
+    assert prop.name == "lamp_1" and prop.kind == "equipment"
+    assert prop.take[:len(big)].mean() > 0.95                  # the big tube
+    assert not prop.take[len(big):].any()                      # not the smaller tube, white pipes or grey points

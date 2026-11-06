@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
+from sklearn.cluster import DBSCAN
 
 from stepbuild import render as R
 from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, horizontal_plane
@@ -87,7 +88,39 @@ def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.nda
     )
 
 
+def lamp(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240,
+         min_y: float = 1.13, eps: float = 0.04, min_samples: int = 8, number: int = 1) -> PartProposal:
+    """One lamp per step: the largest cluster (DBSCAN, eps 4 cm) of saturated-white points (min RGB >= `white`) up
+    at the ceiling (y >= `min_y`, above the pipes). The fluorescent tubes hang in a row along x at z ~ -2.45; the
+    next call proposes the next largest. Close-up from below."""
+    cand = np.flatnonzero((xyz[:, 1] >= min_y) & (rgb_of(pool).min(1) >= white))
+    take = np.zeros(len(xyz), dtype=bool)
+    info: dict = {"white_candidates": len(cand)}
+    if len(cand):
+        lab = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(xyz[cand])
+        ids, cnt = np.unique(lab[lab >= 0], return_counts=True)
+        if len(ids):
+            take[cand[lab == ids[int(np.argmax(cnt))]]] = True
+            info.update(clusters=len(ids), sizes=sorted(cnt.tolist(), reverse=True)[:8], noise=int((lab < 0).sum()))
+    n = int(take.sum())
+    pts = xyz[take] if n else xyz[:1]
+    lo, hi = pts.min(0), pts.max(0)
+    size = hi - lo
+    return PartProposal(
+        take=take, name=f"lamp_{number}", label=f"Lamp {number}", kind="equipment",
+        title=f"LAMP {number} (white cluster at the ceiling)",
+        subtitle=(f"{n:,} white points · {size[0]:.2f} x {size[1]:.2f} x {size[2]:.2f} u · x {lo[0]:+.2f}…{hi[0]:+.2f}, "
+                  f"y {lo[1]:+.2f}…{hi[1]:+.2f}, z {lo[2]:+.2f}…{hi[2]:+.2f} · largest of "
+                  f"{info.get('clusters', 0)} white clusters"),
+        camera=R.look_up_from_middle(bmin, bmax, -0.17),
+        params={"white": white, "min_y": min_y, "eps": eps, "min_samples": min_samples},
+        info=info,
+        view_dir=(0.0, 0.55, -1.0),
+    )
+
+
 DETECTORS: dict[str, Callable[..., PartProposal]] = {
     "floor": floor,
     "ceiling": ceiling,
+    "lamp": lamp,
 }

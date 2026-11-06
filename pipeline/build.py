@@ -11,7 +11,7 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
                                               # render without touching state or images/ (camera checks)
     uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # propose a cleaning step: image with removed points red, kept grey
-    uv run python pipeline/build.py part floor|ceiling [--set key=value]
+    uv run python pipeline/build.py part floor|ceiling|lamp [--set key=value]
                                               # propose the next part: new part red, accepted parts grey,
                                               # points not built yet as a faint backdrop
     uv run python pipeline/build.py accept | reject [--note TEXT]
@@ -281,7 +281,9 @@ def cmd_part(args: argparse.Namespace) -> int:
     pool = splats[pool_idx]
     bmin, bmax = _bounds(m)
     try:
-        prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **_parse_params(args.set))
+        extra = {"number": 1 + sum(1 for p_ in m.data["parts"] if p_["name"].startswith(f"{args.name}_"))} \
+            if args.name in ("lamp",) else {}
+        prop = DETECTORS[args.name](xyz_of(pool), bmin, bmax, pool=pool, **extra, **_parse_params(args.set))
     except Exception as exc:  # noqa: BLE001
         return _fail(m, splats, pool_idx, "part", args.name, f"{type(exc).__name__}: {exc}")
     n_parts = len(m.data["parts"])
