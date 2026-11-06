@@ -1,6 +1,7 @@
 # 01 — Partner Briefing Questions (Valmet)
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > This pack was generated from `README.md` alone, which is a short challenge description of about 170 words. We had **no datasets, API docs, NDA terms, evaluation criteria, team size or team roles**. Claims are tagged `[README]` (written in the README), `[HYPOTHESIS]` (our deduction) or `[GAP - ASK PARTNER]` (unknown). Re-validate everything after the Fri 19:30 briefing and update this pack with the answers (use the copy button in `01b_Partner_Briefing_Card.html`).
 
 **Working wedge:** Wedge 1, the "Point, Path, Why" plant twin `[HYPOTHESIS]`. It is the recommended choice and has not been confirmed with the partner.

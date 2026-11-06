@@ -1,6 +1,7 @@
 # 03 — Strategic SWOT & Competitor Matrix
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > Generated from `README.md` only. There were no datasets, evaluation criteria, team composition or knowledge of the competing teams. Predictions about other teams and judges are `[HYPOTHESIS]`. Revisit after the briefing and the Saturday-morning partner check.
 
 ---
