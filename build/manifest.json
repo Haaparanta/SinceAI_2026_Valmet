@@ -242,7 +242,7 @@
       "index": 15,
       "kind": "clean",
       "name": "below_floor",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0015_20261106-223305.png",
         "images/0016_20261106-223305.png",
@@ -346,11 +346,22 @@
         "floor_support": 41249,
         "cut_y": -1.1103,
         "median_depth": 0.1048
-      }
+      },
+      "decided_at": "2026-11-06T22:35:30+02:00"
     }
   ],
   "parts": [],
-  "removed": [],
+  "removed": [
+    {
+      "index": 15,
+      "name": "below_floor",
+      "count": 4547,
+      "params": {
+        "margin": 0.04
+      },
+      "indices": "build/removed/0015_below_floor.idx.npy"
+    }
+  ],
   "frame": "world-rotz180-v1",
   "previous_runs": [
     {
