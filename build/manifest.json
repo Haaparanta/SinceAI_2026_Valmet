@@ -6946,6 +6946,336 @@
       "event": "after 0569 ACCEPTED (part pipe_3)",
       "kept": 1617777,
       "built": 311674
+    },
+    {
+      "index": 598,
+      "kind": "part",
+      "name": "pipe_4",
+      "status": "pending",
+      "images": [
+        "images/0598_20261107-010513.png",
+        "images/0599_20261107-010513.png",
+        "images/0600_20261107-010513.png",
+        "images/0601_20261107-010513.png",
+        "images/0602_20261107-010513.png",
+        "images/0603_20261107-010513.png",
+        "images/0604_20261107-010513.png",
+        "images/0605_20261107-010513.png",
+        "images/0606_20261107-010513.png",
+        "images/0607_20261107-010513.png",
+        "images/0608_20261107-010513.png",
+        "images/0609_20261107-010514.png",
+        "images/0610_20261107-010514.png",
+        "images/0611_20261107-010514.png",
+        "images/0612_20261107-010514.png"
+      ],
+      "created_at": "2026-11-07T01:05:14+02:00",
+      "count": 9002,
+      "pool_before": 1306103,
+      "bbox": {
+        "min": [
+          -0.7671,
+          0.7478,
+          -3.636
+        ],
+        "max": [
+          -0.5237,
+          0.9908,
+          1.199
+        ]
+      },
+      "headline": "ADD PIPE 4 · 9,002 points as part 11",
+      "cameras": {
+        "close-up": {
+          "position": [
+            2.7745,
+            1.8957,
+            -1.2054
+          ],
+          "target": [
+            -0.6479,
+            0.869,
+            -1.2054
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            1.7147,
+            2.2866,
+            2.8868
+          ],
+          "target": [
+            -0.6479,
+            0.869,
+            -1.2054
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            1.7147,
+            2.2866,
+            -5.2975
+          ],
+          "target": [
+            -0.6479,
+            0.869,
+            -1.2054
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            -0.6479,
+            10.5343,
+            -1.2063
+          ],
+          "target": [
+            -0.6479,
+            0.869,
+            -1.2054
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "axis view from the top (looking down -Y)": {
+          "position": [
+            0.3445,
+            151.7607,
+            -0.1493
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the right (looking -X)": {
+          "position": [
+            91.3647,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the left (looking +X)": {
+          "position": [
+            -90.6757,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the front (looking -Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            110.884
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the back (looking +Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            -111.1522
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "overview": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 219778,
+          "built": 88664,
+          "selected": 23770
+        },
+        "close-up from the left": {
+          "rest": 234393,
+          "built": 83540,
+          "selected": 12324
+        },
+        "close-up from the right": {
+          "rest": 263281,
+          "built": 114039,
+          "selected": 12511
+        },
+        "close-up from above": {
+          "rest": 193911,
+          "built": 69509,
+          "selected": 5313
+        },
+        "outside, all points": {
+          "rest": 198809,
+          "built": 59949,
+          "selected": 2522
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 144145,
+          "built": 54100,
+          "selected": 3299
+        },
+        "outside from the opposite corner": {
+          "rest": 174333,
+          "built": 86812,
+          "selected": 4258
+        },
+        "inside the room (START camera)": {
+          "rest": 260961,
+          "built": 114653,
+          "selected": 12778
+        },
+        "axis view from the top (looking down -Y)": {
+          "rest": 238571,
+          "built": 96586,
+          "selected": 6770
+        },
+        "axis view from the right (looking -X)": {
+          "rest": 277976,
+          "built": 47355,
+          "selected": 4451
+        },
+        "axis view from the left (looking +X)": {
+          "rest": 289990,
+          "built": 36131,
+          "selected": 2471
+        },
+        "axis view from the front (looking -Z)": {
+          "rest": 233311,
+          "built": 54132,
+          "selected": 348
+        },
+        "axis view from the back (looking +Z)": {
+          "rest": 212482,
+          "built": 74606,
+          "selected": 858
+        },
+        "overview": {
+          "rest": 260961,
+          "built": 114653,
+          "selected": 12778
+        },
+        "before | after": {}
+      },
+      "label": "Pipe 4",
+      "part_kind": "pipe",
+      "params": {
+        "along": "z",
+        "a": -0.64,
+        "b": 0.86,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1
+      },
+      "info": {
+        "axis": [
+          -0.6456,
+          0.8698
+        ],
+        "radius": 0.0922,
+        "start": -3.65,
+        "end": 1.2,
+        "runs": 3
+      }
     }
   ],
   "parts": [
