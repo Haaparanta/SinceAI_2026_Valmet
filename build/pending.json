@@ -1,0 +1,35 @@
+{
+  "index": 39,
+  "kind": "part",
+  "name": "floor",
+  "count": 41641,
+  "pool_before": 464713,
+  "bbox": {
+    "min": [
+      -1.0764,
+      -1.1103,
+      -3.5178
+    ],
+    "max": [
+      5.9423,
+      -1.0403,
+      -0.7385
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0039_20261106-224326.png",
+    "images/0040_20261106-224326.png",
+    "images/0041_20261106-224326.png",
+    "images/0042_20261106-224326.png"
+  ],
+  "label": "Floor",
+  "part_kind": "structure",
+  "params": {
+    "above": 0.03
+  },
+  "info": {
+    "floor_y": -1.0703,
+    "floor_rms": 0.0093
+  }
+}

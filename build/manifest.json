@@ -973,6 +973,115 @@
       "event": "after 0033 ACCEPTED (clean outside_room)",
       "kept": 464713,
       "built": 0
+    },
+    {
+      "index": 39,
+      "kind": "part",
+      "name": "floor",
+      "status": "pending",
+      "images": [
+        "images/0039_20261106-224326.png",
+        "images/0040_20261106-224326.png",
+        "images/0041_20261106-224326.png",
+        "images/0042_20261106-224326.png"
+      ],
+      "created_at": "2026-11-06T22:43:26+02:00",
+      "count": 41641,
+      "pool_before": 464713,
+      "bbox": {
+        "min": [
+          -1.0764,
+          -1.1103,
+          -3.5178
+        ],
+        "max": [
+          5.9423,
+          -1.0403,
+          -0.7385
+        ]
+      },
+      "headline": "ADD FLOOR · 41,641 points as part 1",
+      "cameras": {
+        "close-up": {
+          "position": [
+            1.453,
+            0.2501,
+            1.6348
+          ],
+          "target": [
+            1.453,
+            -1.0735,
+            -2.1468
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            1.2077,
+            2.3441
+          ],
+          "target": [
+            0.4181,
+            -0.2248,
+            -2.9043
+          ],
+          "fov_deg": 50.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 79318,
+          "built": 0,
+          "selected": 102767
+        },
+        "outside, all points": {
+          "rest": 108077,
+          "built": 0,
+          "selected": 57044
+        },
+        "overview": {
+          "rest": 131454,
+          "built": 0,
+          "selected": 88353
+        },
+        "before | after": {}
+      },
+      "label": "Floor",
+      "part_kind": "structure",
+      "params": {
+        "above": 0.03
+      },
+      "info": {
+        "floor_y": -1.0703,
+        "floor_rms": 0.0093
+      }
     }
   ],
   "parts": [],
