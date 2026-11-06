@@ -300,6 +300,41 @@ def write_current(splats: np.ndarray, m: S.Manifest) -> int:
     return len(rows)
 
 
+STATE_RGB = (90, 160, 255)
+
+
+def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
+    """Progress pictures after a decision, everything at 100 % opacity in true colour (nearest point wins):
+    the whole kept scan (built parts + pool) from the fixed outside camera and from the START front camera, and
+    once parts exist the built 3D world (current.ply) alone from outside. Recorded as a 'state' step."""
+    bmin, bmax = _bounds(m)
+    built = m.claimed_indices()
+    kept = np.concatenate([built, np.flatnonzero(m.pool_mask()).astype(np.uint32)])
+    start_cam = R.Camera(**{k: tuple(v) if isinstance(v, list) else v
+                            for k, v in m.data["steps"][0]["camera"].items()}) if "camera" in m.data["steps"][0] \
+        else R.overview_camera(bmin, bmax)
+    n_parts, n_clean = len(m.data["parts"]), len(m.data["removed"])
+    facts = f"{len(kept):,} points kept · {n_clean} cleanings · {n_parts} parts ({len(built):,} points in current.ply)"
+    views = [("kept scan, outside", R.outside_camera(bmin, bmax), kept),
+             ("kept scan, front (START camera)", start_cam, kept)]
+    if len(built):
+        views.append(("built 3D world = current.ply, outside", R.outside_camera(bmin, bmax), built))
+    images = []
+    for view, cam, idx in views:
+        sub = splats[idx]
+        frame = R.render([R.Layer(xyz_of(sub), rgb_of(sub), view, size_of(sub))], cam, R.WIDTH, R.HEIGHT - R.BANNER_H,
+                         edl_strength=0.5)
+        when = S.now_local()
+        index = S.next_image_index()
+        im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} · 100 % · {facts}", [], when, "STATE",
+                       STATE_RGB)
+        images.append(S.rel(_save(im, index, when)))
+    m.add_step(index=int(Path(images[0]).name[:4]), kind="state", name="progress", status="info", images=images,
+               created_at=S.now_local().isoformat(timespec="seconds"), event=event, kept=len(kept),
+               built=len(built))
+    return images
+
+
 def cmd_decide(args: argparse.Namespace) -> int:
     if not S.PENDING.exists():
         log.error("nothing pending")
@@ -331,8 +366,13 @@ def cmd_decide(args: argparse.Namespace) -> int:
     S.PENDING.unlink()
     m.save()
     pool = int(m.pool_mask().sum())
-    print(f"{pending['index']:04d} {'ACCEPTED' if accept else 'REJECTED'} {pending['kind']}/{pending['name']}"
-          f" · pool now {pool:,} points")
+    word = "ACCEPTED" if accept else "REJECTED"
+    print(f"{pending['index']:04d} {word} {pending['kind']}/{pending['name']} · pool now {pool:,} points")
+    images = state_images(load_real_splats(args.ply, CACHE), m,
+                          f"after {pending['index']:04d} {word} ({pending['kind']} {pending['name']})")
+    m.save()
+    for img in images:
+        print(f"  state image {img}")
     return 0
 
 
