@@ -1938,7 +1938,7 @@
       "index": 98,
       "kind": "part",
       "name": "lamp_1",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/0098_20261106-230158.png",
         "images/0099_20261106-230158.png",
@@ -2055,7 +2055,24 @@
           30
         ],
         "noise": 918
-      }
+      },
+      "decided_at": "2026-11-06T23:05:47+02:00",
+      "note": "user: for small parts first show a side-by-side close-up (object green | object in true colour) in the style of image 0100; re-propose after that change"
+    },
+    {
+      "index": 102,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0102_20261106-230548.png",
+        "images/0103_20261106-230549.png",
+        "images/0104_20261106-230549.png"
+      ],
+      "created_at": "2026-11-06T23:05:49+02:00",
+      "event": "after 0098 REJECTED (part lamp_1)",
+      "kept": 464713,
+      "built": 42028
     }
   ],
   "parts": [
