@@ -1,0 +1,58 @@
+{
+  "index": 656,
+  "kind": "part",
+  "name": "pipe_6",
+  "count": 17089,
+  "pool_before": 1285487,
+  "bbox": {
+    "min": [
+      -4.25,
+      0.687,
+      0.1338
+    ],
+    "max": [
+      4.9295,
+      0.9462,
+      0.3927
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0656_20261107-011206.png",
+    "images/0657_20261107-011206.png",
+    "images/0658_20261107-011206.png",
+    "images/0659_20261107-011206.png",
+    "images/0660_20261107-011207.png",
+    "images/0661_20261107-011207.png",
+    "images/0662_20261107-011207.png",
+    "images/0663_20261107-011207.png",
+    "images/0664_20261107-011207.png",
+    "images/0665_20261107-011207.png",
+    "images/0666_20261107-011207.png",
+    "images/0667_20261107-011207.png",
+    "images/0668_20261107-011208.png",
+    "images/0669_20261107-011208.png",
+    "images/0670_20261107-011208.png"
+  ],
+  "label": "Pipe 6",
+  "part_kind": "pipe",
+  "params": {
+    "along": "x",
+    "a": 0.24,
+    "b": 0.86,
+    "search": 0.15,
+    "shell": 0.03,
+    "gap": 0.3,
+    "min_alpha": 0.1
+  },
+  "info": {
+    "axis": [
+      0.2629,
+      0.8169
+    ],
+    "radius": 0.1,
+    "start": -4.25,
+    "end": 4.95,
+    "runs": 1
+  }
+}
