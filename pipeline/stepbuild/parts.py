@@ -83,8 +83,7 @@ def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.nda
         take=take, name="ceiling", label="Ceiling", kind="structure",
         title=(f"CEILING (band y {lo:+.2f}…{hi:+.2f}, picked by hand)" if manual else
                f"CEILING (from y {cut:+.2f} up)" + (f", raised {100 * lift:.0f} cm" if lift else "")),
-        subtitle=((f"height band picked by hand · {n:,} points (white lamp points left out) · "
-                   f"no density peak in this band in the scan")
+        subtitle=((f"height band picked by hand · {n:,} points (white lamp points left out)")
                   if manual else
                   (f"flat ceiling y {ceiling_y:+.3f} in {cells_near} of {cells} patches · pipes under it stay · "
                    f"{n:,} points · {int(lamp.sum()):,} white lamp points left for their own part")),
@@ -93,6 +92,9 @@ def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.nda
         info={"ceiling_y": round(ceiling_y, 4), "cut_y": round(cut, 4), "patches": cells,
               "patches_at_ceiling": cells_near, "lamp_points": int(lamp.sum())},
         view_dir=(0.0, 0.55, -1.0),
+        guides=([(f"band bottom y {lo:+.2f}", 0.0, 0.0, lo, (255, 200, 0)),
+                 (f"band top y {hi:+.2f}", 0.0, 0.0, hi, (90, 200, 255))] if manual else
+                [(f"cut y {cut:+.2f}", 0.0, 0.0, cut, (255, 200, 0))]),
     )
 
 
