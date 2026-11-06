@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 from stepbuild import render as R
-from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, fit_floor_plane
+from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, envelope_edge, fit_floor_plane
 from stepbuild.splats import rgb_of
 
 
@@ -129,8 +129,57 @@ def lamp(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarra
     )
 
 
+WALLS = {  # side: (depth axis, run axis, sign: wall at the LOW end of sign * coordinate, close-up view direction)
+    "back": (2, 0, 1.0, (0.0, -0.25, -1.0)), "front": (2, 0, -1.0, (0.0, -0.25, 1.0)),
+    "left": (0, 2, 1.0, (-1.0, -0.25, 0.0)), "right": (0, 2, -1.0, (1.0, -0.25, 0.0)),
+}
+
+
+def wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+         side: str = "back", thick: float = 0.035, strip: float = 0.25, window: float = 0.15) -> PartProposal:
+    """One wall (`side` = back | front | left | right). The room's outer face comes from geometry.envelope_edge; per
+    `strip` along the wall the wall's main layer is the densest 1 cm slab within `window` inside that face (so
+    equipment along the wall, 20+ cm in, never counts). The wall = every pool point from the outer face up to
+    `thick` past the main layer (the layer is ~2 cm rms)."""
+    if side not in WALLS:
+        raise ValueError(f"side must be one of {sorted(WALLS)}")
+    ax, run_ax, sign, view = WALLS[side]
+    depth = sign * xyz[:, ax]
+    face = sign * envelope_edge(xyz[:, ax], high=sign < 0)            # outer face, in depth coordinates
+    run = xyz[:, run_ax]
+    edges = np.arange(np.floor(np.percentile(run, 0.5) / strip) * strip, np.percentile(run, 99.5) + strip, strip)
+    near = (depth >= face - 0.05) & (depth <= face + window)
+    surf = np.full(len(edges) - 1, np.nan)
+    for i in range(len(surf)):                                       # densest 1 cm layer near the face, per strip
+        sel = near & (run >= edges[i]) & (run < edges[i + 1])
+        if sel.sum() >= 50:
+            h, e = np.histogram(depth[sel], bins=np.arange(face - 0.05, face + window + 0.01, 0.01))
+            h = np.convolve(h, np.ones(3) / 3, mode="same")
+            surf[i] = e[int(np.argmax(h))] + 0.005
+    fill = float(np.nanmedian(surf))
+    surf = np.where(np.isnan(surf), fill, surf)
+    k = np.clip(np.searchsorted(edges, run, side="right") - 1, 0, len(surf) - 1)
+    take = depth <= surf[k] + thick
+    n = int(take.sum())
+    axis = "xyz"[ax]
+    wall_med = sign * fill
+    prof_depth = surf
+    return PartProposal(
+        take=take, name=f"wall_{side}", label=f"{side.capitalize()} wall", kind="structure",
+        title=f"{side.upper()} WALL ({axis} {wall_med:+.2f}, {100 * thick:.1f} cm into the room)",
+        subtitle=(f"main wall layer {axis} {wall_med:+.3f} (per 25 cm strip, range {sign * prof_depth.max():+.2f}…"
+                  f"{sign * prof_depth.min():+.2f}) · outer face {sign * face:+.2f} · {n:,} of {len(xyz):,} pool points"),
+        camera=R.overview_camera(bmin, bmax),
+        params={"side": side, "thick": thick, "strip": strip, "window": window},
+        info={"main_layer_median": round(wall_med, 4), "outer_face": round(float(sign * face), 4),
+              "profile": [[round(float(a), 3), round(float(sign * d), 4)] for a, d in zip(edges[:-1], prof_depth)]},
+        view_dir=view,
+    )
+
+
 DETECTORS: dict[str, Callable[..., PartProposal]] = {
     "floor": floor,
     "ceiling": ceiling,
     "lamp": lamp,
+    "wall": wall,
 }

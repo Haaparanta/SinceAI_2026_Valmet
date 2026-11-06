@@ -79,3 +79,20 @@ def test_floor_follows_a_tilted_plane() -> None:
     assert prop.take[n:n + m].sum() == 0                       # nothing standing higher
     assert prop.take[n + m:].sum() == 0                         # a box 4-5 cm above the low corner stays
     # (a flat cut at the mean floor height + 3 cm would take it: the low corner is 2.3 cm below the mean)
+
+
+def test_wall_takes_the_wall_layer_not_equipment_along_it() -> None:
+    from stepbuild.parts import wall
+
+    rng = np.random.default_rng(12)
+    room = np.c_[rng.uniform(-4, 4.8, 60000), rng.uniform(-1.1, 1.2, 60000), rng.uniform(-3.4, 3.4, 60000)]
+    skin = np.c_[rng.uniform(-4, 4.8, 3000), rng.uniform(-1.1, 1.2, 3000), rng.normal(-3.75, 0.01, 3000)]
+    layer = np.c_[rng.uniform(-4, 4.8, 20000), rng.uniform(-1.1, 1.2, 20000), rng.normal(-3.68, 0.012, 20000)]
+    pipes = np.c_[rng.uniform(-4, 4.8, 15000), rng.uniform(-1.1, 1.2, 15000), rng.normal(-3.44, 0.02, 15000)]
+    xyz = np.vstack([room, skin, layer, pipes]).astype(np.float32)
+    prop = wall(xyz, xyz.min(0), xyz.max(0), side="back")
+    a, b = len(room), len(room) + len(skin) + len(layer)
+    assert prop.name == "wall_back" and abs(prop.info["main_layer_median"] + 3.68) < 0.02
+    assert prop.take[a:b].mean() > 0.97                          # outer skin + main layer
+    assert prop.take[b:].sum() == 0                              # pipes 24 cm in front stay
+    assert prop.take[:a].mean() < 0.01                           # the room stays

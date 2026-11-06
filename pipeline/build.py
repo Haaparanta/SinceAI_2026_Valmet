@@ -12,7 +12,7 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
     uv run python pipeline/build.py clean below_floor|behind_wall|outside_envelope|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # e.g. clean behind_wall --set side=left
                                               # propose a cleaning step: image with removed points red, kept grey
-    uv run python pipeline/build.py part floor|ceiling|lamp [--set key=value]
+    uv run python pipeline/build.py part floor|ceiling|lamp|wall [--set key=value]   (wall: --set side=back)
                                               # propose the next part: new part red, accepted parts grey,
                                               # points not built yet as a faint backdrop
     uv run python pipeline/build.py accept | reject [--note TEXT]
