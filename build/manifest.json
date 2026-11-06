@@ -1121,7 +1121,7 @@
       "index": 174,
       "kind": "clean",
       "name": "behind_wall",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0174_20261106-233255.png",
         "images/0175_20261106-233255.png",
@@ -1462,7 +1462,27 @@
             -4.1269
           ]
         ]
-      }
+      },
+      "decided_at": "2026-11-06T23:35:24+02:00"
+    },
+    {
+      "index": 184,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0184_20261106-233530.png",
+        "images/0185_20261106-233533.png",
+        "images/0186_20261106-233535.png",
+        "images/0187_20261106-233537.png",
+        "images/0188_20261106-233538.png",
+        "images/0189_20261106-233542.png",
+        "images/0190_20261106-233547.png"
+      ],
+      "created_at": "2026-11-06T23:35:47+02:00",
+      "event": "after 0174 ACCEPTED (clean behind_wall)",
+      "kept": 1630541,
+      "built": 0
     }
   ],
   "parts": [],
@@ -1486,6 +1506,17 @@
         "strip": 0.25
       },
       "indices": "build/removed/0156_behind_wall.idx.npy"
+    },
+    {
+      "index": 174,
+      "name": "behind_wall",
+      "count": 1689,
+      "params": {
+        "side": "left",
+        "margin": 0.04,
+        "strip": 0.25
+      },
+      "indices": "build/removed/0174_behind_wall.idx.npy"
     }
   ],
   "frame": "world-rotz180-v1",
