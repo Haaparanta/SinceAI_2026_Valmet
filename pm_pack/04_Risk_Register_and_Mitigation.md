@@ -1,6 +1,7 @@
 # 04 — Risk Register & Mitigation
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > Generated from `README.md` only. Likelihood and impact scores are estimates made **before** we know the data format, volume, NDA terms, evaluation criteria or team skills. Re-score after the Fri 19:30 briefing. Owners are role slots (**PM / CV / AI / FE**).
 
 **Scale:** L = likelihood (1–5), I = impact (1–5), Score = L × I. Review at every gate.

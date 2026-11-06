@@ -1,6 +1,7 @@
 # 05 — Execution Roadmap & Milestones
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > Generated from `README.md` only. Sprint content assumes Wedge 1 and an unknown team of roughly 4 people (**PM / CV / AI / FE** role slots) `[HYPOTHESIS]`. Task durations will change once we know the partner's data format and volume. Re-plan at Gate 1.
 
 **Timeline (EET):** build starts **Fri 19:30**. Partner Q&A on **Sat morning/afternoon**. Hard deadline **Sun 10:00**. Internal FINAL target: **Sun 09:15**.

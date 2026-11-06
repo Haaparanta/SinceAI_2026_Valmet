@@ -1,78 +1,242 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1020">
 <title>Valmet Briefing Card</title>
 <style>
+  /* Tokens: inlined subset of design/cyberpunk-tokens.css (v2). Keep in sync. */
   :root {
-    --bg: #0e1116; --card: #171b22; --card2: #1f2530; --text: #e6e9ef; --muted: #9aa3b2;
-    --accent: #4fb3a9; --warn: #e0a84a; --border: #2a3140; --sel: #18403c;
+    --radius: 0.625rem;
+    --ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+    --font-display: "SF Pro Display", "Space Grotesk", var(--font-sans);
+    --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+    --background: oklch(0.97 0.005 260);
+    --foreground: oklch(0.2 0.03 270);
+    --card: oklch(0.995 0.002 260);
+    --primary: oklch(0.52 0.13 220);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.93 0.02 270);
+    --secondary-foreground: oklch(0.28 0.05 270);
+    --muted: oklch(0.94 0.01 265);
+    --muted-foreground: oklch(0.48 0.03 265);
+    --accent: oklch(0.55 0.22 335);
+    --destructive: oklch(0.55 0.22 25);
+    --warning: oklch(0.58 0.13 75);
+    --success: oklch(0.52 0.13 150);
+    --border: oklch(0.88 0.015 265);
+    --input-bg: oklch(0.97 0.006 265);
+    --bar-bg: oklch(0.97 0.005 260 / 0.92);
+    --glow-primary: 0 0 0 1px oklch(0.52 0.13 220 / 0.35), 0 0 14px oklch(0.52 0.13 220 / 0.15);
+    --glow-accent: 0 0 0 1px oklch(0.55 0.22 335 / 0.35), 0 0 14px oklch(0.55 0.22 335 / 0.15);
+    --grid-line: oklch(0 0 0 / 0.035);
   }
+  .dark {
+    --background: oklch(0.14 0.025 275);
+    --foreground: oklch(0.93 0.015 250);
+    --card: oklch(0.18 0.03 275);
+    --primary: oklch(0.86 0.15 195);
+    --primary-foreground: oklch(0.15 0.03 250);
+    --secondary: oklch(0.24 0.04 280);
+    --secondary-foreground: oklch(0.9 0.03 280);
+    --muted: oklch(0.22 0.03 275);
+    --muted-foreground: oklch(0.7 0.03 260);
+    --accent: oklch(0.68 0.27 335);
+    --destructive: oklch(0.65 0.24 22);
+    --warning: oklch(0.9 0.18 105);
+    --success: oklch(0.82 0.2 150);
+    --border: oklch(0.86 0.15 195 / 0.14);
+    --input-bg: oklch(0.12 0.025 275);
+    --bar-bg: oklch(0.12 0.025 275 / 0.9);
+    --glow-primary: 0 0 0 1px oklch(0.86 0.15 195 / 0.4), 0 0 24px oklch(0.86 0.15 195 / 0.25);
+    --glow-accent: 0 0 0 1px oklch(0.68 0.27 335 / 0.4), 0 0 24px oklch(0.68 0.27 335 / 0.25);
+    --grid-line: oklch(1 0 0 / 0.03);
+  }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 640px; margin: 0 auto; padding: 16px 16px 120px; }
-  h1 { font-size: 1.35rem; margin: 4px 0 4px; }
-  h2 { font-size: 1.05rem; margin: 28px 0 10px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
-  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
-  .notice { background: #2b2213; border: 1px solid var(--warn); color: #f3d9a8; border-radius: 10px;
-    padding: 10px 12px; font-size: .85rem; }
-  .wedge { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 12px 14px;
-    margin-bottom: 10px; cursor: pointer; width: 100%; text-align: left; color: inherit; font: inherit; }
-  .wedge[aria-pressed="true"] { border-color: var(--accent); background: var(--sel); }
-  .wedge b { display: block; margin-bottom: 4px; }
-  .wedge span { color: var(--muted); font-size: .9rem; }
-  .wedge .tag { float: right; font-size: .75rem; color: var(--accent); }
-  .q { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
-  .q label { display: block; font-weight: 600; margin-bottom: 4px; }
-  .q .why { color: var(--muted); font-size: .82rem; margin-bottom: 8px; }
-  .q .num { color: var(--accent); margin-right: 6px; }
-  .top { font-size: .7rem; background: var(--accent); color: #062b27; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
-  textarea { width: 100%; min-height: 64px; background: var(--card2); color: var(--text); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px; font: inherit; resize: vertical; }
-  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
-  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(14,17,22,.96); border-top: 1px solid var(--border);
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; color: var(--foreground); background-color: var(--background);
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    font: 400 16px/24px var(--font-sans);
+    transition: background-color 220ms var(--ease-snap), color 220ms var(--ease-snap);
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 168px; }
+
+  /* Scanline: once, on load */
+  .scan { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+  .scan::after { content: ""; position: absolute; left: 0; right: 0; height: 80px; top: -80px;
+    background: linear-gradient(transparent, oklch(0.86 0.15 195 / 0.08), transparent);
+    animation: scan 900ms var(--ease-snap) 120ms 1 forwards; }
+  @keyframes scan { to { transform: translateY(calc(100vh + 160px)); } }
+
+  /* Type */
+  .eyebrow { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; }
+  h1 { font: 700 34px/41px var(--font-display); letter-spacing: -0.02em; margin: 0 0 4px; }
+  .subtitle { color: var(--muted-foreground); margin: 0 0 12px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 12px/16px var(--font-mono); color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; }
+  .meta b { color: var(--success); font-weight: 600; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+  .section { margin-top: 32px; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .section-head h2 { font: 600 22px/28px var(--font-display); margin: 0; }
+
+  /* Callout: WARN */
+  .callout { border: 1px solid var(--border); border-left: 3px solid var(--warning); border-radius: var(--radius);
+    background: color-mix(in oklch, var(--warning) 8%, var(--card)); padding: 12px 14px; font-size: 14px; line-height: 20px; }
+  .callout .eyebrow { color: var(--warning); margin-bottom: 4px; }
+
+  /* Buttons */
+  button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .btn { min-height: 48px; border-radius: var(--radius); padding: 0 16px; border: 1px solid transparent;
+    font-weight: 600; transition: box-shadow 150ms var(--ease-snap), background-color 150ms var(--ease-snap), transform 150ms var(--ease-snap); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); flex: 1; }
+  .btn-primary:hover, .btn-primary:focus-visible { box-shadow: var(--glow-primary); outline: none; }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-secondary:focus-visible { box-shadow: var(--glow-primary); outline: none; }
+  .btn-ghost { min-height: 36px; padding: 0 10px; background: transparent; border-color: var(--border);
+    font: 600 11px/14px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap; }
+  .btn-ghost:hover, .btn-ghost:focus-visible { color: var(--primary); box-shadow: var(--glow-primary); outline: none; }
+
+  /* Badges */
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 6px; font: 600 10px/14px var(--font-mono);
+    letter-spacing: 0.14em; text-transform: uppercase; vertical-align: middle; }
+  .badge-primary { background: color-mix(in oklch, var(--primary) 15%, transparent); color: var(--primary); }
+  .badge-accent { background: color-mix(in oklch, var(--accent) 16%, transparent); color: var(--accent); }
+  .badge-success { background: color-mix(in oklch, var(--success) 15%, transparent); color: var(--success); }
+  .badge-muted { background: var(--muted); color: var(--muted-foreground); }
+
+  /* Cards */
+  .card { background: color-mix(in oklch, var(--card) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); padding: 14px 16px; margin-bottom: 10px; position: relative; }
+
+  /* Wedges */
+  .wedge { display: block; width: 100%; text-align: left; transition: box-shadow 150ms var(--ease-snap), border-color 150ms var(--ease-snap); }
+  .wedge:focus-visible { outline: none; box-shadow: var(--glow-primary); }
+  .wedge[aria-pressed="true"] { border-color: var(--primary); box-shadow: var(--glow-primary); }
+  .wedge[aria-pressed="true"]::before, .wedge[aria-pressed="true"]::after {
+    content: ""; position: absolute; width: 10px; height: 10px; border-color: var(--primary); border-style: solid; }
+  .wedge[aria-pressed="true"]::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: 6px; }
+  .wedge[aria-pressed="true"]::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: 6px; }
+  .wedge-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .wedge-id { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--muted-foreground); }
+  .wedge[aria-pressed="true"] .wedge-id { color: var(--primary); }
+  .wedge-name { display: block; font: 600 17px/22px var(--font-sans); margin-bottom: 4px; }
+  .wedge-text { display: block; color: var(--muted-foreground); font-size: 14px; line-height: 20px; }
+
+  /* Progress */
+  .progress { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .track { flex: 1; height: 4px; border-radius: 2px; background: var(--muted); overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 220ms var(--ease-snap); }
+  .count { font: 500 15px/20px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--foreground); }
+  .count small { color: var(--muted-foreground); font-size: 11px; letter-spacing: 0.14em; }
+
+  /* Questions */
+  .q-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .q-id { font: 600 11px/14px var(--font-mono); letter-spacing: 0.2em; color: var(--primary); }
+  .q label { display: block; font: 600 16px/22px var(--font-sans); margin-bottom: 4px; }
+  .q .why { font: 500 12px/16px var(--font-mono); color: var(--muted-foreground); margin-bottom: 10px; }
+  .q.answered { border-left: 3px solid var(--success); }
+  .state { display: none; }
+  .q.answered .state { display: inline-block; }
+
+  textarea { width: 100%; min-height: 72px; display: block; background: var(--input-bg); color: var(--foreground);
+    border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); padding: 10px 12px;
+    font: 400 16px/24px var(--font-sans); resize: vertical; transition: box-shadow 150ms var(--ease-snap), border-color 150ms var(--ease-snap); }
+  textarea::placeholder { font-family: var(--font-mono); font-size: 14px; color: var(--muted-foreground); opacity: 0.8; }
+  textarea:focus { outline: none; border-color: var(--primary); box-shadow: var(--glow-primary); }
+
+  /* Bottom bar */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--bar-bg);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border);
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
-  .bar div { max-width: 640px; margin: 0 auto; display: flex; gap: 8px; }
-  button.primary { flex: 1; background: var(--accent); color: #062b27; border: 0; border-radius: 10px; padding: 14px; font-weight: 700; font-size: 1rem; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: .9rem; }
-  #status { text-align: center; color: var(--accent); font-size: .85rem; min-height: 1.2em; margin-top: 6px; }
-  #fallback { display: none; width: 100%; min-height: 200px; margin-top: 12px; }
+  .bar-inner { max-width: 720px; margin: 0 auto; display: flex; gap: 8px; }
+
+  /* Toast */
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 20;
+    max-width: 688px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--success);
+    border-radius: var(--radius); padding: 10px 14px; font: 500 13px/18px var(--font-mono);
+    opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity 220ms var(--ease-snap), transform 220ms var(--ease-snap); }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.err { border-left-color: var(--destructive); }
+  .toast b { color: var(--success); }
+  .toast.err b { color: var(--destructive); }
+
+  #fallback { display: none; min-height: 220px; margin-top: 12px; font: 400 13px/18px var(--font-mono); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: 0ms !important; }
+  }
 </style>
 </head>
 <body>
+<div class="scan" aria-hidden="true"></div>
 <main>
-  <h1>Valmet Briefing Card</h1>
-  <p class="sub">Since AI 2026 · Fri 19:30 briefing · Answers save on this device as you type</p>
-  <div class="notice">⚠️ <b>Provisional:</b> these wedges and questions come from the README alone. There is no data, no API docs and no evaluation criteria yet. Fill in the gaps here.</div>
+  <header>
+    <div>
+      <p class="eyebrow">// Valmet × Since AI 2026</p>
+      <h1>Briefing Card</h1>
+      <p class="subtitle">Pick a wedge, capture the partner's answers, hand them to Claude.</p>
+      <div class="meta"><span>v2.0</span><span>Fri 19:30 EET</span><span>Status: <b id="status-word">Standby</b></span></div>
+    </div>
+    <button class="btn btn-ghost" id="theme" type="button" aria-label="Toggle light or dark theme">◐ Daylight</button>
+  </header>
 
-  <h2>Pick a wedge (tap)</h2>
-  <div id="wedges"></div>
-
-  <h2>Top 10 gaps: ask partner</h2>
-  <div id="questions"></div>
-
-  <h2>Extra notes</h2>
-  <div class="q">
-    <label for="notes">Words they repeated, surprises, contacts, data hand-off details</label>
-    <textarea id="notes" placeholder="e.g. 'they kept saying robots', data on USB stick, Slack contact…"></textarea>
+  <div class="callout" role="note">
+    <p class="eyebrow">⚠ Warn · Provisional</p>
+    These wedges and questions come from the README alone. There is no data, no API docs and no evaluation criteria yet. Fill in the gaps here.
   </div>
-  <textarea id="fallback" readonly aria-label="Generated prompt (copy manually)"></textarea>
+
+  <section class="section" aria-labelledby="s1">
+    <p class="eyebrow">[ 01 ] Wedge</p>
+    <div class="section-head"><h2 id="s1">Lock a direction</h2></div>
+    <div id="wedges"></div>
+  </section>
+
+  <section class="section" aria-labelledby="s2">
+    <p class="eyebrow">[ 02 ] Gap audit</p>
+    <div class="section-head"><h2 id="s2">Ask the partner</h2></div>
+    <div class="progress" aria-live="polite">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <span class="count"><span id="count">00/10</span> <small>ANSWERED</small></span>
+    </div>
+    <div id="questions"></div>
+  </section>
+
+  <section class="section" aria-labelledby="s3">
+    <p class="eyebrow">[ 03 ] Field notes</p>
+    <div class="section-head"><h2 id="s3">Signal & noise</h2></div>
+    <div class="card q">
+      <label for="notes">Words they repeated, surprises, contacts, data hand-off</label>
+      <div class="why">// e.g. "they kept saying robots", data on USB, Slack contact</div>
+      <textarea id="notes" placeholder="> log observation_"></textarea>
+    </div>
+    <textarea id="fallback" readonly aria-label="Generated prompt (copy manually)"></textarea>
+  </section>
 </main>
 
-<div class="bar"><div>
-  <button class="ghost" id="clear" type="button">Clear</button>
-  <button class="primary" id="copy" type="button">Copy Partner Answers as Claude Update Prompt</button>
-</div><div id="status" role="status"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="bar"><div class="bar-inner">
+  <button class="btn btn-secondary" id="clear" type="button">Clear</button>
+  <button class="btn btn-primary" id="copy" type="button">Copy Partner Answers as Claude Update Prompt</button>
+</div></div>
 
 <script>
 const WEDGES = [
-  { id: "1", name: "Wedge 1 — Point, Path, Why plant twin", tag: "recommended",
+  { id: "1", name: "Point, Path, Why plant twin", tag: "Recommended", badge: "badge-accent",
     text: "Scan in a 3D viewer, equipment auto-labeled and colored by health. Ask a question → asset highlighted, route drawn, cited explanation." },
-  { id: "2", name: "Wedge 2 — Maintenance work-package agent", tag: "data-light",
+  { id: "2", name: "Maintenance work-package agent", tag: "Data-light", badge: "badge-primary",
     text: "Alarm + fragmented docs → complete work package: location, photo, route, safety steps, parts. Works on synthetic data." },
-  { id: "3", name: "Wedge 3 — Scan-to-semantic-twin pipeline", tag: "data-heavy",
+  { id: "3", name: "Scan-to-semantic-twin pipeline", tag: "Data-heavy", badge: "badge-primary",
     text: "Raw point cloud → 3D instance segmentation → scene graph → navmesh / robot-sim export, with docs linked to each asset." }
 ];
 const QUESTIONS = [
@@ -83,52 +247,85 @@ const QUESTIONS = [
   { q: "What single live action or metric on screen Sunday separates 1st from 2nd place? Who judges?", why: "Reorders MoSCoW; defines the video's key moment.", top: true },
   { q: "Which equipment classes matter most? Any labeled ground truth?", why: "Closed vs open vocabulary; measurable accuracy." },
   { q: "Navigation for people, robots or both? Clearance limits, safety zones, stairs?", why: "Path-planning constraints and grid resolution." },
-  { q: "Where does 'needs attention' come from today — condition alarms, schedules, technician judgment?", why: "Health-status data source." },
-  { q: "How many systems / how long does a tech spend preparing one job today?", why: "ROI baseline — otherwise ROI stays a hypothesis." },
+  { q: "Where does 'needs attention' come from today: condition alarms, schedules, technician judgment?", why: "Health-status data source." },
+  { q: "How many systems / how long does a tech spend preparing one job today?", why: "ROI baseline. Without it, ROI stays a hypothesis." },
   { q: "More data on Saturday, or is 19:30 everything? GPU or size limits?", why: "When to freeze the data adapter; pipeline weight." }
 ];
-const KEY = "valmet-briefing-card-v1";
+const KEY = "valmet-briefing-card-v1";       // unchanged so v1 answers carry over
+const THEME_KEY = "valmet-briefing-card-theme";
+const pad = n => String(n).padStart(2, "0");
+
 let state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.answers)) state = Object.assign(state, s); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
+/* Theme: Night City by default */
+const root = document.documentElement, themeBtn = document.getElementById("theme");
+function applyTheme(t) {
+  root.classList.toggle("dark", t !== "light");
+  themeBtn.textContent = t === "light" ? "◑ Night City" : "◐ Daylight";
+  document.querySelector('meta[name="theme-color"]').content = t === "light" ? "#f4f5f8" : "#0f1020";
+}
+let theme = "dark";
+try { theme = localStorage.getItem(THEME_KEY) || "dark"; } catch (e) {}
+applyTheme(theme);
+themeBtn.addEventListener("click", () => {
+  theme = theme === "light" ? "dark" : "light"; applyTheme(theme);
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+});
+
+/* Wedges */
 const wEl = document.getElementById("wedges");
 WEDGES.forEach(w => {
   const b = document.createElement("button");
-  b.type = "button"; b.className = "wedge"; b.dataset.id = w.id;
-  b.innerHTML = `<i class="tag"></i><b></b><span></span>`;
-  b.querySelector(".tag").textContent = w.tag;
-  b.querySelector("b").textContent = w.name;
-  b.querySelector("span").textContent = w.text;
+  b.type = "button"; b.className = "card wedge"; b.dataset.id = w.id;
+  b.innerHTML = `<span class="wedge-top"><span class="wedge-id"></span><span class="badge"></span></span><span class="wedge-name"></span><span class="wedge-text"></span>`;
+  b.querySelector(".wedge-id").textContent = "W" + pad(w.id);
+  const badge = b.querySelector(".badge"); badge.textContent = w.tag; badge.classList.add(w.badge);
+  b.querySelector(".wedge-name").textContent = w.name;
+  b.querySelector(".wedge-text").textContent = w.text;
   b.addEventListener("click", () => { state.wedge = w.id; save(); renderWedges(); });
   wEl.appendChild(b);
 });
 function renderWedges() { wEl.querySelectorAll(".wedge").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === state.wedge))); }
 renderWedges();
 
+/* Questions */
 const qEl = document.getElementById("questions");
 QUESTIONS.forEach((item, i) => {
-  const d = document.createElement("div"); d.className = "q";
+  const d = document.createElement("div"); d.className = "card q";
   const id = "q" + i;
-  d.innerHTML = `<label for="${id}"><span class="num">Q${i + 1}</span><span class="t"></span></label><div class="why"></div><textarea id="${id}" placeholder="Partner's answer…"></textarea>`;
-  d.querySelector(".t").textContent = item.q;
-  if (item.top) { const t = document.createElement("span"); t.className = "top"; t.textContent = "TOP 5"; d.querySelector("label").appendChild(t); }
-  d.querySelector(".why").textContent = "Why: " + item.why;
+  d.innerHTML = `<div class="q-top"><span class="q-id"></span><span><span class="badge badge-success state">[OK] Logged</span> </span></div><label for="${id}"></label><div class="why"></div><textarea id="${id}" placeholder="> partner's answer_"></textarea>`;
+  d.querySelector(".q-id").textContent = "Q" + pad(i + 1);
+  if (item.top) { const t = document.createElement("span"); t.className = "badge badge-accent"; t.textContent = "Top 5"; d.querySelector(".q-top > span:last-child").appendChild(t); }
+  d.querySelector("label").textContent = item.q;
+  d.querySelector(".why").textContent = "// why: " + item.why;
   const ta = d.querySelector("textarea");
   ta.value = state.answers[i] || "";
-  ta.addEventListener("input", () => { state.answers[i] = ta.value; save(); });
+  ta.addEventListener("input", () => { state.answers[i] = ta.value; save(); renderProgress(); });
   qEl.appendChild(d);
 });
 const notes = document.getElementById("notes");
 notes.value = state.notes || "";
 notes.addEventListener("input", () => { state.notes = notes.value; save(); });
 
+function renderProgress() {
+  const n = state.answers.filter(a => (a || "").trim()).length;
+  document.getElementById("count").textContent = pad(n) + "/" + pad(QUESTIONS.length);
+  document.getElementById("fill").style.width = (n / QUESTIONS.length * 100) + "%";
+  qEl.querySelectorAll(".q").forEach((el, i) => el.classList.toggle("answered", !!(state.answers[i] || "").trim()));
+  const word = document.getElementById("status-word");
+  word.textContent = n === 0 ? "Standby" : n === QUESTIONS.length ? "Complete" : "Recording";
+}
+renderProgress();
+
+/* Prompt */
 function buildPrompt() {
   const w = WEDGES.find(x => x.id === state.wedge);
   const lines = [
     "Valmet partner briefing answers (Since AI 2026). Update ./pm_pack/ using these.",
     "",
-    `Selected wedge: ${w.name}`,
+    `Selected wedge: Wedge ${w.id} — ${w.name}`,
     "",
     "## Answers to [GAP - ASK PARTNER] questions"
   ];
@@ -140,20 +337,30 @@ function buildPrompt() {
     "Instructions: for every answered question, replace the matching [GAP - ASK PARTNER] / [HYPOTHESIS] tags with [PARTNER] facts across all pm_pack files, choose Branch A or Branch B for data, adjust MoSCoW priorities, the risk register and AGENTS.md architecture accordingly, and keep the 'provisional' notice only where gaps remain.");
   return lines.join("\n");
 }
-const status = document.getElementById("status");
+
+/* Toast */
+const toast = document.getElementById("toast"); let toastTimer;
+function showToast(html, isErr) {
+  toast.innerHTML = html; toast.classList.toggle("err", !!isErr); toast.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+}
+
 document.getElementById("copy").addEventListener("click", async () => {
   const text = buildPrompt();
-  try { await navigator.clipboard.writeText(text); status.textContent = "Copied ✓ — paste into Claude"; }
+  try { await navigator.clipboard.writeText(text); showToast("<b>[OK]</b> Prompt copied. Paste it into Claude."); }
   catch (e) {
     const fb = document.getElementById("fallback");
     fb.style.display = "block"; fb.value = text; fb.focus(); fb.select();
-    status.textContent = "Clipboard blocked — text selected below, copy manually";
+    showToast("<b>[ERR]</b> Clipboard blocked. Text is selected below; copy it manually.", true);
   }
 });
 document.getElementById("clear").addEventListener("click", () => {
-  if (!confirm("Clear all answers on this device?")) return;
+  if (!confirm("Clear all answers and notes on this device?")) return;
   state = { wedge: "1", answers: Array(QUESTIONS.length).fill(""), notes: "" };
-  save(); location.reload();
+  save();
+  qEl.querySelectorAll("textarea").forEach(t => t.value = "");
+  notes.value = ""; renderWedges(); renderProgress();
+  showToast("<b>[OK]</b> Card cleared.");
 });
 </script>
 </body>

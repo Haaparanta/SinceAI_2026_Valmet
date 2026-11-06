@@ -1,6 +1,7 @@
 # AGENTS.md: Valmet "Point, Path, Why" Plant Twin
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > This architecture was designed from `README.md` only, **before** we received any partner data, API docs, NDA terms or evaluation criteria. The stack, file formats and contracts below are our `[HYPOTHESIS]`. They are **not** partner specifications. See "Final verification" at the bottom for what may change after the briefing.
 >
 > To use: `ln -s pm_pack/06_AGENTS_Master_Context.md AGENTS.md` (and the same for `CLAUDE.md` / `.cursorrules`).
@@ -26,6 +27,7 @@ Single-screen product: 1 question input → 1 central 3D view → 1 action card 
 | Semantic labeling | v0: geometric heuristics. v1: vision model on rendered views of each cluster. Optional: open-vocabulary 2D masks lifted to 3D if images are provided | Degrades gracefully with the data we get |
 | LLM / RAG | Cloud LLM (Claude) via `LLMClient`; local open-weight fallback if the NDA requires it | Swappable in 1 file |
 | Retrieval | Simple embedding index over docs linked by `asset_id` | Citations must reference real doc IDs |
+| UI theme | **Cyberpunk v2**: shadcn/ui + Tailwind v4, tokens in `design/cyberpunk-tokens.css`, guide in `design/CYBERPUNK_THEME.md` | Decided by the team. Dark ("Night City") by default; status colors map to asset health |
 
 ---
 
@@ -36,6 +38,7 @@ Single-screen product: 1 question input → 1 central 3D view → 1 action card 
 ├── AGENTS.md -> pm_pack/06_AGENTS_Master_Context.md
 ├── README.md                  # challenge + <5-min setup (Gate 4)
 ├── pm_pack/                   # PM docs (this pack)
+├── design/                    # Cyberpunk theme: tokens + guide (UI source of truth)
 ├── backend/
 │   ├── app/
 │   │   ├── main.py            # FastAPI routes
@@ -207,7 +210,8 @@ class DataSource(Protocol):
 4. **No hallucinated data specs.** If an agent needs a fact about partner data, it checks `pm_pack/01_Partner_Briefing_Questions.md` for an answer. If it's unanswered, it writes `# GAP - ASK PARTNER:` in the code and uses the synthetic path.
 5. **Every LLM answer is cited.** The server validates that each `doc_id` in `citations` exists in the retrieved set. Otherwise it returns "Insufficient documentation".
 6. **Anti-scope:** no auth, no settings pages, no multi-page CRUD (see PRD WON'T).
-7. **Before handing off:** run `pytest backend/tests` and `npm run build` in `frontend/`.
+7. **Theme:** all UI colors come from `design/cyberpunk-tokens.css`, with no hard-coded hex or OKLCH values. Equipment status uses `--status-ok/watch/alert/unknown` and always carries a text label. The route uses `--route` and the selected asset uses `--selection`. Follow the checklist in `design/CYBERPUNK_THEME.md` §11.
+8. **Before handing off:** run `pytest backend/tests` and `npm run build` in `frontend/`.
 
 ---
 

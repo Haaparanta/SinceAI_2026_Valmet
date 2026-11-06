@@ -1,6 +1,7 @@
 # 02 — Requirements & PRD: "Point, Path, Why" Plant Twin
 
-> ⚠️ **PROVISIONAL: BASED ON MISSING DATA.**
+> [!WARNING]
+> **PROVISIONAL: BASED ON MISSING DATA.**
 > Generated from `README.md` only. There were no datasets, API docs, NDA terms, evaluation criteria, team size or roles. Personas, baselines, ROI numbers and owners are **placeholders** tagged `[HYPOTHESIS]` until the partner confirms them. Owners use role slots (**PM / CV / AI / FE**). Map them to real names once the team is known.
 
 **Selected wedge:** Wedge 1 `[HYPOTHESIS]`. It is the default; confirm or switch after the briefing.
