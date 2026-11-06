@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 import orjson
+from common.orientation import FRAME, to_world
 from common.ply_io import clean_mask, load_gaussians, rgb_from_dc
 from common.splat_rows import real_row_count
 
@@ -88,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
     # The header count of this file is wrong: only a contiguous prefix holds trained splats, the tail is random bits
     # (analysis/ply_study/README.md S2). Keep the prefix before any filtering.
     real_rows, plausible_after = real_row_count(g)
-    g = g[:real_rows]
+    g = to_world(g[:real_rows])  # stored upside down and mirrored: rotate 180 deg about z (common/orientation.py)
     log.info(
         "real rows: %s of %s (header count); dropped garbage tail of %s rows (%d of them look plausible)",
         f"{real_rows:,}", f"{header_rows:,}", f"{header_rows - real_rows:,}", plausible_after,
@@ -140,6 +141,7 @@ def main(argv: list[str] | None = None) -> int:
         "scene_points": len(dxyz),
         "voxel_size": round(voxel, 5),
         "units": "scene_units",
+        "frame": FRAME,
         "up_axis": "y",
         "up_axis_detected": up_axis,
         "bounds_min": [round(float(v), 4) for v in bmin],

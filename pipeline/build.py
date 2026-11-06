@@ -27,6 +27,7 @@ from pathlib import Path
 
 import numpy as np
 import orjson
+from common.orientation import FRAME
 from common.ply_io import read_header
 from PIL import Image
 from stepbuild import render as R
@@ -37,7 +38,7 @@ from stepbuild.splats import SH0_DTYPE, load_real_splats, rgb_of, size_of, write
 
 log = logging.getLogger("build")
 DEFAULT_PLY = S.ROOT / "data" / "raw" / "Industrial Boiler Room (1).ply"
-CACHE = S.ROOT / "data" / "derived" / "real_sh0.npy"
+CACHE = S.ROOT / "data" / "derived" / f"real_sh0_{FRAME}.npy"
 
 
 def _room_bounds(xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

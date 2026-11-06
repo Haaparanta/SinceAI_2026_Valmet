@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+from common.orientation import to_world
 from common.ply_io import SH_C0, load_gaussians
 from common.splat_rows import real_row_count
 
@@ -24,7 +25,9 @@ SH0_DTYPE = np.dtype([(f, "<f4") for f in SH0_FIELDS])
 
 
 def load_real_splats(ply: Path, cache: Path) -> np.ndarray:
-    """Structured SH0_DTYPE array of the real rows; cached as .npy (28 MB) next to the other derived files."""
+    """Structured SH0_DTYPE array of the real rows in the world frame (common/orientation.py: the stored scan is
+    rotated 180 deg about z); cached as .npy (28 MB). Name the cache after orientation.FRAME so a changed transform
+    never reuses a stale cache."""
     if cache.exists() and cache.stat().st_mtime >= ply.stat().st_mtime:
         return np.load(cache)
     g = load_gaussians(str(ply))
@@ -32,6 +35,7 @@ def load_real_splats(ply: Path, cache: Path) -> np.ndarray:
     out = np.empty(n_real, dtype=SH0_DTYPE)
     for f in SH0_FIELDS:
         out[f] = g[f][:n_real]
+    out = to_world(out)
     cache.parent.mkdir(parents=True, exist_ok=True)
     np.save(cache, out)
     log.info("cached %s real splats (of %s header rows) -> %s", f"{n_real:,}", f"{len(g):,}", cache)
