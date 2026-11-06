@@ -1,0 +1,39 @@
+{
+  "index": 57,
+  "kind": "part",
+  "name": "ceiling",
+  "count": 5674,
+  "pool_before": 423072,
+  "bbox": {
+    "min": [
+      -3.9367,
+      1.2711,
+      -3.5043
+    ],
+    "max": [
+      5.6321,
+      1.5694,
+      -0.7422
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0057_20261106-224956.png",
+    "images/0058_20261106-224956.png",
+    "images/0059_20261106-224956.png",
+    "images/0060_20261106-224956.png"
+  ],
+  "label": "Ceiling",
+  "part_kind": "structure",
+  "params": {
+    "white": 240,
+    "below": 0.03
+  },
+  "info": {
+    "ceiling_y": 1.3011,
+    "cut_y": 1.2711,
+    "patches": 91,
+    "patches_at_ceiling": 38,
+    "lamp_points": 4646
+  }
+}

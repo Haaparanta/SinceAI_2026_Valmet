@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from stepbuild import render as R
-from stepbuild.geometry import ceiling_split, horizontal_plane
+from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, horizontal_plane
 from stepbuild.splats import rgb_of
 
 
@@ -49,30 +49,29 @@ def floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarr
     )
 
 
-def _ceiling_zone(xyz: np.ndarray, pool: np.ndarray, white: int) -> tuple[np.ndarray, np.ndarray, float, float]:
-    split_y, ceiling_y = ceiling_split(xyz[:, 1])
-    zone = xyz[:, 1] >= split_y
-    lamp = zone & (rgb_of(pool).min(1) >= white)
-    return zone, lamp, split_y, ceiling_y
+def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240,
+            below: float = 0.03) -> PartProposal:
+    """The real ceiling: the flat height where most points are (geometry.ceiling_height_by_cells: per 25 cm patch
+    the highest dense layer, so pipes running just under the ceiling never count), and everything from `below`
+    under that height upwards: nothing up there can be a pipe. Saturated-white points (min RGB >= `white`) are the
+    lamps and are left for their own part. Close-up from below.
 
-
-def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240
-            ) -> PartProposal:
-    """The real ceiling: every pool point above the gap that separates it from the (denser) pipe band below,
-    minus the saturated-white lamp points (min RGB >= `white`), which become their own part. Close-up from below."""
-    zone, lamp, split_y, ceiling_y = _ceiling_zone(xyz, pool, white)
-    take = zone & ~lamp
+    First try (rejected by the user, image 0046): everything above the gap over the pipe band (y 1.13), which took
+    pipes running next to the ceiling."""
+    split_y, _ = ceiling_split(xyz[:, 1])
+    lamp = (xyz[:, 1] >= split_y) & (rgb_of(pool).min(1) >= white)
+    ceiling_y, cells, cells_near = ceiling_height_by_cells(xyz[~lamp], split_y)  # lamps hang lower: no vote
+    take = (xyz[:, 1] >= ceiling_y - below) & ~lamp
     n = int(take.sum())
-    pts = xyz[take]
-    lo, hi = (pts.min(0), pts.max(0)) if n else (bmin, bmax)
     return PartProposal(
         take=take, name="ceiling", label="Ceiling", kind="structure",
-        title=f"CEILING (y >= {split_y:+.2f}, lamps left out)",
-        subtitle=(f"ceiling layer y {ceiling_y:+.2f} · gap above the pipes at {split_y:+.2f} · {n:,} points · "
-                  f"{int(lamp.sum()):,} white lamp points left for their own part · x {lo[0]:+.1f}…{hi[0]:+.1f}"),
+        title=f"CEILING (flat at y {ceiling_y:+.2f}, from {ceiling_y - below:+.2f} up)",
+        subtitle=(f"flat ceiling y {ceiling_y:+.3f} in {cells_near} of {cells} patches · pipes under it stay · "
+                  f"{n:,} points · {int(lamp.sum()):,} white lamp points left for their own part"),
         camera=R.look_up_camera(bmin, bmax, ceiling_y),
-        params={"white": white},
-        info={"split_y": round(split_y, 4), "ceiling_y": round(ceiling_y, 4), "lamp_points": int(lamp.sum())},
+        params={"white": white, "below": below},
+        info={"ceiling_y": round(ceiling_y, 4), "cut_y": round(ceiling_y - below, 4), "patches": cells,
+              "patches_at_ceiling": cells_near, "lamp_points": int(lamp.sum())},
         view_dir=(0.0, 0.55, -1.0),
     )
 

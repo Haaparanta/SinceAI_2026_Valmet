@@ -123,3 +123,31 @@ def ceiling_split(y: np.ndarray, bin_size: float = 0.02) -> tuple[float, float]:
     seg = counts[k_max:]
     k = k_max + int(np.argmin(seg)) if len(seg) else k_max
     return float(e[k]), ceiling_y
+
+
+def ceiling_height_by_cells(xyz: np.ndarray, zone_lo: float, cell: float = 0.25, bin_size: float = 0.02,
+                            min_points: int = 30) -> tuple[float, int, int]:
+    """(ceiling_y, cells, cells_near): the flat ceiling height where pipes run just below it. In every `cell` x
+    `cell` patch of the plan (points above `zone_lo` only), take the HIGHEST height bin that still holds half the
+    patch's peak: a pipe hanging below the ceiling is lower, so it never wins. The ceiling is the most common of
+    those per-patch heights, refined to the median of the patches within 4 cm of it."""
+    sel = xyz[:, 1] >= zone_lo
+    p = xyz[sel]
+    keys = np.floor(p[:, 0] / cell) * 100003 + np.floor(p[:, 2] / cell)
+    order = np.argsort(keys)
+    keys, ys = keys[order], p[order, 1]
+    starts = np.flatnonzero(np.r_[True, keys[1:] != keys[:-1]])
+    ends = np.r_[starts[1:], len(keys)]
+    edges = np.arange(zone_lo, ys.max() + 2 * bin_size, bin_size)
+    tops = []
+    for a, b in zip(starts, ends):
+        if b - a < min_points:
+            continue
+        h = np.convolve(np.histogram(ys[a:b], bins=edges)[0], np.ones(3), mode="same")
+        top = np.flatnonzero(h >= 0.5 * h.max())[-1]
+        tops.append(edges[top] + 0.5 * bin_size)
+    tops = np.asarray(tops)
+    h, e = np.histogram(tops, bins=np.arange(zone_lo, tops.max() + 2 * bin_size, bin_size))
+    mode = e[int(np.argmax(np.convolve(h, np.ones(3), mode="same")))] + 0.5 * bin_size
+    near = np.abs(tops - mode) <= 0.04
+    return float(np.median(tops[near])), len(tops), int(near.sum())

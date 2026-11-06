@@ -1225,6 +1225,234 @@
       "event": "after 0046 REJECTED (part ceiling)",
       "kept": 464713,
       "built": 41641
+    },
+    {
+      "index": 53,
+      "kind": "part",
+      "name": "ceiling",
+      "status": "replaced",
+      "images": [
+        "images/0053_20261106-224941.png",
+        "images/0054_20261106-224941.png",
+        "images/0055_20261106-224941.png",
+        "images/0056_20261106-224942.png"
+      ],
+      "created_at": "2026-11-06T22:49:42+02:00",
+      "count": 4747,
+      "pool_before": 423072,
+      "bbox": {
+        "min": [
+          -3.9367,
+          1.2911,
+          -3.5043
+        ],
+        "max": [
+          5.6321,
+          1.5694,
+          -0.7422
+        ]
+      },
+      "headline": "ADD CEILING · 4,747 points as part 2",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -0.3047,
+            -1.5618,
+            3.1236
+          ],
+          "target": [
+            -0.3047,
+            1.421,
+            -2.2996
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.2248,
+            -0.1877
+          ],
+          "target": [
+            0.4181,
+            1.3211,
+            -3.2571
+          ],
+          "fov_deg": 70.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 129682,
+          "built": 21772,
+          "selected": 20827
+        },
+        "outside, all points": {
+          "rest": 99287,
+          "built": 23365,
+          "selected": 23846
+        },
+        "overview": {
+          "rest": 121535,
+          "built": 0,
+          "selected": 31823
+        },
+        "before | after": {}
+      },
+      "label": "Ceiling",
+      "part_kind": "structure",
+      "params": {
+        "white": 240,
+        "below": 0.03
+      },
+      "info": {
+        "ceiling_y": 1.3211,
+        "cut_y": 1.2911,
+        "patches": 94,
+        "patches_at_ceiling": 44,
+        "lamp_points": 4646
+      },
+      "decided_at": "2026-11-06T22:49:52+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 57,
+      "kind": "part",
+      "name": "ceiling",
+      "status": "pending",
+      "images": [
+        "images/0057_20261106-224956.png",
+        "images/0058_20261106-224956.png",
+        "images/0059_20261106-224956.png",
+        "images/0060_20261106-224956.png"
+      ],
+      "created_at": "2026-11-06T22:49:56+02:00",
+      "count": 5674,
+      "pool_before": 423072,
+      "bbox": {
+        "min": [
+          -3.9367,
+          1.2711,
+          -3.5043
+        ],
+        "max": [
+          5.6321,
+          1.5694,
+          -0.7422
+        ]
+      },
+      "headline": "ADD CEILING · 5,674 points as part 2",
+      "cameras": {
+        "close-up": {
+          "position": [
+            -0.3995,
+            -1.5047,
+            2.9901
+          ],
+          "target": [
+            -0.3995,
+            1.4089,
+            -2.3075
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.2248,
+            -0.1877
+          ],
+          "target": [
+            0.4181,
+            1.3011,
+            -3.2571
+          ],
+          "fov_deg": 70.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 131146,
+          "built": 19928,
+          "selected": 24150
+        },
+        "outside, all points": {
+          "rest": 98232,
+          "built": 23365,
+          "selected": 26243
+        },
+        "overview": {
+          "rest": 120904,
+          "built": 0,
+          "selected": 36371
+        },
+        "before | after": {}
+      },
+      "label": "Ceiling",
+      "part_kind": "structure",
+      "params": {
+        "white": 240,
+        "below": 0.03
+      },
+      "info": {
+        "ceiling_y": 1.3011,
+        "cut_y": 1.2711,
+        "patches": 91,
+        "patches_at_ceiling": 38,
+        "lamp_points": 4646
+      }
     }
   ],
   "parts": [

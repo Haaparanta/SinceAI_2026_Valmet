@@ -18,21 +18,26 @@ def test_floor_takes_the_slab_and_nothing_above() -> None:
     assert not prop.take[xyz[:, 1] > -0.85].any()                  # nothing standing on it
 
 
-def test_ceiling_is_above_the_pipe_band_and_leaves_lamps_out() -> None:
+def test_ceiling_is_the_flat_top_layer_not_pipes_running_under_it() -> None:
     from stepbuild.parts import ceiling
     from stepbuild.splats import SH0_DTYPE
 
     rng = np.random.default_rng(7)
-    n_floor, n_room, n_pipes, n_ceil, n_lamp = 20000, 30000, 40000, 6000, 800
-    y = np.r_[rng.normal(-1.07, 0.01, n_floor), rng.uniform(-1.0, 0.6, n_room), rng.normal(0.88, 0.05, n_pipes),
-              rng.normal(1.27, 0.05, n_ceil), rng.normal(1.33, 0.03, n_lamp)]
-    xyz = np.c_[rng.uniform(-3, 3, len(y)), y, rng.uniform(-3.4, -0.8, len(y))].astype(np.float32)
+    n_floor, n_room, n_band, n_high, n_ceil, n_lamp = 20000, 30000, 40000, 4000, 6000, 800
+    y = np.r_[rng.normal(-1.07, 0.01, n_floor), rng.uniform(-1.0, 0.6, n_room),
+              rng.normal(0.88, 0.05, n_band),                  # the dense pipe band
+              rng.uniform(1.15, 1.25, n_high),                 # pipes running just under the ceiling
+              rng.normal(1.30, 0.01, n_ceil),                  # the flat ceiling
+              rng.normal(1.27, 0.02, n_lamp)]                  # white lamps hanging a bit lower
+    x = rng.uniform(-3, 3, len(y))
+    x[n_floor + n_room + n_band:n_floor + n_room + n_band + n_high] = rng.uniform(-0.1, 0.1, n_high)  # one pipe run
+    xyz = np.c_[x, y, rng.uniform(-3.4, -0.8, len(y))].astype(np.float32)
     pool = np.zeros(len(y), dtype=SH0_DTYPE)
-    pool["f_dc_0"] = pool["f_dc_1"] = pool["f_dc_2"] = 0.0                      # mid grey
     pool["f_dc_0"][-n_lamp:] = pool["f_dc_1"][-n_lamp:] = pool["f_dc_2"][-n_lamp:] = 3.0  # saturated white
     prop = ceiling(xyz, xyz.min(0), xyz.max(0), pool=pool)
-    assert 1.0 < prop.info["split_y"] < 1.2
-    assert prop.take[-n_lamp - n_ceil:-n_lamp].mean() > 0.95                    # the ceiling layer is taken
-    assert not prop.take[-n_lamp:].any()                                         # lamps are left for their own part
-    assert prop.take[:n_floor + n_room].sum() == 0                               # nothing from the room
-    assert prop.take[n_floor + n_room:n_floor + n_room + n_pipes].mean() < 0.02  # (almost) nothing from the pipes
+    b0 = n_floor + n_room + n_band
+    assert abs(prop.info["ceiling_y"] - 1.30) < 0.03
+    assert prop.take[b0 + n_high:b0 + n_high + n_ceil].mean() > 0.9     # the flat ceiling is taken
+    assert prop.take[b0:b0 + n_high].mean() < 0.1                       # pipes under it stay
+    assert not prop.take[-n_lamp:].any()                                # lamps are left for their own part
+    assert prop.take[:b0].sum() == 0
