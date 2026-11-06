@@ -6,7 +6,7 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
     uv run python pipeline/build.py status    # what is in the build so far
     uv run python pipeline/build.py preview --out FILE [--rgb] [--fill 0.25 --box xmin ymin zmin xmax ymax zmax]
                                               # render without touching state or images/ (camera checks)
-    uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog [--set key=value]
+    uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # propose a cleaning step: image with removed points red, kept grey
     uv run python pipeline/build.py accept | reject [--note TEXT]
                                               # decide the pending proposal; the image gets an ACCEPTED/REJECTED badge

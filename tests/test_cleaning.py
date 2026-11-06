@@ -67,3 +67,19 @@ def test_floating_fog_keeps_faint_splats_on_surfaces() -> None:
     prop = floating_fog(xyz, xyz.min(0), xyz.max(0), pool=pool)
     assert prop.remove[:n_solid + n_faint_surface].sum() == 0
     assert prop.remove[n_solid + n_faint_surface:].all()
+
+
+def test_outside_room_keeps_thick_right_side_and_cuts_strays() -> None:
+    from stepbuild.cleaning import outside_room
+
+    xyz = synthetic_room(3)
+    rng = np.random.default_rng(3)
+    wall = np.c_[rng.uniform(3.60, 3.90, 4000), rng.uniform(-0.9, 1.0, 4000), rng.uniform(-3.4, -0.8, 4000)]
+    strays = np.c_[rng.uniform(4.2, 5.5, 60), rng.uniform(-0.9, 1.0, 60), rng.uniform(-3.4, -0.8, 60)]
+    sky = np.c_[rng.uniform(-4, 3, 80), rng.uniform(1.2, 1.9, 80), rng.uniform(-3.4, -0.8, 80)]
+    pts = np.vstack([xyz, wall, strays, sky]).astype(np.float32)
+    prop = outside_room(pts, pts.min(0), pts.max(0))
+    n0 = len(xyz) + len(wall)
+    assert prop.remove[n0:].all()                              # strays past the right side and above the ceiling
+    assert prop.remove[len(xyz):n0].sum() == 0                 # the 30 cm thick right-hand material stays
+    assert abs(prop.info["ceiling_y"] - 1.07) < 0.005

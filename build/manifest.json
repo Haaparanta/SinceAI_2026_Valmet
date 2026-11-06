@@ -285,6 +285,43 @@
         "removed": 62758
       },
       "decided_at": "2026-11-06T22:06:10+02:00"
+    },
+    {
+      "index": 5,
+      "kind": "clean",
+      "name": "outside_room",
+      "status": "pending",
+      "image": "images/0005_20261106-220733.png",
+      "created_at": "2026-11-06T22:07:33+02:00",
+      "count": 4347,
+      "pool_before": 427063,
+      "params": {
+        "margin": 0.04
+      },
+      "info": {
+        "ceiling_y": 1.0703,
+        "ceiling_rms": 0.0093,
+        "right_edge_x": 3.9018,
+        "above": 3586,
+        "right_only": 761
+      },
+      "camera": {
+        "position": [
+          0.4189,
+          1.0703,
+          3.4348
+        ],
+        "target": [
+          0.4189,
+          -0.1692,
+          -2.5516
+        ],
+        "fov_deg": 55.0
+      },
+      "visible_pixels": {
+        "kept": 275072,
+        "removed": 15169
+      }
     }
   ],
   "parts": [],

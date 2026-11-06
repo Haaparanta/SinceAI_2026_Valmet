@@ -78,3 +78,13 @@ def back_wall_profile(run: np.ndarray, depth: np.ndarray, strip: float = 0.25, b
         smooth[i] = np.median(out[i - 1:i + 2])
     smooth = np.where(smooth > g + max_forward, g, smooth)
     return WallProfile(edges=edges, depth=smooth, measured=measured, global_depth=g)
+
+
+def outer_edge(values: np.ndarray, bin_size: float = 0.05, rel: float = 0.05) -> float:
+    """High-side edge of a dense block of points along one axis: walking outward from the densest bin on the high
+    half, the first bin holding less than `rel` x that peak. Sparse strays beyond it are outside the room."""
+    lo, hi = np.percentile(values, 50), values.max()
+    counts, e = np.histogram(values, bins=np.arange(lo, hi + bin_size, bin_size))
+    k = int(np.argmax(counts))
+    below = np.flatnonzero(counts[k:] < rel * counts[k])
+    return float(e[k + below[0]]) if len(below) else float(e[-1])
