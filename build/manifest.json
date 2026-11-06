@@ -1103,7 +1103,7 @@
       "index": 46,
       "kind": "part",
       "name": "ceiling",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/0046_20261106-224625.png",
         "images/0047_20261106-224625.png",
@@ -1207,7 +1207,24 @@
         "split_y": 1.1311,
         "ceiling_y": 1.2711,
         "lamp_points": 4646
-      }
+      },
+      "decided_at": "2026-11-06T22:48:57+02:00",
+      "note": "user: pipes running next to the ceiling were taken as ceiling; the ceiling should be the flat height where most points are, higher up"
+    },
+    {
+      "index": 50,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0050_20261106-224859.png",
+        "images/0051_20261106-224900.png",
+        "images/0052_20261106-224900.png"
+      ],
+      "created_at": "2026-11-06T22:49:00+02:00",
+      "event": "after 0046 REJECTED (part ceiling)",
+      "kept": 464713,
+      "built": 41641
     }
   ],
   "parts": [
