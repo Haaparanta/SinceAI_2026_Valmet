@@ -602,6 +602,115 @@
         ]
       },
       "decided_at": "2026-11-06T22:36:50+02:00"
+    },
+    {
+      "index": 23,
+      "kind": "clean",
+      "name": "floating_fog",
+      "status": "pending",
+      "images": [
+        "images/0023_20261106-223658.png",
+        "images/0024_20261106-223658.png",
+        "images/0025_20261106-223658.png",
+        "images/0026_20261106-223658.png"
+      ],
+      "created_at": "2026-11-06T22:36:58+02:00",
+      "count": 16169,
+      "pool_before": 483167,
+      "bbox": {
+        "min": [
+          -5.1342,
+          -1.1066,
+          -3.5179
+        ],
+        "max": [
+          6.0028,
+          2.9932,
+          -0.7385
+        ]
+      },
+      "headline": "REMOVE 16,169 points (3.3 %) · see-through fog floating in the air",
+      "cameras": {
+        "close-up": {
+          "position": [
+            0.3741,
+            2.9129,
+            5.3719
+          ],
+          "target": [
+            0.3741,
+            0.2982,
+            -2.0989
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "diagnostic view": {
+          "position": [
+            0.4181,
+            1.2077,
+            2.3441
+          ],
+          "target": [
+            0.4181,
+            -0.2248,
+            -2.9043
+          ],
+          "fov_deg": 50.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up": {
+          "rest": 78538,
+          "built": 0,
+          "selected": 62831
+        },
+        "outside, all points": {
+          "rest": 101607,
+          "built": 0,
+          "selected": 68248
+        },
+        "diagnostic view": {
+          "rest": 133981,
+          "built": 0,
+          "selected": 84970
+        },
+        "before | after": {}
+      },
+      "params": {
+        "max_alpha": 0.05,
+        "gap": 0.05
+      },
+      "info": {
+        "see_through": 107518,
+        "solid": 375649,
+        "removed_gap_p50": 0.0825
+      }
     }
   ],
   "parts": [],
