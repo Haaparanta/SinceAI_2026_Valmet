@@ -4,7 +4,7 @@
 
 Making scanned industrial plants understand themselves: where equipment is, what it is, how to reach it, and why it needs attention.
 
-`HACKATHON · BUILD FRI 19:30 EET · DEADLINE SUN 10:00 · STATUS: PLANNING`
+`HACKATHON · BUILD FRI 19:30 EET · DEADLINE SUN 10:00 · STATUS: BUILD · WEDGE: APPROVE-TO-BUILD TWIN`
 
 ## Hackathon Challenge
 
@@ -18,5 +18,5 @@ This is a chance to make AI understand not just words and numbers, but physical 
 
 | Path | What |
 |---|---|
-| [`pm_pack/`](pm_pack/) | Provisional PM pack: briefing questions, PRD, SWOT, risks, roadmap, `AGENTS` context |
+| [`pm_pack/`](pm_pack/) | PM pack for the locked wedge **Approve-to-Build Twin** (generated from the source data): partner briefing questions + phone card, PRD, SWOT, risk register, roadmap, `AGENTS` context |
 | [`design/`](design/) | **Cyberpunk v2** theme: [`cyberpunk-tokens.css`](design/cyberpunk-tokens.css) and the [guide](design/CYBERPUNK_THEME.md) |
