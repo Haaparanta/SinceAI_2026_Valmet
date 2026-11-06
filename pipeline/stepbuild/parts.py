@@ -1,0 +1,126 @@
+"""Part detectors (Step 3+). Each one looks only at the current pool and returns which pool points form the next
+part, plus its name, text and camera. Nothing joins current.ply until a human accepts it.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass, field
+
+import numpy as np
+from sklearn.cluster import DBSCAN
+
+from stepbuild import render as R
+from stepbuild.geometry import ceiling_height_by_cells, ceiling_split, horizontal_plane
+from stepbuild.splats import rgb_of
+
+
+@dataclass
+class PartProposal:
+    take: np.ndarray                        # bool over the pool arrays passed in
+    name: str                               # file-safe: floor, ceiling, wall_back, ...
+    label: str                              # human label
+    kind: str                               # structure | pipe | equipment | other
+    title: str
+    subtitle: str
+    camera: R.Camera
+    params: dict = field(default_factory=dict)
+    info: dict = field(default_factory=dict)
+    view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)  # close-up looks this way (default: from above front)
+
+
+def floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
+          above: float = 0.03) -> PartProposal:
+    """The floor slab: every pool point at or below floor_y + `above` (2 x the floor's RMS thickness). Everything
+    lower was removed in 2a, so this is the slab itself; objects standing on the floor lose at most their lowest 3 cm.
+    Room-scale part: shown from the fixed overview camera instead of the 25 % framing."""
+    plane = horizontal_plane(xyz[:, 1], lower=True)
+    take = xyz[:, 1] <= plane.y + above
+    n = int(take.sum())
+    pts = xyz[take]
+    lo, hi = (pts.min(0), pts.max(0)) if n else (bmin, bmax)
+    return PartProposal(
+        take=take, name="floor", label="Floor", kind="structure",
+        title=f"FLOOR (y <= {plane.y + above:+.3f})",
+        subtitle=(f"floor y {plane.y:+.3f} (rms {100 * plane.rms:.1f} cm) · {n:,} of {len(xyz):,} pool points "
+                  f"({100 * n / len(xyz):.1f} %) · x {lo[0]:+.1f}…{hi[0]:+.1f}, z {lo[2]:+.1f}…{hi[2]:+.1f}"),
+        camera=R.overview_camera(bmin, bmax),
+        params={"above": above},
+        info={"floor_y": round(plane.y, 4), "floor_rms": round(plane.rms, 4)},
+    )
+
+
+def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240,
+            below: float = 0.03, lift: float = 0.0, lo: float = 0.0, hi: float = 0.0) -> PartProposal:
+    """The real ceiling: the flat height where most points are (geometry.ceiling_height_by_cells: per 25 cm patch
+    the highest dense layer, so pipes running just under the ceiling never count), and everything from `below`
+    under that height upwards: nothing up there can be a pipe. Saturated-white points (min RGB >= `white`) are the
+    lamps and are left for their own part. Close-up from below.
+
+    `lift` raises the cut by hand (the user asked for +5..10 cm after 0057); `lo`/`hi` (both set) take exactly that
+    height band instead (the user picked 1.50..1.60 after the probe images).
+
+    Rejected by the user: 0046 (everything above the gap over the pipe band, y 1.13: took pipes running next to the
+    ceiling) and 0057 (cut at 1.27: still too close to it)."""
+    split_y, _ = ceiling_split(xyz[:, 1])
+    lamp = (xyz[:, 1] >= split_y) & (rgb_of(pool).min(1) >= white)
+    ceiling_y, cells, cells_near = ceiling_height_by_cells(xyz[~lamp], split_y)  # lamps hang lower: no vote
+    manual = hi > lo != 0.0
+    cut = lo if manual else ceiling_y - below + lift
+    take = (xyz[:, 1] >= cut) & ~lamp
+    if manual:
+        take &= xyz[:, 1] <= hi
+    n = int(take.sum())
+    return PartProposal(
+        take=take, name="ceiling", label="Ceiling", kind="structure",
+        title=(f"CEILING (band y {lo:+.2f}…{hi:+.2f}, picked by hand)" if manual else
+               f"CEILING (from y {cut:+.2f} up)" + (f", raised {100 * lift:.0f} cm" if lift else "")),
+        subtitle=((f"height band picked by hand · {n:,} points (white lamp points left out) · "
+                   f"no density peak in this band in the scan")
+                  if manual else
+                  (f"flat ceiling y {ceiling_y:+.3f} in {cells_near} of {cells} patches · pipes under it stay · "
+                   f"{n:,} points · {int(lamp.sum()):,} white lamp points left for their own part")),
+        camera=R.look_up_camera(bmin, bmax, ceiling_y),
+        params={"white": white, "below": below, "lift": lift, "lo": lo, "hi": hi},
+        info={"ceiling_y": round(ceiling_y, 4), "cut_y": round(cut, 4), "patches": cells,
+              "patches_at_ceiling": cells_near, "lamp_points": int(lamp.sum())},
+        view_dir=(0.0, 0.55, -1.0),
+    )
+
+
+def lamp(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240,
+         min_y: float = 1.13, eps: float = 0.04, min_samples: int = 8, number: int = 1) -> PartProposal:
+    """One lamp per step: the largest cluster (DBSCAN, eps 4 cm) of saturated-white points (min RGB >= `white`) up
+    at the ceiling (y >= `min_y`, above the pipes). The fluorescent tubes hang in a row along x at z ~ -2.45; the
+    next call proposes the next largest. Close-up from below."""
+    cand = np.flatnonzero((xyz[:, 1] >= min_y) & (rgb_of(pool).min(1) >= white))
+    take = np.zeros(len(xyz), dtype=bool)
+    info: dict = {"white_candidates": len(cand)}
+    if len(cand):
+        lab = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(xyz[cand])
+        ids, cnt = np.unique(lab[lab >= 0], return_counts=True)
+        if len(ids):
+            take[cand[lab == ids[int(np.argmax(cnt))]]] = True
+            info.update(clusters=len(ids), sizes=sorted(cnt.tolist(), reverse=True)[:8], noise=int((lab < 0).sum()))
+    n = int(take.sum())
+    pts = xyz[take] if n else xyz[:1]
+    lo, hi = pts.min(0), pts.max(0)
+    size = hi - lo
+    return PartProposal(
+        take=take, name=f"lamp_{number}", label=f"Lamp {number}", kind="equipment",
+        title=f"LAMP {number} (white cluster at the ceiling)",
+        subtitle=(f"{n:,} white points · {size[0]:.2f} x {size[1]:.2f} x {size[2]:.2f} u · x {lo[0]:+.2f}…{hi[0]:+.2f}, "
+                  f"y {lo[1]:+.2f}…{hi[1]:+.2f}, z {lo[2]:+.2f}…{hi[2]:+.2f} · largest of "
+                  f"{info.get('clusters', 0)} white clusters"),
+        camera=R.look_up_from_middle(bmin, bmax, -0.17),
+        params={"white": white, "min_y": min_y, "eps": eps, "min_samples": min_samples},
+        info=info,
+        view_dir=(0.0, 0.55, -1.0),
+    )
+
+
+DETECTORS: dict[str, Callable[..., PartProposal]] = {
+    "floor": floor,
+    "ceiling": ceiling,
+    "lamp": lamp,
+}

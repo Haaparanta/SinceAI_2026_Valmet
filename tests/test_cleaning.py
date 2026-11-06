@@ -1,0 +1,99 @@
+"""Cleaning filters and plane finder (pipeline/stepbuild) on synthetic rooms; no PLY needed."""
+
+import numpy as np
+from stepbuild.cleaning import below_floor
+from stepbuild.geometry import horizontal_plane
+
+
+def synthetic_room(seed: int = 0) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    floor = np.c_[rng.uniform(-4, 4, 6000), rng.normal(-0.91, 0.015, 6000), rng.uniform(-3.4, -0.8, 6000)]
+    ceiling = np.c_[rng.uniform(-4, 4, 4000), rng.normal(1.07, 0.015, 4000), rng.uniform(-3.4, -0.8, 4000)]
+    stuff = np.c_[rng.uniform(-4, 4, 3000), rng.uniform(-0.85, 1.0, 3000), rng.uniform(-3.4, -0.8, 3000)]
+    mirror = np.c_[rng.uniform(-4, 4, 800), rng.uniform(-1.6, -1.0, 800), rng.uniform(-3.4, -0.8, 800)]
+    return np.vstack([floor, ceiling, stuff, mirror]).astype(np.float32)
+
+
+def test_floor_and_ceiling_planes() -> None:
+    xyz = synthetic_room()
+    floor = horizontal_plane(xyz[:, 1], lower=True)
+    ceiling = horizontal_plane(xyz[:, 1], lower=False)
+    assert abs(floor.y + 0.91) < 0.005 and floor.rms < 0.02
+    assert abs(ceiling.y - 1.07) < 0.005
+
+
+def test_below_floor_removes_only_the_mirror() -> None:
+    xyz = synthetic_room()
+    prop = below_floor(xyz, xyz.min(0), xyz.max(0), margin=0.04)
+    removed = xyz[prop.remove]
+    # the 800 mirror points + the floor-noise tail beyond 4 cm (sigma 1.5 cm: ~0.4-0.6 % of 6000 floor points)
+    assert 800 <= len(removed) < 870
+    assert (removed[:, 1] < -0.94).all()
+    assert prop.info["cut_y"] == round(prop.info["floor_y"] - 0.04, 4)
+
+
+def test_back_wall_profile_follows_recess_and_ignores_equipment() -> None:
+    from stepbuild.geometry import back_wall_profile
+
+    rng = np.random.default_rng(1)
+    x = rng.uniform(-4, 4, 40000)
+    wall_z = np.where((x > -1.5) & (x < 0.0), -3.47, -3.41)                  # recess between x -1.5 and 0
+    z = wall_z + rng.normal(0, 0.01, len(x))
+    ex = rng.uniform(2.0, 3.0, 30000)                                         # dense equipment in front, x 2..3
+    ez = rng.normal(-3.18, 0.01, len(ex))
+    fx, fz = rng.uniform(-4, 4, 3000), rng.uniform(-5.0, -3.6, 3000)          # diffuse floaters behind
+    rx, rz = rng.uniform(-4, 4, 60000), rng.uniform(-3.4, -0.75, 60000)       # the room in front (floor, stuff)
+    prof = back_wall_profile(np.r_[x, ex, fx, rx], np.r_[z, ez, fz, rz])
+    assert abs(prof.global_depth + 3.41) < 0.01
+    assert abs(prof.at(np.array([-0.75]))[0] + 3.47) < 0.01                   # recess found
+    assert abs(prof.at(np.array([2.5]))[0] + 3.41) < 0.02                     # equipment strip keeps the wall
+    assert (prof.depth <= prof.global_depth + 0.03 + 1e-9).all()              # never far in front of the wall
+
+
+def test_floating_fog_keeps_faint_splats_on_surfaces() -> None:
+    from stepbuild.cleaning import floating_fog
+    from stepbuild.splats import SH0_DTYPE
+
+    rng = np.random.default_rng(2)
+    gx, gz = np.meshgrid(np.arange(0, 2, 0.02), np.arange(-2, 0, 0.02))     # solid surface on a 2 cm grid (no gaps)
+    n_solid, n_faint_surface, n_faint_air = gx.size, 1000, 300
+    xyz = np.vstack([
+        np.c_[gx.ravel(), np.full(n_solid, -0.91), gz.ravel()],
+        np.c_[rng.uniform(0, 2, n_faint_surface), np.full(n_faint_surface, -0.90), rng.uniform(-2, 0, n_faint_surface)],
+        np.c_[rng.uniform(0, 2, n_faint_air), rng.uniform(-0.5, 0.5, n_faint_air), rng.uniform(-2, 0, n_faint_air)],
+    ]).astype(np.float32)
+    pool = np.zeros(len(xyz), dtype=SH0_DTYPE)
+    pool["opacity"] = np.r_[np.full(n_solid, 2.0), np.full(n_faint_surface + n_faint_air, -4.0)]  # 0.88 vs 0.018
+    prop = floating_fog(xyz, xyz.min(0), xyz.max(0), pool=pool)
+    assert prop.remove[:n_solid + n_faint_surface].sum() == 0
+    assert prop.remove[n_solid + n_faint_surface:].all()
+
+
+def test_outside_room_keeps_thick_right_side_and_cuts_strays() -> None:
+    from stepbuild.cleaning import outside_room
+
+    xyz = synthetic_room(3)
+    rng = np.random.default_rng(3)
+    wall = np.c_[rng.uniform(3.60, 3.90, 4000), rng.uniform(-0.9, 1.0, 4000), rng.uniform(-3.4, -0.8, 4000)]
+    strays = np.c_[rng.uniform(4.2, 5.5, 60), rng.uniform(-0.9, 1.0, 60), rng.uniform(-3.4, -0.8, 60)]
+    sky = np.c_[rng.uniform(-4, 3, 80), rng.uniform(1.2, 1.9, 80), rng.uniform(-3.4, -0.8, 80)]
+    pts = np.vstack([xyz, wall, strays, sky]).astype(np.float32)
+    prop = outside_room(pts, pts.min(0), pts.max(0))
+    n0 = len(xyz) + len(wall)
+    assert prop.remove[n0:].all()                              # strays past the right side and above the ceiling
+    assert prop.remove[len(xyz):n0].sum() == 0                 # the 30 cm thick right-hand material stays
+    assert abs(prop.info["ceiling_y"] - 1.07) < 0.03                  # 4 cm histogram bins
+
+
+def test_ceiling_is_the_top_layer_not_the_denser_pipe_band() -> None:
+    from stepbuild.geometry import top_layer_edge
+
+    rng = np.random.default_rng(6)
+    y = np.r_[rng.normal(-1.07, 0.01, 30000),                     # floor
+              rng.uniform(-1.0, 0.6, 40000),                      # room
+              rng.normal(0.88, 0.04, 40000),                      # dense pipe band
+              rng.normal(1.28, 0.05, 6000),                       # weaker real ceiling above it
+              rng.uniform(1.6, 2.2, 150)]                          # strays
+    ceiling, edge = top_layer_edge(y)
+    assert abs(ceiling - 1.28) < 0.05
+    assert 1.38 < edge < 1.6

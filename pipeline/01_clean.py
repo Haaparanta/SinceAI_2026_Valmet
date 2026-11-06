@@ -1,6 +1,6 @@
 """M1 - Clean scan loader (AGENTS.md S3, 02 S3 M1).
 
-Reads the 3DGS PLY with numpy, applies `clean_mask`, and writes to data/derived/:
+Reads the 3DGS PLY with numpy, keeps only the real-row prefix (the header count is wrong), applies `clean_mask`, and writes to data/derived/:
   clean.npz         xyz float32[n,3] | rgb uint8[n,3] | opacity float32[n] | scale float32[n,3] (linear) | src_index uint32[n]
   scene_points.bin  uint32 count | float32 xyz*count | uint8 rgb*count   (voxel-downsampled to <= --max-points)
   clean_stats.json  kept count, bounds per axis, floor_y, voxel size      (the browser reads its numbers from here)
@@ -20,7 +20,9 @@ from pathlib import Path
 
 import numpy as np
 import orjson
+from common.orientation import FRAME, to_world
 from common.ply_io import clean_mask, load_gaussians, rgb_from_dc
+from common.splat_rows import real_row_count
 
 log = logging.getLogger("01_clean")
 ROOT = Path(__file__).resolve().parents[1]
@@ -83,6 +85,15 @@ def main(argv: list[str] | None = None) -> int:
     t0 = time.perf_counter()
     g = load_gaussians(str(args.inp))
     log.info("loaded %s gaussians x %d float32 fields in %.1f s", f"{len(g):,}", len(g.dtype.names), time.perf_counter() - t0)
+    header_rows = len(g)
+    # The header count of this file is wrong: only a contiguous prefix holds trained splats, the tail is random bits
+    # (analysis/ply_study/README.md S2). Keep the prefix before any filtering.
+    real_rows, plausible_after = real_row_count(g)
+    g = to_world(g[:real_rows])  # stored upside down and mirrored: rotate 180 deg about z (common/orientation.py)
+    log.info(
+        "real rows: %s of %s (header count); dropped garbage tail of %s rows (%d of them look plausible)",
+        f"{real_rows:,}", f"{header_rows:,}", f"{header_rows - real_rows:,}", plausible_after,
+    )
 
     with np.errstate(invalid="ignore"):  # NaN opacity/scale rows are rejected by the comparisons, no need to warn
         mask = clean_mask(g, room_limit=args.room_limit, min_opacity=args.min_opacity, max_scale=args.max_scale)
@@ -91,7 +102,10 @@ def main(argv: list[str] | None = None) -> int:
     nan_colour = int((mask & ~colour_ok).sum())
     mask &= colour_ok
     kept = int(mask.sum())
-    log.info("kept %s / %s gaussians (%.1f %%); dropped %d with NaN colour", f"{kept:,}", f"{len(g):,}", 100.0 * kept / len(g), nan_colour)
+    log.info(
+        "kept %s / %s real gaussians (%.1f %%); dropped %d with NaN colour",
+        f"{kept:,}", f"{len(g):,}", 100.0 * kept / len(g), nan_colour,
+    )
     gk = g[mask]
     xyz = np.stack([gk["x"], gk["y"], gk["z"]], 1).astype(np.float32)
     rgb = np.rint(rgb_from_dc(gk) * 255.0).astype(np.uint8)
@@ -119,11 +133,15 @@ def main(argv: list[str] | None = None) -> int:
     write_scene_points(args.out / "scene_points.bin", dxyz, drgb)
     stats = {
         "source_file": args.inp.name,
-        "total": int(mask.size),
+        "total": header_rows,
+        "real_rows": real_rows,
+        "garbage_rows": header_rows - real_rows,
+        "plausible_after_real": plausible_after,
         "kept": kept,
         "scene_points": len(dxyz),
         "voxel_size": round(voxel, 5),
         "units": "scene_units",
+        "frame": FRAME,
         "up_axis": "y",
         "up_axis_detected": up_axis,
         "bounds_min": [round(float(v), 4) for v in bmin],
