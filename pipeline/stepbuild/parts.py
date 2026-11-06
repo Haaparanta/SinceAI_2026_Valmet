@@ -250,10 +250,84 @@ def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.n
     )
 
 
+PIPE_AXES = {"x": (0, 2, 1), "z": (2, 0, 1), "y": (1, 0, 2)}  # along: (axis, cross a, cross b)
+
+
+def _fit_circle(u: np.ndarray, v: np.ndarray) -> tuple[float, float, float]:
+    """Least-squares circle (Kasa): u^2 + v^2 = 2 a u + 2 b v + c, r = sqrt(c + a^2 + b^2)."""
+    M = np.c_[2 * u, 2 * v, np.ones(len(u))]
+    (a, b, c), *_ = np.linalg.lstsq(M, u * u + v * v, rcond=None)
+    return float(a), float(b), float(np.sqrt(max(c + a * a + b * b, 1e-6)))
+
+
+def pipe(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, along: str = "x", a: float = 0.0,
+         b: float = 0.0, search: float = 0.15, shell: float = 0.03, gap: float = 0.3, min_alpha: float = 0.1,
+         number: int = 1, label: str = "Pipe") -> PartProposal:
+    """One straight pipe running `along` x, z or y, whose cross-section is near (a, b) in the two other axes (for a
+    pipe along x: a = z, b = y). The circle of the cross-section is fitted to the points within `search` of (a, b)
+    and re-fitted three times on the points within `shell` of the circle, so a neighbouring pipe does not pull it.
+    The pipe = every pool point within radius + `shell` of the axis, over the longest stretch along the axis without
+    a gap longer than `gap` (pipes are straight; at an elbow or a tee the stretch ends)."""
+    ax, ca, cb = PIPE_AXES[along]
+    u, v, t = xyz[:, ca], xyz[:, cb], xyz[:, ax]
+    solid = alpha_of(pool) >= min_alpha
+    sel = solid & (np.hypot(u - a, v - b) <= search)
+    if sel.sum() < 30:
+        raise ValueError(f"no points near the cross-section ({a:+.2f}, {b:+.2f}) of a pipe along {along}")
+    pa, pb, r = _fit_circle(u[sel], v[sel])
+    for _ in range(3):
+        d = np.hypot(u - pa, v - pb)
+        ring = solid & (np.abs(d - r) <= shell) & (np.hypot(u - a, v - b) <= search + 0.1)
+        if ring.sum() < 30:
+            break
+        pa, pb, r = _fit_circle(u[ring], v[ring])
+    d = np.hypot(u - pa, v - pb)
+    ring = solid & (np.abs(d - r) <= shell)
+    step = 0.05
+    edges = np.arange(np.floor(t[ring].min() / step) * step, t[ring].max() + step, step)
+    occupied = np.histogram(t[ring], bins=edges)[0] >= 3
+    best, best_pts = (0, 0), -1
+    counts = np.histogram(t[ring], bins=edges)[0]
+    i, n_bins, max_gap = 0, len(occupied), round(gap / step)
+    runs = []
+    while i < n_bins:
+        if not occupied[i]:
+            i += 1
+            continue
+        j, last = i, i
+        while j < n_bins and j - last <= max_gap:
+            if occupied[j]:
+                last = j
+            j += 1
+        runs.append((i, last))
+        i = last + 1
+    for i0, i1 in runs:
+        pts_ = counts[i0:i1 + 1].sum()
+        if pts_ > best_pts:
+            best, best_pts = (i0, i1), pts_
+    t0, t1 = edges[best[0]], edges[best[1] + 1]
+    take = (d <= r + shell) & (t >= t0) & (t <= t1)
+    n = int(take.sum())
+    names = "xyz"
+    view = {"x": (0.0, -0.3, -1.0), "z": (-1.0, -0.3, 0.0), "y": (0.0, -0.3, -1.0)}[along]
+    return PartProposal(
+        take=take, name=f"pipe_{number}", label=f"{label} {number}", kind="pipe",
+        title=f"PIPE {number} (along {along}, diameter {200 * r:.0f} cm)",
+        subtitle=(f"axis at {names[ca]} {pa:+.3f}, {names[cb]} {pb:+.3f} · radius {r:.3f} u · {along} {t0:+.2f}…{t1:+.2f} "
+                  f"(length {t1 - t0:.2f} u) · {n:,} points"),
+        camera=R.overview_camera(bmin, bmax),
+        params={"along": along, "a": a, "b": b, "search": search, "shell": shell, "gap": gap, "min_alpha": min_alpha},
+        info={"axis": [round(pa, 4), round(pb, 4)], "radius": round(r, 4), "start": round(float(t0), 3),
+              "end": round(float(t1), 3), "runs": len(runs)},
+        view_dir=view,
+    )
+
+
 DETECTORS: dict[str, Callable[..., PartProposal]] = {
     "floor": floor,
     "ceiling": ceiling,
     "lamp": lamp,
     "wall": wall,
     "equipment": equipment,
+    "pipe": pipe,
 }

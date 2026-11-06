@@ -399,8 +399,8 @@ def cmd_part(args: argparse.Namespace) -> int:
     bmin, bmax = _bounds(m)
     try:
         params = _parse_params(args.set)
-        if args.name == "lamp":
-            prefix = "lamp_"
+        if args.name in ("lamp", "pipe"):
+            prefix = f"{args.name}_"
         elif args.name == "equipment":
             prefix = "".join(c if c.isalnum() else "_" for c in str(params.get("cls", "other")).lower()) + "_"
         else:
