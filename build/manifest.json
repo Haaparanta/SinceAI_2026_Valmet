@@ -2382,6 +2382,424 @@
       "event": "after 0113 ACCEPTED (part lamp_1)",
       "kept": 464713,
       "built": 43958
+    },
+    {
+      "index": 121,
+      "kind": "part",
+      "name": "lamp_2",
+      "status": "replaced",
+      "images": [
+        "images/0121_20261106-230952.png",
+        "images/0122_20261106-230952.png",
+        "images/0123_20261106-230952.png",
+        "images/0124_20261106-230953.png",
+        "images/0125_20261106-230953.png"
+      ],
+      "created_at": "2026-11-06T23:09:53+02:00",
+      "count": 906,
+      "pool_before": 420755,
+      "bbox": {
+        "min": [
+          -0.7584,
+          1.2333,
+          -2.5947
+        ],
+        "max": [
+          0.3946,
+          1.531,
+          -2.3173
+        ]
+      },
+      "headline": "ADD LAMP 2 · 906 points as part 4",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            1.0953,
+            -1.996,
+            -2.6627
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up": {
+          "position": [
+            -0.1985,
+            0.312,
+            -0.4943
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.17,
+            -2.5516
+          ],
+          "target": [
+            0.4181,
+            0.83,
+            -2.5516
+          ],
+          "fov_deg": 100.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "close-up": {
+          "rest": 61583,
+          "built": 4694,
+          "selected": 7031
+        },
+        "outside, all points": {
+          "rest": 106033,
+          "built": 25405,
+          "selected": 1583
+        },
+        "overview": {
+          "rest": 72874,
+          "built": 3877,
+          "selected": 3469
+        },
+        "before | after": {}
+      },
+      "label": "Lamp 2",
+      "part_kind": "equipment",
+      "params": {
+        "white": 240,
+        "min_y": 1.13,
+        "eps": 0.04,
+        "min_samples": 8
+      },
+      "info": {
+        "white_candidates": 2716,
+        "clusters": 10,
+        "sizes": [
+          906,
+          554,
+          115,
+          79,
+          52,
+          32,
+          30,
+          15
+        ],
+        "noise": 918
+      },
+      "decided_at": "2026-11-06T23:10:26+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 126,
+      "kind": "part",
+      "name": "lamp_2",
+      "status": "replaced",
+      "images": [
+        "images/0126_20261106-231030.png",
+        "images/0127_20261106-231030.png",
+        "images/0128_20261106-231030.png",
+        "images/0129_20261106-231030.png",
+        "images/0130_20261106-231030.png"
+      ],
+      "created_at": "2026-11-06T23:10:31+02:00",
+      "count": 906,
+      "pool_before": 420755,
+      "bbox": {
+        "min": [
+          -0.7584,
+          1.2333,
+          -2.5947
+        ],
+        "max": [
+          0.3946,
+          1.531,
+          -2.3173
+        ]
+      },
+      "headline": "ADD LAMP 2 · 906 points as part 4",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            1.0953,
+            -1.996,
+            -2.6627
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up": {
+          "position": [
+            -0.1985,
+            0.312,
+            -0.4943
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.17,
+            -2.5516
+          ],
+          "target": [
+            0.4181,
+            0.83,
+            -2.5516
+          ],
+          "fov_deg": 100.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "close-up": {
+          "rest": 61583,
+          "built": 4694,
+          "selected": 7031
+        },
+        "outside, all points": {
+          "rest": 106033,
+          "built": 25405,
+          "selected": 1583
+        },
+        "overview": {
+          "rest": 72874,
+          "built": 3877,
+          "selected": 3469
+        },
+        "before | after": {}
+      },
+      "label": "Lamp 2",
+      "part_kind": "equipment",
+      "params": {
+        "white": 240,
+        "min_y": 1.13,
+        "eps": 0.04,
+        "min_samples": 8
+      },
+      "info": {
+        "white_candidates": 2716,
+        "clusters": 10,
+        "sizes": [
+          906,
+          554,
+          115,
+          79,
+          52,
+          32,
+          30,
+          15
+        ],
+        "noise": 918
+      },
+      "decided_at": "2026-11-06T23:11:13+02:00",
+      "note": "replaced by a new proposal"
+    },
+    {
+      "index": 131,
+      "kind": "part",
+      "name": "lamp_2",
+      "status": "pending",
+      "images": [
+        "images/0131_20261106-231117.png",
+        "images/0132_20261106-231117.png",
+        "images/0133_20261106-231117.png",
+        "images/0134_20261106-231117.png",
+        "images/0135_20261106-231117.png"
+      ],
+      "created_at": "2026-11-06T23:11:17+02:00",
+      "count": 906,
+      "pool_before": 420755,
+      "bbox": {
+        "min": [
+          -0.7584,
+          1.2333,
+          -2.5947
+        ],
+        "max": [
+          0.3946,
+          1.531,
+          -2.3173
+        ]
+      },
+      "headline": "ADD LAMP 2 · 906 points as part 4",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            0.4181,
+            -0.2248,
+            -2.5516
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 88.9464060774746
+        },
+        "close-up": {
+          "position": [
+            -0.1985,
+            0.312,
+            -0.4943
+          ],
+          "target": [
+            -0.1985,
+            1.3878,
+            -2.4503
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            3.8884,
+            3.6224,
+            3.758
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        },
+        "overview": {
+          "position": [
+            0.4181,
+            -0.17,
+            -2.5516
+          ],
+          "target": [
+            0.4181,
+            0.83,
+            -2.5516
+          ],
+          "fov_deg": 100.0
+        },
+        "before | after": {
+          "position": [
+            6.6837,
+            6.4177,
+            8.8404
+          ],
+          "target": [
+            0.4181,
+            0.1522,
+            -2.5516
+          ],
+          "fov_deg": 45.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "close-up": {
+          "rest": 61583,
+          "built": 4694,
+          "selected": 7031
+        },
+        "outside, all points": {
+          "rest": 106033,
+          "built": 25405,
+          "selected": 1583
+        },
+        "overview": {
+          "rest": 72874,
+          "built": 3877,
+          "selected": 3469
+        },
+        "before | after": {}
+      },
+      "label": "Lamp 2",
+      "part_kind": "equipment",
+      "params": {
+        "white": 240,
+        "min_y": 1.13,
+        "eps": 0.04,
+        "min_samples": 8
+      },
+      "info": {
+        "white_candidates": 2716,
+        "clusters": 10,
+        "sizes": [
+          906,
+          554,
+          115,
+          79,
+          52,
+          32,
+          30,
+          15
+        ],
+        "noise": 918
+      }
     }
   ],
   "parts": [

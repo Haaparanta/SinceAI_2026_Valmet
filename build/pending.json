@@ -1,0 +1,50 @@
+{
+  "index": 131,
+  "kind": "part",
+  "name": "lamp_2",
+  "count": 906,
+  "pool_before": 420755,
+  "bbox": {
+    "min": [
+      -0.7584,
+      1.2333,
+      -2.5947
+    ],
+    "max": [
+      0.3946,
+      1.531,
+      -2.3173
+    ]
+  },
+  "indices": "build/pending.idx.npy",
+  "images": [
+    "images/0131_20261106-231117.png",
+    "images/0132_20261106-231117.png",
+    "images/0133_20261106-231117.png",
+    "images/0134_20261106-231117.png",
+    "images/0135_20261106-231117.png"
+  ],
+  "label": "Lamp 2",
+  "part_kind": "equipment",
+  "params": {
+    "white": 240,
+    "min_y": 1.13,
+    "eps": 0.04,
+    "min_samples": 8
+  },
+  "info": {
+    "white_candidates": 2716,
+    "clusters": 10,
+    "sizes": [
+      906,
+      554,
+      115,
+      79,
+      52,
+      32,
+      30,
+      15
+    ],
+    "noise": 918
+  }
+}

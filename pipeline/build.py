@@ -201,7 +201,7 @@ def _object_pair(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_id
     left = R.render_blend(_layers(splats, built_idx, sel_idx, rest_idx, kind), cam, hw, h).image
     everything = splats[np.concatenate([built_idx, rest_idx, sel_idx])]          # right: all at 100 %, own colours
     right = R.render([R.Layer(xyz_of(everything), rgb_of(everything), "all", size_of(everything))], cam, hw, h,
-                     edl_strength=0.5).image
+                     edl_strength=0.5, near=0.4).image                            # nothing right at the lens
     sel_rect = R.project_rect(R.box_corners(lo, hi), cam, hw, h)
     right = right.copy()
     R.draw_box(right, sel_rect, (240, 240, 245), pad=12, thick=2)                # where the part is, nothing hidden

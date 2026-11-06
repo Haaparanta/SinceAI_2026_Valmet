@@ -65,7 +65,8 @@ def _disc_offsets(r: int) -> np.ndarray:
 
 
 def render(layers: list[Layer], cam: Camera, width: int = WIDTH, height: int = HEIGHT,
-           edl_strength: float = 1.0) -> Frame:
+           edl_strength: float = 1.0, near: float = 0.05) -> Frame:
+    """Opaque rendering, nearest point wins. Points closer than `near` to the camera are skipped."""
     r, u, f = cam.basis()
     focal = 0.5 * height / np.tan(np.radians(cam.fov_deg) / 2)
     pix_all, depth_all, col_all, layer_all = [], [], [], []
@@ -74,7 +75,7 @@ def render(layers: list[Layer], cam: Camera, width: int = WIDTH, height: int = H
             continue
         rel = layer.xyz.astype(np.float64) - np.asarray(cam.position)
         z = rel @ f
-        front = z > 0.05
+        front = z > near
         rel, z = rel[front], z[front]
         px = width / 2 + focal * (rel @ r) / z
         py = height / 2 - focal * (rel @ u) / z
@@ -225,16 +226,26 @@ def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarra
 
 def from_room_middle_camera(lo: np.ndarray, hi: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, fill: float = 0.35,
                             width: int = WIDTH // 2, height: int = HEIGHT - BANNER_H) -> Camera:
-    """Standing in the middle of the room (at ~35 % of the room height) and looking at the object box lo..hi, moved
-    along that line until the box spans `fill` of the panel. Looking steeply up or down, the back wall is 'up'."""
+    """Standing in the middle of the room (at ~35 % of the room height) and looking at the object box lo..hi; the
+    camera stays there (inside the room) and zooms, narrowing the field of view until the box spans `fill` of the
+    panel (10..100 degrees). Looking steeply up or down, the back wall is 'up'."""
     eye = 0.5 * (bmin + bmax)
     eye[1] = bmin[1] + 0.35 * (bmax[1] - bmin[1])
-    d = 0.5 * (lo + hi) - eye
-    if np.linalg.norm(d) < 0.3:
-        d = np.array([0.0, -0.35, -1.0])
-    d = d / np.linalg.norm(d)
-    up = (0.0, 0.0, -1.0) if abs(d[1]) > 0.8 else (0.0, 1.0, 0.0)
-    return framing_camera(lo, hi, d, fill=fill, width=width, height=height, up=up)
+    center = 0.5 * (lo + hi)
+    d = center - eye
+    if np.linalg.norm(d) < 0.3:                         # object at the eye: step back towards the open front
+        eye = center + np.array([0.0, 0.35, 1.0]) * 0.8
+        d = center - eye
+    dn = d / np.linalg.norm(d)
+    up = (0.0, 0.0, -1.0) if abs(dn[1]) > 0.8 else (0.0, 1.0, 0.0)
+    fov = 50.0
+    corners = box_corners(lo, hi)
+    for _ in range(4):
+        cam = Camera(tuple(map(float, eye)), tuple(map(float, center)), fov, up)
+        span = max(screen_span(corners, cam, width, height))
+        t = np.tan(np.radians(fov) / 2) * span / fill
+        fov = float(np.clip(np.degrees(2 * np.arctan(t)), 10.0, 100.0))
+    return Camera(tuple(map(float, eye)), tuple(map(float, center)), fov, up)
 
 
 # ---------------------------------------------------------------- banner and file
