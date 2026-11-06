@@ -2667,7 +2667,7 @@
       "index": 131,
       "kind": "part",
       "name": "lamp_2",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/0131_20261106-231117.png",
         "images/0132_20261106-231117.png",
@@ -2799,7 +2799,24 @@
           15
         ],
         "noise": 918
-      }
+      },
+      "decided_at": "2026-11-06T23:13:32+02:00",
+      "note": "user: reject; stop here for now"
+    },
+    {
+      "index": 136,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0136_20261106-231333.png",
+        "images/0137_20261106-231335.png",
+        "images/0138_20261106-231335.png"
+      ],
+      "created_at": "2026-11-06T23:13:35+02:00",
+      "event": "after 0131 REJECTED (part lamp_2)",
+      "kept": 464713,
+      "built": 43958
     }
   ],
   "parts": [
