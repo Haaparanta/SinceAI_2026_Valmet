@@ -187,6 +187,31 @@ def _before_after(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_i
     return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
 
 
+def _object_pair(splats: np.ndarray, m: S.Manifest, sel_idx: np.ndarray, rest_idx: np.ndarray, kind: str
+                 ) -> R.Frame:
+    """Small parts: the same close-up twice side by side, from the middle of the room looking at the object (the
+    style of image 0100: the room faint around it). Left: the object tinted green at 80 %. Right: the object in its
+    own colours at 100 %."""
+    bmin, bmax = _bounds(m)
+    pts = xyz_of(splats[sel_idx])
+    lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
+    hw, h = R.WIDTH // 2, R.HEIGHT - R.BANNER_H
+    cam = R.from_room_middle_camera(lo, hi, bmin, bmax, width=hw, height=h)
+    built_idx = m.claimed_indices()
+    left = _layers(splats, built_idx, sel_idx, rest_idx, kind)
+    right = _layers(splats, built_idx, sel_idx, rest_idx, kind)
+    sel = splats[sel_idx]
+    right[-1] = R.BlendLayer(xyz_of(sel), rgb_of(sel), 1.0, "selected", np.maximum(size_of(sel), 0.01))
+    img = np.concatenate([R.render_blend(left, cam, hw, h).image, R.render_blend(right, cam, hw, h).image], axis=1)
+    img[:, hw - 1:hw + 1] = (90, 92, 100)
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    hl, word = _highlight(kind)
+    d.text((16, h - 44), f"{word.upper()}: GREEN", fill=hl, font=R._font(26))
+    d.text((hw + 16, h - 44), "OWN COLOURS", fill=(240, 240, 245), font=R._font(26))
+    return R.Frame(np.asarray(im), np.full((h, R.WIDTH), np.inf, np.float32), cam, {})
+
+
 def _save_views(frames: list[tuple[str, R.Frame]], title: str, subtitle: str, badge: str,
                 badge_rgb: tuple[int, int, int], kind: str, headline: str = "") -> list[str]:
     """One image per view, each with its own index: '<index> · <title>' and '<view> · <subtitle>', the headline
@@ -229,6 +254,10 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
         views.append(extra)
     frames = _render_views(splats, m, sel_idx, pool_idx[~sel_mask], views, kind)
     frames.append(("before | after", _before_after(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
+    lo, hi = np.percentile(pts_all := xyz_of(splats[sel_idx]), 2, axis=0), np.percentile(pts_all, 98, axis=0)
+    if kind == "part" and float(np.max(hi - lo)) < 2.0:          # small part: green | colour pair comes first
+        frames.insert(0, ("close-up from the room, green | own colours",
+                          _object_pair(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
     images = _save_views(frames, title, subtitle, "PROPOSED", R.PROPOSED_RGB, kind, headline)
     index = int(Path(images[0]).name[:4])
     np.save(S.PENDING_IDX, sel_idx)

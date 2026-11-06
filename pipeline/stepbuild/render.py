@@ -205,8 +205,8 @@ def look_up_camera(bmin: np.ndarray, bmax: np.ndarray, target_y: float, fov_deg:
 
 
 def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarray,
-                   fill: float = 0.25, fov_deg: float = 50.0, width: int = WIDTH, height: int = HEIGHT - BANNER_H
-                   ) -> Camera:
+                   fill: float = 0.25, fov_deg: float = 50.0, width: int = WIDTH, height: int = HEIGHT - BANNER_H,
+                   up: tuple[float, float, float] = (0.0, 1.0, 0.0)) -> Camera:
     """Camera looking along `view_dir` at a box; distance tuned so the box's larger screen share (width or height)
     is `fill` of the frame, leaving the rest for context."""
     center = 0.5 * (obj_min + obj_max)
@@ -216,11 +216,25 @@ def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarra
     radius = max(0.5 * float(np.linalg.norm(obj_max - obj_min)), 1e-3)
     dist = radius / (fill * np.tan(np.radians(fov_deg) / 2))
     for _ in range(6):                                       # span ~ 1/dist; converge in a few steps
-        cam = Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg)
+        cam = Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg, up)
         span = max(screen_span(corners, cam, width, height))
         dist *= span / fill
         dist = max(dist, radius * 1.05)                      # never put the camera inside the box
-    return Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg)
+    return Camera(tuple(map(float, center - d * dist)), tuple(map(float, center)), fov_deg, up)
+
+
+def from_room_middle_camera(lo: np.ndarray, hi: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, fill: float = 0.35,
+                            width: int = WIDTH // 2, height: int = HEIGHT - BANNER_H) -> Camera:
+    """Standing in the middle of the room (at ~35 % of the room height) and looking at the object box lo..hi, moved
+    along that line until the box spans `fill` of the panel. Looking steeply up or down, the back wall is 'up'."""
+    eye = 0.5 * (bmin + bmax)
+    eye[1] = bmin[1] + 0.35 * (bmax[1] - bmin[1])
+    d = 0.5 * (lo + hi) - eye
+    if np.linalg.norm(d) < 0.3:
+        d = np.array([0.0, -0.35, -1.0])
+    d = d / np.linalg.norm(d)
+    up = (0.0, 0.0, -1.0) if abs(d[1]) > 0.8 else (0.0, 1.0, 0.0)
+    return framing_camera(lo, hi, d, fill=fill, width=width, height=height, up=up)
 
 
 # ---------------------------------------------------------------- banner and file
