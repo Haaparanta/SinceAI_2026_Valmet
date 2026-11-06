@@ -846,7 +846,7 @@
       "index": 33,
       "kind": "clean",
       "name": "outside_room",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0033_20261106-224207.png",
         "images/0034_20261106-224207.png",
@@ -957,7 +957,22 @@
         ],
         "above": 1374,
         "sides_only": 911
-      }
+      },
+      "decided_at": "2026-11-06T22:43:15+02:00"
+    },
+    {
+      "index": 37,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0037_20261106-224316.png",
+        "images/0038_20261106-224317.png"
+      ],
+      "created_at": "2026-11-06T22:43:17+02:00",
+      "event": "after 0033 ACCEPTED (clean outside_room)",
+      "kept": 464713,
+      "built": 0
     }
   ],
   "parts": [],
@@ -990,6 +1005,15 @@
         "gap": 0.05
       },
       "indices": "build/removed/0023_floating_fog.idx.npy"
+    },
+    {
+      "index": 33,
+      "name": "outside_room",
+      "count": 2285,
+      "params": {
+        "margin": 0.04
+      },
+      "indices": "build/removed/0033_outside_room.idx.npy"
     }
   ],
   "frame": "world-rotz180-v1",
