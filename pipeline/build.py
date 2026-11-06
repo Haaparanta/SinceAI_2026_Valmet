@@ -11,7 +11,7 @@ State lives in build/ (manifest.json, parts/*.idx.npy, current.ply) and images/ 
                                               # render without touching state or images/ (camera checks)
     uv run python pipeline/build.py clean below_floor|behind_back_wall|floating_fog|outside_room [--set key=value]
                                               # propose a cleaning step: image with removed points red, kept grey
-    uv run python pipeline/build.py part floor [--set key=value]
+    uv run python pipeline/build.py part floor|ceiling [--set key=value]
                                               # propose the next part: new part red, accepted parts grey,
                                               # points not built yet as a faint backdrop
     uv run python pipeline/build.py accept | reject [--note TEXT]
@@ -125,12 +125,12 @@ def _check_pending(m: S.Manifest, replace: bool) -> bool:
     return True
 
 
-def _closeup_camera(pts: np.ndarray) -> R.Camera:
+def _closeup_camera(pts: np.ndarray, view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)) -> R.Camera:
     """Close-up of the selection: its p2..p98 box from the open front side, slightly above. An object fills ~30 % of
     the frame (context stays visible); a room-scale selection (> 2 u) fills ~80 %."""
     lo, hi = np.percentile(pts, 2, axis=0), np.percentile(pts, 98, axis=0)
     fill = 0.3 if float(np.max(hi - lo)) < 2.0 else 0.8
-    return R.framing_camera(lo, hi, np.array([0.0, -0.35, -1.0]), fill=fill)
+    return R.framing_camera(lo, hi, np.array(view_dir), fill=fill)
 
 
 def _layers(splats: np.ndarray, built_idx: np.ndarray, sel_idx: np.ndarray, rest_idx: np.ndarray, kind: str,
@@ -218,12 +218,12 @@ def _fail(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, kind: str, na
 
 def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: np.ndarray, *, kind: str,
              name: str, title: str, subtitle: str, extra: tuple[str, R.Camera, np.ndarray | None] | None,
-             record: dict, headline: str) -> int:
+             record: dict, headline: str, view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)) -> int:
     sel_idx = pool_idx[sel_mask]
     if len(sel_idx) == 0:
         return _fail(m, splats, pool_idx, kind, name, "the detector selected no points")
     bmin, bmax = _bounds(m)
-    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx])), None),
+    views = [("close-up", _closeup_camera(xyz_of(splats[sel_idx]), view_dir), None),
              ("outside, all points", R.outside_camera(bmin, bmax), None)]
     if extra is not None:
         views.append(extra)
@@ -289,7 +289,8 @@ def cmd_part(args: argparse.Namespace) -> int:
                     title=f"PART {n_parts + 1} · {prop.title}", subtitle=prop.subtitle,
                     extra=("overview", prop.camera, None),
                     record={"label": prop.label, "part_kind": prop.kind, "params": prop.params, "info": prop.info},
-                    headline=f"ADD {prop.label.upper()} · {int(prop.take.sum()):,} points as part {n_parts + 1}")
+                    headline=f"ADD {prop.label.upper()} · {int(prop.take.sum()):,} points as part {n_parts + 1}",
+                    view_dir=prop.view_dir)
 
 
 def write_current(splats: np.ndarray, m: S.Manifest) -> int:

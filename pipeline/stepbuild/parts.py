@@ -10,7 +10,8 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from stepbuild import render as R
-from stepbuild.geometry import horizontal_plane
+from stepbuild.geometry import ceiling_split, horizontal_plane
+from stepbuild.splats import rgb_of
 
 
 @dataclass
@@ -24,6 +25,7 @@ class PartProposal:
     camera: R.Camera
     params: dict = field(default_factory=dict)
     info: dict = field(default_factory=dict)
+    view_dir: tuple[float, float, float] = (0.0, -0.35, -1.0)  # close-up looks this way (default: from above front)
 
 
 def floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray | None = None,
@@ -47,6 +49,35 @@ def floor(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarr
     )
 
 
+def _ceiling_zone(xyz: np.ndarray, pool: np.ndarray, white: int) -> tuple[np.ndarray, np.ndarray, float, float]:
+    split_y, ceiling_y = ceiling_split(xyz[:, 1])
+    zone = xyz[:, 1] >= split_y
+    lamp = zone & (rgb_of(pool).min(1) >= white)
+    return zone, lamp, split_y, ceiling_y
+
+
+def ceiling(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, white: int = 240
+            ) -> PartProposal:
+    """The real ceiling: every pool point above the gap that separates it from the (denser) pipe band below,
+    minus the saturated-white lamp points (min RGB >= `white`), which become their own part. Close-up from below."""
+    zone, lamp, split_y, ceiling_y = _ceiling_zone(xyz, pool, white)
+    take = zone & ~lamp
+    n = int(take.sum())
+    pts = xyz[take]
+    lo, hi = (pts.min(0), pts.max(0)) if n else (bmin, bmax)
+    return PartProposal(
+        take=take, name="ceiling", label="Ceiling", kind="structure",
+        title=f"CEILING (y >= {split_y:+.2f}, lamps left out)",
+        subtitle=(f"ceiling layer y {ceiling_y:+.2f} · gap above the pipes at {split_y:+.2f} · {n:,} points · "
+                  f"{int(lamp.sum()):,} white lamp points left for their own part · x {lo[0]:+.1f}…{hi[0]:+.1f}"),
+        camera=R.look_up_camera(bmin, bmax, ceiling_y),
+        params={"white": white},
+        info={"split_y": round(split_y, 4), "ceiling_y": round(ceiling_y, 4), "lamp_points": int(lamp.sum())},
+        view_dir=(0.0, 0.55, -1.0),
+    )
+
+
 DETECTORS: dict[str, Callable[..., PartProposal]] = {
     "floor": floor,
+    "ceiling": ceiling,
 }

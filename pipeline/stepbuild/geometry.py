@@ -111,3 +111,15 @@ def top_layer_edge(y: np.ndarray, bin_size: float = 0.04, rel_peak: float = 0.02
     above = np.flatnonzero(c[k:] < rel_edge * c[k])
     edge = float(e[k + above[0]]) if len(above) else float(e[-1])
     return ceiling, edge
+
+
+def ceiling_split(y: np.ndarray, bin_size: float = 0.02) -> tuple[float, float]:
+    """(split_y, ceiling_y): the emptiest height between the densest upper layer (the pipe band) and the topmost
+    dense layer (the real ceiling). Everything at or above split_y belongs to the ceiling zone."""
+    ceiling_y, _ = top_layer_edge(y)
+    lo = np.percentile(y, 50)
+    counts, e = np.histogram(y, bins=np.arange(lo, ceiling_y + bin_size, bin_size))
+    k_max = int(np.argmax(counts))
+    seg = counts[k_max:]
+    k = k_max + int(np.argmin(seg)) if len(seg) else k_max
+    return float(e[k]), ceiling_y

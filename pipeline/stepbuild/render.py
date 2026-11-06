@@ -197,6 +197,13 @@ def top_down_camera(lo: np.ndarray, hi: np.ndarray, eye_y: float, fov_deg: float
                   fov_deg, up=(0.0, 0.0, -1.0))
 
 
+def look_up_camera(bmin: np.ndarray, bmax: np.ndarray, target_y: float, fov_deg: float = 70.0) -> Camera:
+    """Worm's-eye view: low at the open front, looking up and back at height `target_y` over the room's back half."""
+    c = 0.5 * (bmin + bmax)
+    pos = (float(c[0]), float(bmin[1] + 0.35 * (bmax[1] - bmin[1])), float(bmax[2] + 0.6))
+    return Camera(pos, (float(c[0]), float(target_y), float(bmin[2] + 0.3 * (bmax[2] - bmin[2]))), fov_deg)
+
+
 def framing_camera(obj_min: np.ndarray, obj_max: np.ndarray, view_dir: np.ndarray,
                    fill: float = 0.25, fov_deg: float = 50.0, width: int = WIDTH, height: int = HEIGHT - BANNER_H
                    ) -> Camera:
