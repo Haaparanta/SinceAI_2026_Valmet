@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import {
   BuildCloud,
+  buildFromUrl,
   frameBox,
   loadScene,
   METRES_PER_UNIT_GUESS,
@@ -262,7 +263,7 @@ function wireControls(meta: SceneMeta): void {
 }
 
 async function main(): Promise<void> {
-  const { meta, geometry } = await loadScene();
+  const { meta, geometry } = await loadScene(buildFromUrl(params));
   cloud = new BuildCloud(meta, geometry);
   scene.add(cloud.group);
   const room = roomBox(meta);

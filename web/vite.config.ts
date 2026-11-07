@@ -19,6 +19,9 @@ function derivedFiles(): Plugin {
     // scripts/export_viewer_scene.py (the step-by-step build for the viewer and capture.html)
     "/api/viewer/scene.bin": resolve(derived, "viewer/scene.bin"),
     "/api/viewer/scene.json": resolve(derived, "viewer/scene.json"),
+    // scripts/export_autoscene_viewer.py (the automatic build; the viewer picks it with ?scene=auto)
+    "/api/viewer-auto/scene.bin": resolve(derived, "viewer_auto/scene.bin"),
+    "/api/viewer-auto/scene.json": resolve(derived, "viewer_auto/scene.json"),
   };
   return {
     name: "a2b-derived-files",

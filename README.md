@@ -105,3 +105,10 @@ direction, and every object gets its own PLY, an oriented box, a row in `out/sce
 ```bash
 cd autoscene && uv sync && uv run python -m autoscene.run all
 ```
+
+To see the automatic build in the web viewer (build slider, boxes, cutaway, VR), export it and open the viewer with
+`?scene=auto`:
+
+```bash
+make viewer-auto && make web     # then http://localhost:5173/?scene=auto
+```

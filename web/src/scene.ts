@@ -22,6 +22,9 @@ export interface PartMeta {
   name: string;
   label: string;
   kind: string;
+  /** automatic build only: structure | yoloe | cluster, and the detector's confidence */
+  source?: string;
+  confidence?: number;
   count: number;
   start: number;
   end: number;
@@ -29,6 +32,8 @@ export interface PartMeta {
 }
 export interface SceneMeta {
   version: number;
+  /** "autoscene" for the automatic build; absent for the manual one */
+  build?: string;
   exported_at: string;
   source: { file: string; header_rows: number; real_rows: number };
   frame: string;
@@ -146,13 +151,21 @@ export function parseScene(buf: ArrayBuffer, meta: SceneMeta): THREE.BufferGeome
   return g;
 }
 
-export async function loadScene(): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
-  const hint = "run `uv run python scripts/export_viewer_scene.py` first";
-  const metaRes = await fetch("/api/viewer/scene.json");
-  if (!metaRes.ok) throw new Error(`GET /api/viewer/scene.json -> ${metaRes.status}: ${hint}`);
+/** Which build to show: the manual step-by-step build (default) or the automatic one (?scene=auto). */
+export type Build = "manual" | "auto";
+export function buildFromUrl(params: URLSearchParams): Build {
+  return params.get("scene") === "auto" ? "auto" : "manual";
+}
+
+export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
+  const base = build === "auto" ? "/api/viewer-auto" : "/api/viewer";
+  const script = build === "auto" ? "export_autoscene_viewer.py" : "export_viewer_scene.py";
+  const hint = `run \`uv run python scripts/${script}\` first`;
+  const metaRes = await fetch(`${base}/scene.json`);
+  if (!metaRes.ok) throw new Error(`GET ${base}/scene.json -> ${metaRes.status}: ${hint}`);
   const meta = (await metaRes.json()) as SceneMeta;
-  const binRes = await fetch("/api/viewer/scene.bin");
-  if (!binRes.ok) throw new Error(`GET /api/viewer/scene.bin -> ${binRes.status}: ${hint}`);
+  const binRes = await fetch(`${base}/scene.bin`);
+  if (!binRes.ok) throw new Error(`GET ${base}/scene.bin -> ${binRes.status}: ${hint}`);
   return { meta, geometry: parseScene(await binRes.arrayBuffer(), meta) };
 }
 

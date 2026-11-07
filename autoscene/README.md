@@ -45,6 +45,12 @@ corners}, aabb, scores (label → summed detector score), views, detections, ply
 | detector labels | step ladder 13, roll cage 16, barrel 11, chair 10, insulated pipe 13, tool box 5, pressure vessel 5, trolley 5, bucket 5, washing machine, pump, electric motor, control cabinet, radiator, fan, exit sign, … |
 | coverage | 1,447,247 of 1,550,507 kept splats belong to an object (93 %), 103,260 leftovers |
 
+## In the web viewer
+
+`make viewer-auto` (from the repo root) writes `data/derived/viewer_auto/scene.{bin,json}` in the same layout the
+manual build uses, and the three.js viewer shows it at `http://localhost:5173/?scene=auto`: the build slider replays
+the 425 objects in order, Boxes draws every frame, the snapshot page takes the same parameter.
+
 ## Known limits (honest list)
 
 - Objects that touch each other can still merge when every view that sees them masks them together (the widest

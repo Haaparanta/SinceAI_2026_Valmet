@@ -1,7 +1,7 @@
 """a2b API (FastAPI) - scaffold.
 
 Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats,
-GET /api/viewer/scene.bin, GET /api/viewer/scene.json.
+GET /api/viewer/scene.bin, GET /api/viewer/scene.json, GET /api/viewer-auto/scene.{bin,json}.
 The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots) land with M4-M9.
 
     uv run uvicorn api.main:app --reload --port 8000
@@ -53,10 +53,11 @@ def scene_points() -> FileResponse:
     return _derived_file("scene_points.bin", "application/octet-stream")
 
 
-def _viewer_file(name: str, media_type: str) -> FileResponse:
-    path = DERIVED / "viewer" / name
+def _viewer_file(name: str, media_type: str, folder: str = "viewer") -> FileResponse:
+    path = DERIVED / folder / name
+    script = "export_viewer_scene.py" if folder == "viewer" else "export_autoscene_viewer.py"
     if not path.exists():
-        raise HTTPException(status_code=404, detail=f"viewer/{name} missing: run `uv run python scripts/export_viewer_scene.py`")
+        raise HTTPException(status_code=404, detail=f"{folder}/{name} missing: run `uv run python scripts/{script}`")
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "no-cache"})
 
 
@@ -70,6 +71,18 @@ def viewer_scene_bin() -> FileResponse:
 def viewer_scene_json() -> FileResponse:
     """Parts (name, kind, count, [start, end) range, bbox), room bounds and dollhouse cut for scene.bin."""
     return _viewer_file("scene.json", "application/json")
+
+
+@app.get("/api/viewer-auto/scene.bin")
+def viewer_auto_scene_bin() -> FileResponse:
+    """The automatic build (autoscene) as one point cloud, same layout (scripts/export_autoscene_viewer.py)."""
+    return _viewer_file("scene.bin", "application/octet-stream", "viewer_auto")
+
+
+@app.get("/api/viewer-auto/scene.json")
+def viewer_auto_scene_json() -> FileResponse:
+    """Objects of the automatic build (name, label, kind, source, confidence, range, bbox, obb)."""
+    return _viewer_file("scene.json", "application/json", "viewer_auto")
 
 
 @app.get("/api/scene/stats")
