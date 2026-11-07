@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -490,11 +491,16 @@ def state_images(splats: np.ndarray, m: S.Manifest, event: str) -> list[str]:
         splat_views = [("GAUSSIAN SPLATS: built 3D world, outside", R.outside_camera(bmin, bmax), built),
                        ("GAUSSIAN SPLATS: built 3D world, inside (START camera)", start_cam, built), *splat_views]
     images = []
+    t_splat = time.perf_counter()
     for view, cam, idx in splat_views:                  # real splat rendering (ellipses, opacity), see render.py
-        frame = R.splat_picture(splats[idx], cam)
+        left = 30.0 - (time.perf_counter() - t_splat)   # ~30 s for all splat pictures of one decision (user)
+        whole = view.startswith("GAUSSIAN SPLATS: whole")           # built parts: measured ~4 s at 1/2
+        frame = R.splat_picture(splats[idx], cam, scale=None if whole else 2,
+                                budget_s=max(5.0, min(18.0, left)))
         when = S.now_local()
         index = S.next_image_index()
-        im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} · {facts}", [], when, "SPLATS", STATE_RGB)
+        im = R.compose(frame, f"{index:04d} · STATE · {event}", f"{view} (1/{frame.counts['scale']} res) · {facts}",
+                       [], when, "SPLATS", STATE_RGB)
         images.append(S.rel(_save(im, index, when)))
     for view, cam, idx in views:
         sub = splats[idx]

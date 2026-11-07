@@ -91,3 +91,9 @@ def test_gaussian_splat_is_an_ellipse_with_its_colour_and_opacity() -> None:
     assert centre[0] > 240 and centre[1] < 10                                             # opaque red centre
     row, col = f.image[75, :, 0], f.image[:, 100, 0]
     assert (row > 128).sum() > 2.5 * (col > 128).sum()                                    # wider than tall
+
+
+def test_splat_scale_keeps_the_full_room_within_budget() -> None:
+    assert R.splat_scale(100_000, 18) == 2
+    assert R.splat_scale(1_617_777, 18) == 3        # the whole room: 1/3 (~17 s)
+    assert R.splat_scale(1_617_777, 8) >= 5

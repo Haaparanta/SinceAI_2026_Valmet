@@ -676,10 +676,23 @@ def render_gaussians(splats: np.ndarray, cam: Camera, width: int = WIDTH, height
     return Frame(img, depth.reshape(height, width), cam, {"fragments": int(sum(len(v) for v in pix_l))})
 
 
-def splat_picture(splats: np.ndarray, cam: Camera, scale: int = 2, max_radius_px: int = 12) -> Frame:
-    """render_gaussians at 1/`scale` resolution, upscaled to the full picture size (Lanczos): about 4x faster and the
-    footprint cap is 2x larger, so big splats are not cut into squares (full room ~80 s, built parts ~5 s on an M1)."""
+def splat_scale(n_splats: int, budget_s: float = 10.0) -> int:
+    """Resolution divisor for render_gaussians so one picture takes about `budget_s` on the M1. Measured: ~11 splat
+    fragments per 1,000 splats per (1/scale^2) of the frame, ~1.1 M fragments/s incl. projection; the full room
+    (1.6 M splats) takes 80 s at 1/2, 17 s at 1/3, 10 s at 1/4; the built parts (0.4 M) 4 s at 1/2."""
+    seconds_full_room = {2: 80.0, 3: 17.0, 4: 10.0, 5: 7.0, 6: 5.0}
+    for scale, sec in seconds_full_room.items():
+        if n_splats / 1.6e6 * sec <= budget_s:
+            return scale
+    return 6
+
+
+def splat_picture(splats: np.ndarray, cam: Camera, scale: int | None = None, budget_s: float = 18.0) -> Frame:
+    """render_gaussians at 1/`scale` resolution (picked from the splat count to stay within `budget_s` if not
+    given), upscaled to the full picture size (Lanczos). Big splats keep their soft edges: the footprint cap is
+    24 px of the full frame at every scale. Budget for all splat pictures of a decision: ~30 s (user, 2026-11-07)."""
+    scale = scale or splat_scale(len(splats), budget_s)
     w, h = WIDTH // scale, (HEIGHT - BANNER_H) // scale
-    f = render_gaussians(splats, cam, w, h, max_radius_px=max_radius_px)
+    f = render_gaussians(splats, cam, w, h, max_radius_px=max(4, 24 // scale))
     img = np.asarray(Image.fromarray(f.image).resize((WIDTH, HEIGHT - BANNER_H), Image.LANCZOS))
-    return Frame(img, np.full(img.shape[:2], np.inf, np.float32), cam, f.counts)
+    return Frame(img, np.full(img.shape[:2], np.inf, np.float32), cam, {**f.counts, "scale": scale})
