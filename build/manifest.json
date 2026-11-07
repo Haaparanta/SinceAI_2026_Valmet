@@ -13612,7 +13612,7 @@
       "index": 1138,
       "kind": "part",
       "name": "control_valve_2",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/1138_20261107-040203.png",
         "images/1139_20261107-040203.png",
@@ -14049,7 +14049,37 @@
           1.38,
           1.92
         ]
-      }
+      },
+      "decided_at": "2026-11-07T04:04:48+02:00"
+    },
+    {
+      "index": 1159,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/1159_20261107-040452.png",
+        "images/1160_20261107-040458.png",
+        "images/1161_20261107-040515.png",
+        "images/1162_20261107-040518.png",
+        "images/1163_20261107-040519.png",
+        "images/1164_20261107-040520.png",
+        "images/1165_20261107-040521.png",
+        "images/1166_20261107-040521.png",
+        "images/1167_20261107-040522.png",
+        "images/1168_20261107-040524.png",
+        "images/1169_20261107-040525.png",
+        "images/1170_20261107-040527.png",
+        "images/1171_20261107-040528.png",
+        "images/1172_20261107-040529.png",
+        "images/1173_20261107-040529.png",
+        "images/1174_20261107-040529.png",
+        "images/1175_20261107-040530.png"
+      ],
+      "created_at": "2026-11-07T04:05:30+02:00",
+      "event": "after 1138 ACCEPTED (part control_valve_2)",
+      "kept": 1617777,
+      "built": 428550
     }
   ],
   "parts": [
@@ -14721,6 +14751,43 @@
       },
       "indices": "build/parts/1100_control_valve_1.idx.npy",
       "ply": "build/parts/1100_control_valve_1.ply"
+    },
+    {
+      "index": 1138,
+      "name": "control_valve_2",
+      "label": "Control valve 2",
+      "kind": "equipment",
+      "count": 2552,
+      "bbox": {
+        "min": [
+          -2.2251,
+          -0.1999,
+          1.3803
+        ],
+        "max": [
+          -2.0301,
+          0.1295,
+          1.8192
+        ]
+      },
+      "params": {
+        "x": -2.12,
+        "y": -0.03,
+        "z": 1.6,
+        "radius": 0.8,
+        "label": "Control valve",
+        "cls": "CONTROL_VALVE",
+        "voxel": 0.04,
+        "min_alpha": 0.08,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "-2.255,-2.03,-0.2,0.13,1.38,1.92",
+        "min_group": 30.0,
+        "nearest": 0.0,
+        "exclude": ""
+      },
+      "indices": "build/parts/1138_control_valve_2.idx.npy",
+      "ply": "build/parts/1138_control_valve_2.ply"
     }
   ],
   "removed": [
