@@ -1,0 +1,7 @@
+# twinbuild.click: the viewer page is public; the data API and the scripted snapshot page are not for crawlers.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /capture.html
+
+Sitemap: https://twinbuild.click/sitemap.xml

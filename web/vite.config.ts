@@ -63,6 +63,8 @@ const vr = process.env.VR === "1";
 export default defineConfig({
   plugins: [derivedFiles(), ...(vr ? [basicSsl({ name: "a2b-quest" })] : [])],
   build: {
+    // three.js alone is ~540 kB (136 kB gzipped) and cannot be split further; warn only above that
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       input: { main: resolve(here, "index.html"), capture: resolve(here, "capture.html") },
     },

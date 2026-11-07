@@ -1,0 +1,15 @@
+# Allowlist: the image needs only the API, the web sources (with web/public), the design tokens and the exports.
+*
+!api/
+!web/
+!design/
+!data/derived/viewer/
+!data/derived/viewer_auto/
+!data/derived/compare.json
+# the viewer streams lod/*.splat; the single scene.splat is only for exports made before the detail levels existed
+data/derived/viewer/scene.splat
+data/derived/viewer_auto/scene.splat
+web/node_modules
+web/dist
+**/__pycache__
+**/.DS_Store

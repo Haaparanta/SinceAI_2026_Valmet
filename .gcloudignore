@@ -1,0 +1,14 @@
+# What `gcloud builds submit` uploads: only the image inputs (the scene comes from the bucket in cloudbuild.yaml).
+*
+!api/
+!api/**
+!web/
+!web/**
+!design/
+!design/**
+!Dockerfile
+!.dockerignore
+!cloudbuild.yaml
+web/node_modules/
+web/dist/
+**/__pycache__/
