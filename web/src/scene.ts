@@ -26,6 +26,10 @@ export interface PartMeta {
   start: number;
   end: number;
   bbox: BBox;
+  /** the step images the part was accepted with (file names in images/, served at /api/images/<name>) */
+  images?: string[];
+  /** ISO time of the acceptance step */
+  accepted_at?: string;
 }
 export interface SceneMeta {
   version: number;
