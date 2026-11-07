@@ -33,18 +33,32 @@ is the checkout you run `make deploy` in (uploaded as the build source), so run 
 Local check of the exact image: `make viewer viewer-auto compare && make docker-build && make docker-run` →
 http://localhost:8080. `make test T=api` runs the API tests (temp folders, no export needed).
 
-## Deploy on every push to main (recommended)
+## Deploy on every merge to main (Cloud Build trigger)
 
-The pipeline in `cloudbuild.yaml` is the same; only the trigger is missing. GitHub must be connected once in the
-console (OAuth, needs your browser): Cloud Build → *Triggers* → *Connect repository* → GitHub →
-`Haaparanta/SinceAI_2026_Valmet`. Then:
+Trigger `deploy-main` (region `europe-north1`) runs `cloudbuild.yaml` as `a2b-build` on every push to `main` that
+changes something in the image (`api/`, `web/`, `design/`, `Dockerfile`, `cloudbuild.yaml`, `Makefile`; README and
+docs changes don't deploy). It is a native Cloud Build trigger on a Cloud Build GitHub connection, so it does not use
+GitHub Actions (the Haaparanta account's Actions are locked by a GitHub billing issue) and stores no key: Google keeps
+the GitHub app token in Secret Manager. `make publish-scene` stays the way to update the exports.
+
+One-time setup (idempotent; needs a logged-in `gcloud` with owner rights and your browser once):
 
 ```bash
-make deploy-trigger    # gcloud builds triggers create github ... --branch-pattern '^main$' --build-config cloudbuild.yaml
+make deploy-trigger    # scripts/gcp_cloudbuild_trigger.sh
 ```
 
-From then on every merge to `main` rebuilds the image from the bucket's exports and deploys it; `make publish-scene`
-stays the way to update the exports. No keys are stored anywhere: the build runs as `a2b-build`, inside Google.
+The script grants `secretmanager.admin` to the Cloud Build service agent, creates connection `github`, prints **one
+link** (open it, sign in to GitHub, install the Cloud Build app on `Haaparanta/SinceAI_2026_Valmet`; the script waits),
+links the repository and creates the trigger. Re-running it recreates the trigger with the current file filter.
+
+```bash
+make deploy-trigger-run                                             # run the trigger now, as if main was pushed
+gcloud builds list --project twinbuild-a2b --region europe-north1 --limit 5   # recent builds (regional, not global)
+```
+
+Alternative when GitHub Actions works: `make deploy-github` (`scripts/gcp_github_deploy.sh`) sets up Workload Identity
+Federation so a workflow can run `make deploy` as `a2b-build` without a key; the workflow itself was removed in favour
+of the trigger (git history of `.github/workflows/deploy.yml` has it). Don't run both, or every merge deploys twice.
 
 ## Site files (web/public)
 
