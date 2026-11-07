@@ -14085,7 +14085,7 @@
       "index": 1176,
       "kind": "part",
       "name": "process_pump_3",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/1176_20261107-040650.png",
         "images/1177_20261107-040650.png",
@@ -14522,7 +14522,37 @@
           -2.16,
           -1.74
         ]
-      }
+      },
+      "decided_at": "2026-11-07T04:10:47+02:00"
+    },
+    {
+      "index": 1197,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/1197_20261107-041053.png",
+        "images/1198_20261107-041057.png",
+        "images/1199_20261107-041114.png",
+        "images/1200_20261107-041116.png",
+        "images/1201_20261107-041118.png",
+        "images/1202_20261107-041119.png",
+        "images/1203_20261107-041120.png",
+        "images/1204_20261107-041121.png",
+        "images/1205_20261107-041122.png",
+        "images/1206_20261107-041124.png",
+        "images/1207_20261107-041126.png",
+        "images/1208_20261107-041128.png",
+        "images/1209_20261107-041129.png",
+        "images/1210_20261107-041130.png",
+        "images/1211_20261107-041130.png",
+        "images/1212_20261107-041130.png",
+        "images/1213_20261107-041131.png"
+      ],
+      "created_at": "2026-11-07T04:11:31+02:00",
+      "event": "after 1176 ACCEPTED (part process_pump_3)",
+      "kept": 1617777,
+      "built": 431130
     }
   ],
   "parts": [
@@ -15231,6 +15261,43 @@
       },
       "indices": "build/parts/1138_control_valve_2.idx.npy",
       "ply": "build/parts/1138_control_valve_2.ply"
+    },
+    {
+      "index": 1176,
+      "name": "process_pump_3",
+      "label": "Pump 3",
+      "kind": "equipment",
+      "count": 2580,
+      "bbox": {
+        "min": [
+          -4.1999,
+          -0.1399,
+          -2.157
+        ],
+        "max": [
+          -3.74,
+          0.2396,
+          -1.7401
+        ]
+      },
+      "params": {
+        "x": -3.97,
+        "y": 0.04,
+        "z": -1.95,
+        "radius": 0.8,
+        "label": "Pump",
+        "cls": "PROCESS_PUMP",
+        "voxel": 0.04,
+        "min_alpha": 0.03,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "-4.20,-3.74,-0.14,0.24,-2.16,-1.74",
+        "min_group": 30.0,
+        "nearest": 0.0,
+        "exclude": ""
+      },
+      "indices": "build/parts/1176_process_pump_3.idx.npy",
+      "ply": "build/parts/1176_process_pump_3.ply"
     }
   ],
   "removed": [
