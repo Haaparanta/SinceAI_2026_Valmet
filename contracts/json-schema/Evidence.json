@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "evidence_id": {
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "event",
+        "work_order",
+        "doc",
+        "case",
+        "data_quality",
+        "current_state",
+        "telemetry"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "kind",
+    "summary"
+  ],
+  "title": "Evidence",
+  "type": "object"
+}

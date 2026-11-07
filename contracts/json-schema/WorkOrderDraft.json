@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "title": "Action",
+      "type": "string"
+    },
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "maintenance_type": {
+      "title": "Maintenance Type",
+      "type": "string"
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "string"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    },
+    "role": {
+      "title": "Role",
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_id",
+    "action",
+    "maintenance_type",
+    "priority",
+    "role",
+    "rationale"
+  ],
+  "title": "WorkOrderDraft",
+  "type": "object"
+}

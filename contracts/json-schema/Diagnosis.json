@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "WorkOrderDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "maintenance_type": {
+          "title": "Maintenance Type",
+          "type": "string"
+        },
+        "priority": {
+          "title": "Priority",
+          "type": "string"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "action",
+        "maintenance_type",
+        "priority",
+        "role",
+        "rationale"
+      ],
+      "title": "WorkOrderDraft",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "cached": {
+      "title": "Cached",
+      "type": "boolean"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "hypothesis": {
+      "title": "Hypothesis",
+      "type": "string"
+    },
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "next_safe_check": {
+      "title": "Next Safe Check",
+      "type": "string"
+    },
+    "observations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Observations",
+      "type": "array"
+    },
+    "safety_note": {
+      "title": "Safety Note",
+      "type": "string"
+    },
+    "tag": {
+      "title": "Tag",
+      "type": "string"
+    },
+    "work_order_draft": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorkOrderDraft"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "asset_id",
+    "tag",
+    "observations",
+    "hypothesis",
+    "confidence",
+    "evidence_ids",
+    "next_safe_check",
+    "safety_note",
+    "model",
+    "cached",
+    "generated_at"
+  ],
+  "title": "Diagnosis",
+  "type": "object"
+}

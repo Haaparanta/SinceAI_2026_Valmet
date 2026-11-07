@@ -1,0 +1,47 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "demo_mode": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Demo Mode"
+    },
+    "mode": {
+      "default": "arrival",
+      "enum": [
+        "arrival",
+        "along_route"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "question": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Question"
+    }
+  },
+  "required": [
+    "asset_id"
+  ],
+  "title": "CopilotQuery",
+  "type": "object"
+}
