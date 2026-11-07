@@ -262,12 +262,14 @@ def _fit_circle(u: np.ndarray, v: np.ndarray) -> tuple[float, float, float]:
 
 def pipe(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, along: str = "x", a: float = 0.0,
          b: float = 0.0, search: float = 0.15, shell: float = 0.03, gap: float = 0.3, min_alpha: float = 0.1,
-         number: int = 1, label: str = "Pipe") -> PartProposal:
+         number: int = 1, label: str = "Pipe", neighbour: str = "") -> PartProposal:
     """One straight pipe running `along` x, z or y, whose cross-section is near (a, b) in the two other axes (for a
     pipe along x: a = z, b = y). The circle of the cross-section is fitted to the points within `search` of (a, b)
     and re-fitted three times on the points within `shell` of the circle, so a neighbouring pipe does not pull it.
     The pipe = every pool point within radius + `shell` of the axis, over the longest stretch along the axis without
-    a gap longer than `gap` (pipes are straight; at an elbow or a tee the stretch ends)."""
+    a gap longer than `gap` (pipes are straight; at an elbow or a tee the stretch ends). `neighbour` =
+    "a,b,r[;a,b,r...]": parallel pipes touching this one (cross-section centre and radius); a point closer to a
+    neighbour's surface than to this pipe's surface stays for that pipe (two risers 22 cm apart, radii 9 + 13 cm)."""
     ax, ca, cb = PIPE_AXES[along]
     u, v, t = xyz[:, ca], xyz[:, cb], xyz[:, ax]
     solid = alpha_of(pool) >= min_alpha
@@ -307,17 +309,25 @@ def pipe(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarra
             best, best_pts = (i0, i1), pts_
     t0, t1 = edges[best[0]], edges[best[1] + 1]
     take = (d <= r + shell) & (t >= t0) & (t <= t1)
+    for nb in filter(None, str(neighbour).split(";")):
+        na, nbb, nr = (float(v) for v in nb.split(","))
+        take &= np.abs(d - r) <= np.abs(np.hypot(u - na, v - nbb) - nr)
     n = int(take.sum())
+    ang = np.arctan2(v[take] - pb, u[take] - pa)
+    sectors = np.histogram(ang, bins=12, range=(-np.pi, np.pi))[0]
+    round_sides = int((sectors >= 0.25 * max(sectors.mean(), 1e-9)).sum())  # 12 = seen all round (a ladder rail: 6)
     names = "xyz"
     view = {"x": (0.0, -0.3, -1.0), "z": (-1.0, -0.3, 0.0), "y": (0.0, -0.3, -1.0)}[along]
     return PartProposal(
         take=take, name=f"pipe_{number}", label=f"{label} {number}", kind="pipe",
         title=f"PIPE {number} (along {along}, diameter {200 * r:.0f} cm)",
         subtitle=(f"axis at {names[ca]} {pa:+.3f}, {names[cb]} {pb:+.3f} · radius {r:.3f} u · {along} {t0:+.2f}…{t1:+.2f} "
-                  f"(length {t1 - t0:.2f} u) · {n:,} points"),
+                  f"(length {t1 - t0:.2f} u) · {n:,} points · round: {round_sides}/12 sides seen"),
         camera=R.overview_camera(bmin, bmax),
-        params={"along": along, "a": a, "b": b, "search": search, "shell": shell, "gap": gap, "min_alpha": min_alpha},
-        info={"axis": [round(pa, 4), round(pb, 4)], "radius": round(r, 4), "start": round(float(t0), 3),
+        params={"along": along, "a": a, "b": b, "search": search, "shell": shell, "gap": gap, "min_alpha": min_alpha,
+                "neighbour": neighbour},
+        info={"round_sides": round_sides, "axis": [round(pa, 4), round(pb, 4)], "radius": round(r, 4),
+              "start": round(float(t0), 3),
               "end": round(float(t1), 3), "runs": len(runs)},
         view_dir=view,
     )

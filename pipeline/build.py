@@ -360,6 +360,9 @@ def _propose(m: S.Manifest, splats: np.ndarray, pool_idx: np.ndarray, sel_mask: 
     if kind == "part":
         frames += _parts_only(splats, m, sel_idx, kind)
     lo, hi = np.percentile(pts_all := xyz_of(splats[sel_idx]), 2, axis=0), np.percentile(pts_all, 98, axis=0)
+    if kind == "part" and name.startswith("pipe_") and float(np.max(hi - lo)) >= 2.0:   # long pipes: shape check
+        everything = np.concatenate([m.claimed_indices(), pool_idx])
+        frames.insert(0, ("the part alone, own colours, 4 sides", _object_four_sides(splats, sel_idx, everything, 0)))
     if kind == "part" and float(np.max(hi - lo)) < 2.0:          # small part: green | colour pair comes first
         frames.insert(0, ("close-up from the room, green | own colours",
                           _object_pair(splats, m, sel_idx, pool_idx[~sel_mask], kind)))
