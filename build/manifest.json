@@ -12660,6 +12660,449 @@
       "event": "after 1024 ACCEPTED (part process_pump_2)",
       "kept": 1617777,
       "built": 422502
+    },
+    {
+      "index": 1062,
+      "kind": "part",
+      "name": "process_pump_3",
+      "status": "pending",
+      "images": [
+        "images/1062_20261107-035543.png",
+        "images/1063_20261107-035543.png",
+        "images/1064_20261107-035543.png",
+        "images/1065_20261107-035543.png",
+        "images/1066_20261107-035544.png",
+        "images/1067_20261107-035544.png",
+        "images/1068_20261107-035544.png",
+        "images/1069_20261107-035544.png",
+        "images/1070_20261107-035544.png",
+        "images/1071_20261107-035544.png",
+        "images/1072_20261107-035544.png",
+        "images/1073_20261107-035544.png",
+        "images/1074_20261107-035544.png",
+        "images/1075_20261107-035544.png",
+        "images/1076_20261107-035544.png",
+        "images/1077_20261107-035544.png",
+        "images/1078_20261107-035544.png",
+        "images/1079_20261107-035544.png",
+        "images/1080_20261107-035544.png",
+        "images/1081_20261107-035544.png",
+        "images/1082_20261107-035544.png"
+      ],
+      "created_at": "2026-11-07T03:55:44+02:00",
+      "count": 6068,
+      "pool_before": 1195275,
+      "bbox": {
+        "min": [
+          -2.4018,
+          -0.1999,
+          1.3803
+        ],
+        "max": [
+          -2.0301,
+          0.1296,
+          1.8192
+        ]
+      },
+      "headline": "ADD PUMP 3 · 6,068 points as part 22",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            0.3445,
+            -0.3646,
+            -0.1341
+          ],
+          "target": [
+            -2.2138,
+            -0.0381,
+            1.5929
+          ],
+          "fov_deg": 31.022954476442248
+        },
+        "the part alone, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "the part with 35 cm of surroundings, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up": {
+          "position": [
+            -2.2138,
+            0.4592,
+            3.0138
+          ],
+          "target": [
+            -2.2138,
+            -0.0381,
+            1.5929
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -3.5561,
+            0.5043,
+            2.3678
+          ],
+          "target": [
+            -2.2138,
+            -0.0381,
+            1.5929
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            -0.8716,
+            0.5043,
+            2.3678
+          ],
+          "target": [
+            -2.2138,
+            -0.0381,
+            1.5929
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            -2.2138,
+            0.9555,
+            1.5928
+          ],
+          "target": [
+            -2.2138,
+            -0.0381,
+            1.5929
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "axis view from the top (looking down -Y)": {
+          "position": [
+            0.3445,
+            151.7607,
+            -0.1493
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the right (looking -X)": {
+          "position": [
+            91.3647,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the left (looking +X)": {
+          "position": [
+            -90.6757,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the front (looking -Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            110.884
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the back (looking +Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            -111.1522
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "overview": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts (built 100 % + new), outside": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts, opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts, from above": {
+          "position": [
+            0.3445,
+            10.4356,
+            -0.1351
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 50.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "the part alone, own colours, 4 sides": {},
+        "the part with 35 cm of surroundings, own colours, 4 sides": {},
+        "close-up": {
+          "rest": 197064,
+          "built": 145464,
+          "selected": 23614
+        },
+        "close-up from the left": {
+          "rest": 230566,
+          "built": 166886,
+          "selected": 25111
+        },
+        "close-up from the right": {
+          "rest": 167416,
+          "built": 56733,
+          "selected": 20384
+        },
+        "close-up from above": {
+          "rest": 58629,
+          "built": 45785,
+          "selected": 35586
+        },
+        "outside, all points": {
+          "rest": 170570,
+          "built": 90180,
+          "selected": 631
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 134774,
+          "built": 61933,
+          "selected": 707
+        },
+        "outside from the opposite corner": {
+          "rest": 150825,
+          "built": 113488,
+          "selected": 346
+        },
+        "inside the room (START camera)": {
+          "rest": 224882,
+          "built": 163670,
+          "selected": 1836
+        },
+        "axis view from the top (looking down -Y)": {
+          "rest": 203461,
+          "built": 139420,
+          "selected": 247
+        },
+        "axis view from the right (looking -X)": {
+          "rest": 255667,
+          "built": 68170,
+          "selected": 217
+        },
+        "axis view from the left (looking +X)": {
+          "rest": 271366,
+          "built": 49322,
+          "selected": 2099
+        },
+        "axis view from the front (looking -Z)": {
+          "rest": 211540,
+          "built": 71729,
+          "selected": 1457
+        },
+        "axis view from the back (looking +Z)": {
+          "rest": 189124,
+          "built": 94931,
+          "selected": 779
+        },
+        "overview": {
+          "rest": 224882,
+          "built": 163670,
+          "selected": 1836
+        },
+        "before | after": {},
+        "only the parts (built 100 % + new), outside": {
+          "built": 262970,
+          "new": 952
+        },
+        "only the parts, opposite corner": {
+          "built": 260620,
+          "new": 373
+        },
+        "only the parts, from above": {
+          "built": 271131,
+          "new": 683
+        }
+      },
+      "label": "Pump 3",
+      "part_kind": "equipment",
+      "params": {
+        "x": -2.2,
+        "y": 0.0,
+        "z": 1.68,
+        "radius": 0.8,
+        "label": "Pump",
+        "cls": "PROCESS_PUMP",
+        "voxel": 0.04,
+        "min_alpha": 0.08,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "-2.5,-2.03,-0.2,0.13,1.38,1.92",
+        "min_group": 30.0,
+        "nearest": 0.0,
+        "exclude": ""
+      },
+      "info": {
+        "seed": [
+          -2.2,
+          0.0,
+          1.68
+        ],
+        "components": 2,
+        "kept_groups": 2,
+        "box": [
+          -2.5,
+          -2.03,
+          -0.2,
+          0.13,
+          1.38,
+          1.92
+        ]
+      }
     }
   ],
   "parts": [
