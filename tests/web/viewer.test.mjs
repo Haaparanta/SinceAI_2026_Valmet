@@ -79,7 +79,7 @@ after(async () => {
   vite?.kill();
 });
 
-/** A fresh viewer page that has finished loading the scene; collects page errors and failed requests. */
+/** A fresh viewer page that has every point detail level in (body[data-loaded]); collects errors and failed requests. */
 async function openViewer(query = "") {
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
   const problems = [];
@@ -87,7 +87,7 @@ async function openViewer(query = "") {
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && problems.push(m.text()));
   page.on("response", (r) => r.status() >= 400 && !r.url().endsWith("/favicon.ico") && problems.push(`${r.status()} ${r.url()}`));
   await page.goto(`${BASE}/${query}`);
-  await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+  await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
   return { page, problems };
 }
 
@@ -97,11 +97,11 @@ const search = (page) => new URL(page.url()).searchParams;
 async function litPixels(page, { hideSelected = false } = {}) {
   return page.evaluate((hide) => {
     const { renderer, scene, camera, cloud } = window.__a2b;
-    const sel = cloud.passes[2].points;
-    const was = sel.visible;
-    if (hide) sel.visible = false;
+    const sel = cloud.rolePasses(2); // the selected part's pass in every detail level
+    const was = sel.map((p) => p.visible);
+    if (hide) for (const p of sel) p.visible = false;
     renderer.render(scene, camera);
-    sel.visible = was;
+    sel.forEach((p, i) => (p.visible = was[i]));
     const gl = renderer.getContext();
     const w = gl.drawingBufferWidth;
     const h = gl.drawingBufferHeight;
@@ -269,9 +269,11 @@ describe("viewer (index.html)", () => {
     await page.close();
   });
 
-  test("scene.bin that does not match scene.json is reported, not drawn", async () => {
+  test("scene.bin (or a detail level) that does not match scene.json is reported, not drawn", async () => {
     const page = await browser.newPage();
-    await page.route("**/api/viewer/scene.bin", (r) => r.fulfill({ status: 200, body: Buffer.alloc(18 * 10) }));
+    const bad = (r) => r.fulfill({ status: 200, body: Buffer.alloc(18 * 10) });
+    await page.route("**/api/viewer/scene.bin", bad);
+    await page.route("**/api/viewer/lod/0.bin", bad);
     await page.goto(`${BASE}/`);
     await page.waitForFunction(() => /re-export/.test(document.querySelector("#stats").textContent));
     await page.close();
@@ -371,21 +373,26 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
 
   test("the merged cloud is every manual row, then the automatic rows after its pool, part ids shifted", async () => {
     const { page } = await openViewer("?scene=both");
+    // with detail levels each level is merged on its own: check level 0 against both exports' lod/0.bin; without, the
+    // single chunk against scene.bin
+    const leveled = Boolean(meta.lods?.length && autoMeta.lods?.length === meta.lods.length);
+    const m0 = leveled ? meta.lods[0] : { count: meta.count, ranges: [[0, meta.pool_count]] };
+    const a0 = leveled ? autoMeta.lods[0] : { count: autoMeta.count, ranges: [[0, autoMeta.pool_count], ...autoMeta.parts.map((p) => [p.start, p.end])] };
+    const [aStart, aEnd] = a0.ranges[autoPart.seq];
+    assert.ok(aEnd > aStart, `${autoPart.name} has rows in the first chunk`);
+    const shift = m0.count - a0.ranges[0][1];
     const got = await page.evaluate(({ start, end }) => {
       const { cloud } = window.__a2b;
-      const g = cloud.geometry;
+      const g = cloud.chunks[0].geometry;
       const pos = g.getAttribute("position").array;
       const part = g.getAttribute("part").array;
       return { count: part.length, xyz: Array.from(pos.slice(start * 3, start * 3 + 6)), ids: [part[start], part[end - 1]], meta: cloud.meta.parts.length };
-    }, (() => {
-      const shift = meta.count - autoMeta.pool_count;
-      return { start: autoPart.start + shift, end: autoPart.end + shift };
-    })());
-    assert.equal(got.count, meta.count + autoMeta.count - autoMeta.pool_count);
+    }, { start: aStart + shift, end: aEnd + shift });
+    assert.equal(got.count, m0.count + a0.count - a0.ranges[0][1]);
     assert.equal(got.meta, nManual + nAuto);
     assert.deepEqual(got.ids, [autoPart.seq + nManual, autoPart.seq + nManual]);
-    const bin = readFileSync(resolve(AUTO_DIR, "scene.bin"));
-    const want = Array.from(new Float32Array(bin.buffer, bin.byteOffset + autoPart.start * 12, 6));
+    const bin = readFileSync(resolve(AUTO_DIR, leveled ? autoMeta.lods[0].bin : "scene.bin"));
+    const want = Array.from(new Float32Array(bin.buffer, bin.byteOffset + aStart * 12, 6));
     assert.deepEqual(got.xyz, want, "positions come from the automatic export");
     await page.close();
   });
@@ -441,12 +448,12 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
   test("the Build switch reloads into another build and keeps the view", async () => {
     const { page } = await openViewer("?scene=both&src=model");
     await Promise.all([page.waitForURL(/scene=auto/), page.click('#build button[data-build="auto"]')]);
-    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
     assert.equal(search(page).get("src"), "model");
     assert.equal(await page.locator("#parts li[data-seq]").count(), nAuto);
     assert.equal(await page.locator("#parts .origin-tag").count(), 0, "a single build needs no origin tags");
     await Promise.all([page.waitForURL((u) => !u.searchParams.has("scene")), page.click('#build button[data-build="manual"]')]);
-    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
     assert.equal(await page.locator("#parts li[data-seq]").count(), nManual);
     assert.equal(await page.getAttribute('#style button[data-style="true"]', "aria-pressed"), "true");
     assert.equal(await page.isVisible('#style button[data-style="origin"]'), false, "By origin is for both builds");
@@ -456,7 +463,8 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
   test("Splats mode joins both splat files", async () => {
     const { page, problems } = await openViewer("?scene=both");
     await page.click('#render button[data-render="splats"]');
-    await page.waitForFunction(() => window.__a2b.splats()?.ready || /Splats:/.test(document.querySelector("#toast").textContent), null, { timeout: 90000 });
+    await page.waitForFunction(() => window.__a2b.splats()?.complete || /Splats:/.test(document.querySelector("#toast").textContent), null, { timeout: 90000 });
+    await page.waitForFunction(() => /Gaussian splats loaded|Splats:/.test(document.querySelector("#toast").textContent), null, { timeout: 10000 });
     const total = meta.count + autoMeta.count - autoMeta.pool_count;
     assert.equal(await page.textContent("#toast"), `${total.toLocaleString("en-US")} Gaussian splats loaded`);
     assert.equal(search(page).get("render"), "splats");
@@ -548,8 +556,11 @@ describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? fa
     await page.click('#kinds button[data-origin="auto"]');
     assert.equal(search(page).get("show"), "auto");
     assert.equal(search(page).get("part"), null, "the manual selection is dropped when manual parts are hidden");
-    const uniforms = await page.evaluate(() => window.__a2b.cloud.passes.map((x) => [x.mat.uniforms.uHideManual.value, x.mat.uniforms.uHideAuto.value]));
-    assert.deepEqual(uniforms, [[1, 0], [1, 0], [1, 0]]);
+    // every role pass of every detail level
+    const uniforms = await page.evaluate(() =>
+      [0, 1, 2].flatMap((r) => window.__a2b.cloud.rolePasses(r).map((x) => [x.material.uniforms.uHideManual.value, x.material.uniforms.uHideAuto.value])),
+    );
+    assert.ok(uniforms.length >= 3 && uniforms.every(([m, a]) => m === 1 && a === 0), JSON.stringify(uniforms));
     assert.ok(manualOnly < before, `fewer lit pixels with the automatic build hidden (${manualOnly} < ${before})`);
     // no manual part can be hovered or clicked while only the automatic build is shown
     const picked = await page.evaluate(() => {
@@ -558,7 +569,7 @@ describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? fa
     });
     assert.equal(picked, false);
     await page.reload();
-    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
     assert.equal(await page.getAttribute('#kinds button[data-origin="auto"]', "aria-pressed"), "true", "show= survives a reload");
     await page.close();
   });
@@ -567,7 +578,7 @@ describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? fa
     const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
     await page.route("**/api/compare.json", (r) => r.fulfill({ status: 404, body: "missing" }));
     await page.goto(`${BASE}/?scene=both&part=${parts[0].name}`);
-    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
     assert.equal(await page.isHidden("#compare"), true);
     assert.match(await page.textContent("#card-facts"), /Match/);
     assert.equal(await page.locator("#parts .status").count(), 0);

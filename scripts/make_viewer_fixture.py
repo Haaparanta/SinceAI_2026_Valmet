@@ -10,7 +10,7 @@ These write the same layout from committed files alone: the manual build from bu
 from autoscene/out/scene.json. Every part becomes a box of random points inside its bbox, the pool is a sparse haze
 over the room bounds. Part names, labels, kinds, order and bboxes match the real builds, so URLs like `?part=pipe_3`
 behave the same; colours and shapes do not. scene.json carries "fixture": true. scene.splat (the viewer's Splats mode)
-holds the same rows as small round splats.
+holds the same rows as small round splats, and lod/ the detail levels of scripts/lod.py (listed under "lods").
 """
 
 from __future__ import annotations
@@ -24,6 +24,10 @@ import numpy as np
 import orjson
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))  # lod, splat_format
+
+from lod import export_levels
+
 MANIFEST = ROOT / "build" / "manifest.json"
 AUTOSCENE = ROOT / "autoscene" / "out" / "scene.json"
 OUT = ROOT / "data" / "derived"
@@ -91,6 +95,25 @@ def splat_rows(xyz: np.ndarray, rgb: np.ndarray, scale: float = 0.012) -> bytes:
     return out.tobytes()
 
 
+SH0_FIELDS = ("x", "y", "z", "f_dc_0", "f_dc_1", "f_dc_2", "opacity",
+              "scale_0", "scale_1", "scale_2", "rot_0", "rot_1", "rot_2", "rot_3")
+
+
+def levels(out: Path, blob: bytes, n: int, scale: float = 0.012) -> list[dict]:
+    """The detail levels (scripts/lod.py) of a fixture's rows: opaque round splats, as splat_rows writes them."""
+    xyz = np.frombuffer(blob, "<f4", n * 3).reshape(n, 3)
+    part = np.frombuffer(blob, "<u2", n, offset=n * 12)
+    rgb = np.frombuffer(blob, "u1", n * 3, offset=n * 14).reshape(n, 3)
+    size_mm = np.frombuffer(blob, "u1", n, offset=n * 17)
+    s = np.zeros(n, np.dtype([(f, "<f4") for f in SH0_FIELDS]))
+    s["x"], s["y"], s["z"] = xyz.T
+    s["f_dc_0"], s["f_dc_1"], s["f_dc_2"] = ((rgb / 255.0 - 0.5) / 0.28209479).T
+    s["opacity"] = 30.0
+    s["scale_0"] = s["scale_1"] = s["scale_2"] = np.log(scale)
+    s["rot_0"] = 1.0
+    return export_levels(out, s, xyz, part, rgb, size_mm)
+
+
 def fixture(which: str, pool_points: int, part_points: int) -> tuple[bytes, dict, bytes]:
     if which == "manual":
         m = orjson.loads(MANIFEST.read_bytes())
@@ -133,6 +156,7 @@ def main() -> int:
         out.mkdir(parents=True, exist_ok=True)
         (out / "scene.bin").write_bytes(blob)
         (out / "scene.splat").write_bytes(splat)
+        meta["lods"] = levels(out, blob, meta["count"])
         (out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")
         print(f"fixture ({which}): {meta['count']:,} points, {len(meta['parts'])} parts -> {out}")
     return status

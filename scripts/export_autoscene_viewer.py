@@ -10,6 +10,7 @@ the pool (kept splats no object claimed) first, then every object in build order
 scene.bin, little-endian, n = total points:
     float32 xyz[n*3] | uint16 part[n] (0 = pool, k = parts[k-1]) | uint8 rgb[n*3] | uint8 size_mm[n]
 scene.splat: the same rows as Gaussian splats for the viewer's Splats mode (scripts/splat_format.py).
+lod/<k>.{bin,splat}: the same rows as additive detail levels, coarse to fine (scripts/lod.py).
 """
 
 from __future__ import annotations
@@ -30,6 +31,7 @@ sys.path.insert(0, str(ROOT / "scripts"))  # splat_format
 from autoscene.orientation import FRAME
 from autoscene.scene import cache_for
 from autoscene.splats import load_real_splats, rgb_of, size_of, xyz_of
+from lod import export_levels
 from splat_format import write_splat
 
 OUT = ROOT / "data" / "derived" / "viewer_auto"
@@ -95,6 +97,7 @@ def main() -> int:
             f.write(np.ascontiguousarray(arr).tobytes())
     tmp.replace(args.out / "scene.bin")
     write_splat(args.out / "scene.splat", sel)
+    lods = export_levels(args.out, sel, xyz, part, rgb, size_mm)
 
     bounds = scene["room_bounds_p1_p99"]
     a, b, c = scene["floor_plane"]
@@ -110,13 +113,15 @@ def main() -> int:
         "dollhouse_cut_y": round(float(scene["ceiling_y"]) - 0.75, 3),
         "layout": "float32 xyz[n*3] | uint16 part[n] | uint8 rgb[n*3] | uint8 size_mm[n]",
         "splats": {"file": "scene.splat", "format": "splat", "bytes_per_splat": 32},
+        "lods": lods,
         "by_label": scene["by_label"], "by_source": scene["by_source"],
         "parts": parts_meta,
     }
     (args.out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")
     mb = (args.out / "scene.bin").stat().st_size / 1e6
     print(f"{len(rows):,} points ({len(pool_idx):,} pool of {pool_total:,}, {len(parts_meta)} objects) "
-          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat + scene.json")
+          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat + scene.json + "
+          f"{len(lods)} detail levels {[e['count'] for e in lods]}")
     return 0
 
 

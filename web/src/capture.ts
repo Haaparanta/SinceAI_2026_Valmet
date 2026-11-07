@@ -15,7 +15,7 @@
  * When done: body[data-ready="1"], body[data-info] = JSON (size, camera, visible part names).
  */
 import * as THREE from "three";
-import { BuildCloud, buildFromUrl, frameBox, loadScene, looksFor, partBox, readState, roomBox, type ViewState } from "./scene";
+import { BuildCloud, buildFromUrl, frameBox, fullChunk, loadScene, looksFor, partBox, readState, roomBox, type ViewState } from "./scene";
 
 type Axis = "x" | "y" | "z";
 interface ViewDef {
@@ -53,7 +53,7 @@ function badgeColour(text: string): string {
 async function main(): Promise<void> {
   const { meta, geometry } = await loadScene(buildFromUrl(params));
   const state = readState(params, meta);
-  const cloud = new BuildCloud(meta, geometry);
+  const cloud = new BuildCloud(meta, fullChunk(meta, geometry));
   cloud.sizeScale = Number(params.get("ps") ?? 1);
   const sel = meta.parts[state.selected - 1];
   const room = roomBox(meta);

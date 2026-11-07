@@ -2,8 +2,9 @@
 
 Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats,
 GET /api/viewer/scene.{bin,splat,json} (the step-by-step build), GET /api/viewer-auto/scene.{bin,splat,json} (the
-automatic build), GET /api/images/{name} (the numbered step images; also the automatic build's object pictures),
-GET /api/compare.json (manual vs automatic build, scripts/compare_builds.py).
+automatic build), GET /api/viewer[-auto]/lod/{k}.{bin,splat} (detail levels), GET /api/images/{name} (the numbered
+step images; also the automatic build's object pictures), GET /api/compare.json (manual vs automatic build,
+scripts/compare_builds.py).
 The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots) land with M4-M9.
 
     uv run uvicorn api.main:app --reload --port 8000
@@ -25,6 +26,8 @@ DERIVED = DATA / "derived"
 IMAGES = ROOT / "images"
 AUTOSCENE_IMAGES = ROOT / "autoscene" / "out" / "images"
 # NNNN_YYYYMMDD-HHMMSS[_tag].png, the image-name rule of pipeline/stepbuild/state.py (no path parts, so no traversal)
+# detail levels written by scripts/lod.py: lod/<k>.bin and lod/<k>.splat
+LOD_NAME = re.compile(r"^\d{1,2}\.(bin|splat)$")
 IMAGE_NAME = re.compile(r"^\d{4,}_\d{8}-\d{6}(?:_[\w-]+)?\.png$")
 DEMO_MODE = os.environ.get("DEMO_MODE", "0").strip().lower() not in ("", "0", "false", "no")
 
@@ -84,6 +87,22 @@ def viewer_scene_splat() -> FileResponse:
 def viewer_scene_json() -> FileResponse:
     """Parts (name, kind, count, [start, end) range, bbox), room bounds and dollhouse cut for scene.bin."""
     return _viewer_file("scene.json", "application/json")
+
+
+@app.get("/api/viewer/lod/{name}")
+def viewer_lod(name: str) -> FileResponse:
+    """One detail level of the manual build (scripts/lod.py), streamed by the viewer coarse to fine."""
+    if not LOD_NAME.match(name):
+        raise HTTPException(status_code=404, detail=f"no detail level {name!r}")
+    return _viewer_file(f"lod/{name}", "application/octet-stream")
+
+
+@app.get("/api/viewer-auto/lod/{name}")
+def viewer_auto_lod(name: str) -> FileResponse:
+    """One detail level of the automatic build."""
+    if not LOD_NAME.match(name):
+        raise HTTPException(status_code=404, detail=f"no detail level {name!r}")
+    return _viewer_file(f"lod/{name}", "application/octet-stream", "viewer_auto")
 
 
 @app.get("/api/viewer-auto/scene.bin")

@@ -15,6 +15,9 @@ size_mm = splat render footprint (stepbuild.splats.size_of) in 1/1000 scene unit
 scene.splat: the same rows as real Gaussian splats (SH degree 0) for the viewer's Splats mode, in the .splat layout
 of scripts/splat_format.py (32 bytes per splat). Row i of scene.splat is row i of scene.bin, so the pool and every
 part are the same [start, end) ranges.
+
+lod/<k>.{bin,splat}: the same rows split into additive detail levels, coarse to fine (scripts/lod.py), which the viewer
+streams in order; scene.json "lods" lists each level's count and per-segment ranges.
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 sys.path.insert(0, str(ROOT / "scripts"))  # splat_format, also when this file is imported (tests)
 
 from common.orientation import FRAME
+from lod import export_levels
 from splat_format import write_splat
 from stepbuild import state as S
 from stepbuild.splats import rgb_of, size_of, xyz_of
@@ -123,6 +127,7 @@ def main() -> int:
             f.write(np.ascontiguousarray(arr).tobytes())
     tmp.replace(args.out / "scene.bin")
     write_splat(args.out / "scene.splat", sel)
+    lods = export_levels(args.out, sel, xyz, part, rgb, size_mm)
 
     bounds = m.data.get("room_bounds_p1_p99") or bbox(xyz)
     floor = next((p for p in parts_meta if p["name"] == "floor"), None)
@@ -138,13 +143,15 @@ def main() -> int:
         "dollhouse_cut_y": m.data.get("dollhouse_cut_y"),
         "layout": "float32 xyz[n*3] | uint16 part[n] | uint8 rgb[n*3] | uint8 size_mm[n]",
         "splats": {"file": "scene.splat", "format": "splat", "bytes_per_splat": 32},
+        "lods": lods,
         "parts": parts_meta,
     }
     (args.out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")
     mb = (args.out / "scene.bin").stat().st_size / 1e6
     smb = (args.out / "scene.splat").stat().st_size / 1e6
     print(f"{len(rows):,} points ({len(pool_idx):,} pool of {pool_total:,}, {len(parts_meta)} parts) "
-          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat ({smb:.1f} MB) + scene.json")
+          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat ({smb:.1f} MB) + scene.json + "
+          f"{len(lods)} detail levels {[e['count'] for e in lods]}")
     return 0
 
 
