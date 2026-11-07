@@ -75,6 +75,14 @@
         </div>
         <div id="panel-body">
           <div class="filter">
+            <div class="seg origin-seg" role="group" aria-label="Choosable parts" id="origin">
+              <button data-origin="manual" aria-pressed="false" title="the manual parts: accepted one by one by a person (click again for both builds)">
+                <span class="dot" aria-hidden="true"></span>Manual<span class="n mono"></span>
+              </button>
+              <button data-origin="auto" aria-pressed="false" title="the automatic parts: objects found by detection and clustering (click again for both builds)">
+                <span class="dot" aria-hidden="true"></span>Auto<span class="n mono"></span>
+              </button>
+            </div>
             <section id="compare" aria-label="Manual vs automatic build" hidden>
               <p id="compare-summary" class="mono"></p>
               <div id="compare-chips" class="chips" role="group" aria-label="Match status"></div>

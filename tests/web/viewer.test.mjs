@@ -85,7 +85,10 @@ async function openViewer(query = "") {
   const problems = [];
   page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && problems.push(m.text()));
-  page.on("response", (r) => r.status() >= 400 && !r.url().endsWith("/favicon.ico") && problems.push(`${r.status()} ${r.url()}`));
+  // a single build asks for the other build's scene.json (the count on its Manual | Auto button): a 404 is expected
+  // when that export does not exist
+  const expected = (url) => url.endsWith("/favicon.ico") || (!autoMeta && /\/api\/viewer-auto\/scene\.json$/.test(url));
+  page.on("response", (r) => r.status() >= 400 && !expected(r.url()) && problems.push(`${r.status()} ${r.url()}`));
   await page.goto(`${BASE}/${query}`);
   await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
   return { page, problems };
@@ -124,6 +127,10 @@ describe("viewer (index.html)", () => {
     assert.match(stats, new RegExp(`^${meta.count.toLocaleString("en-US")} points`));
     assert.match(stats, new RegExp(`in ${parts.length} accepted parts`));
     assert.equal(await page.locator("#parts li").count(), parts.length);
+    // the Manual | Auto buttons: the manual build is the one on screen, with its part count
+    assert.equal(await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"), "true");
+    assert.equal(await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"), "false");
+    assert.equal(await page.textContent('#origin button[data-origin="manual"] .n'), parts.length.toLocaleString("en-US"));
     assert.equal(await page.textContent("#upto-label"), `${parts.length} / ${parts.length} · ${last.label}`);
     assert.ok(await page.locator(".badge", { hasText: "SYNTHETIC DATA" }).isVisible(), "SYNTHETIC DATA badge (AGENTS.md §8)");
     assert.equal(search(page).get("src"), "overlay", "default source");
@@ -399,18 +406,18 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
 
   test("origin chips filter the list; a manual part's card links to the overlapping automatic object", async () => {
     const { page } = await openViewer("?scene=both");
-    await page.click('#kinds button[data-origin="auto"]');
+    await page.click('#origin button[data-origin="auto"]');
     assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), nAuto);
     assert.equal(await page.locator('#parts li[data-origin="manual"]:not(.filtered)').count(), 0);
-    await page.click('#kinds button[data-origin="auto"]');
+    await page.click('#origin button[data-origin="auto"]');
     assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), nManual + nAuto, "second click: both again");
     // origin and kind combine (an origin click must not reset the kind)
     const kind = autoMeta.parts.find((p) => !parts.some((m) => m.kind === p.kind))?.kind ?? autoMeta.parts[0].kind;
     await page.click(`#kinds button[data-kind="${kind}"]`);
-    await page.click('#kinds button[data-origin="auto"]');
+    await page.click('#origin button[data-origin="auto"]');
     assert.equal(await page.getAttribute(`#kinds button[data-kind="${kind}"]`, "aria-pressed"), "true");
     assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), autoMeta.parts.filter((p) => p.kind === kind).length);
-    await page.click('#kinds button[data-origin="auto"]');
+    await page.click('#origin button[data-origin="auto"]');
     await page.click('#kinds button[data-kind=""]');
 
     // the manual part with the best-overlapping automatic object, worked out here from the two scene.json files
@@ -442,6 +449,70 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
     } else {
       assert.equal(await link.count(), 0);
     }
+    await page.close();
+  });
+
+  test("Manual | Auto buttons: both pressed with both builds, one click narrows the list, the room and picking", async () => {
+    const { page, problems } = await openViewer("?scene=both");
+    const pressed = async () => [
+      await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"),
+      await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"),
+    ];
+    assert.deepEqual(await pressed(), ["true", "true"], "both builds are choosable to begin with");
+    assert.equal(await page.textContent('#origin button[data-origin="manual"] .n'), nManual.toLocaleString("en-US"));
+    assert.equal(await page.textContent('#origin button[data-origin="auto"] .n'), nAuto.toLocaleString("en-US"));
+    await page.click('#origin button[data-origin="manual"]');
+    assert.deepEqual(await pressed(), ["true", "false"]);
+    assert.equal(search(page).get("show"), "manual");
+    assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), nManual);
+    await page.click('#origin button[data-origin="auto"]');
+    assert.deepEqual(await pressed(), ["false", "true"], "the other button: only that build");
+    assert.equal(search(page).get("show"), "auto");
+    assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), nAuto);
+    await page.click('#origin button[data-origin="auto"]');
+    assert.deepEqual(await pressed(), ["true", "true"], "the pressed button again: both");
+    assert.equal(search(page).get("show"), null);
+    assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), nManual + nAuto);
+    assert.deepEqual(problems, []);
+    await page.close();
+  });
+
+  test("Manual | Auto buttons on a single build: the other build's count arrives, a click switches builds", async () => {
+    const { page, problems } = await openViewer();
+    assert.equal(await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"), "true");
+    assert.equal(await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"), "false");
+    // the other build's part count is fetched once the points are in
+    await page.waitForFunction(
+      (n) => document.querySelector('#origin button[data-origin="auto"] .n').textContent === n,
+      nAuto.toLocaleString("en-US"),
+      { timeout: 10000 },
+    );
+    await Promise.all([page.waitForURL(/scene=auto/), page.click('#origin button[data-origin="auto"]')]);
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
+    assert.equal(await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"), "true");
+    assert.equal(await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"), "false");
+    assert.equal(await page.locator("#parts li[data-seq]").count(), nAuto);
+    assert.equal(await page.textContent('#origin button[data-origin="auto"] .n'), nAuto.toLocaleString("en-US"));
+    // the pressed button again: both builds in one room
+    await Promise.all([page.waitForURL(/scene=both/), page.click('#origin button[data-origin="auto"]')]);
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
+    assert.equal(await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"), "true");
+    assert.equal(await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"), "true");
+    assert.equal(await page.locator("#parts li[data-seq]").count(), nManual + nAuto);
+    assert.deepEqual(problems, []);
+    await page.close();
+  });
+
+  test("a missing other build disables its button and says how to export it", async () => {
+    const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+    await page.route("**/api/viewer-auto/scene.json", (r) => r.fulfill({ status: 404, body: "missing" }));
+    await page.goto(`${BASE}/`);
+    await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
+    await page.waitForFunction(() => document.querySelector('#origin button[data-origin="auto"]').disabled, null, { timeout: 10000 });
+    assert.match(await page.getAttribute('#origin button[data-origin="auto"]', "title"), /make viewer-auto/);
+    await page.click('#origin button[data-origin="manual"]'); // would be "both": not without the automatic export
+    assert.match(await page.textContent("#toast"), /make viewer-auto/);
+    assert.equal(search(page).get("scene"), null);
     await page.close();
   });
 
@@ -548,12 +619,12 @@ describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? fa
     const r = split ?? cmp.manual[0];
     const { page } = await openViewer(`?scene=both&src=model&part=${r.name}`);
     const before = await litPixels(page);
-    await page.click('#kinds button[data-origin="manual"]');
+    await page.click('#origin button[data-origin="manual"]');
     assert.equal(search(page).get("show"), "manual");
     assert.equal(search(page).get("part"), r.name, "a manual selection survives showing only manual");
     const manualOnly = await litPixels(page);
-    await page.click('#kinds button[data-origin="manual"]');
-    await page.click('#kinds button[data-origin="auto"]');
+    await page.click('#origin button[data-origin="manual"]');
+    await page.click('#origin button[data-origin="auto"]');
     assert.equal(search(page).get("show"), "auto");
     assert.equal(search(page).get("part"), null, "the manual selection is dropped when manual parts are hidden");
     // every role pass of every detail level
@@ -570,7 +641,8 @@ describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? fa
     assert.equal(picked, false);
     await page.reload();
     await page.waitForFunction(() => window.__a2b && document.body.dataset.loaded === "points", null, { timeout: 30000 });
-    assert.equal(await page.getAttribute('#kinds button[data-origin="auto"]', "aria-pressed"), "true", "show= survives a reload");
+    assert.equal(await page.getAttribute('#origin button[data-origin="auto"]', "aria-pressed"), "true", "show= survives a reload");
+    assert.equal(await page.getAttribute('#origin button[data-origin="manual"]', "aria-pressed"), "false");
     await page.close();
   });
 
