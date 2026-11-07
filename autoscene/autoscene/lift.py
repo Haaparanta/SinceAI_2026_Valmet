@@ -212,6 +212,45 @@ def split_connected(sc: Scene, instances: list[Instance], eps: float = 0.15, min
     return out
 
 
+LONG_LABELS = {"pipe", "insulated pipe", "beam", "cable tray", "duct", "railing", "hose", "cable", "manifold"}
+
+
+def split_oversized(sc: Scene, instances: list[Instance], max_width: float = 1.3, max_width_long: float = 2.6,
+                    eps: float = 0.03, min_piece: int = 300, voxel: float = 0.02) -> list[Instance]:
+    """Objects wider (p2..p98 along x or z) than anything of their label can be are several touching objects that
+    every view masked together (two roll cages side by side). They are re-clustered at a tight `eps` on the voxel
+    grid; pieces of at least `min_piece` splats become objects of the same label, the rest goes back to the pool.
+    Measured 2026-11-07: an 85,722-splat "roll cage" 2.84 u wide splits at 3 cm into 46,503 + 6,012 + 3,379 + ...
+    with widths 1.52 / 0.54 / 0.59 / 0.71."""
+    from autoscene.cluster import voxel_dbscan
+    out: list[Instance] = []
+    n_split = 0
+    for ins in instances:
+        p = sc.xyz[ins.splats]
+        ext = np.percentile(p, 98, 0) - np.percentile(p, 2, 0)
+        width = float(max(ext[0], ext[2]))
+        limit = max_width_long if ins.label in LONG_LABELS else max_width
+        if width <= limit:
+            out.append(ins)
+            continue
+        lab, sizes = voxel_dbscan(sc, ins.splats, voxel, eps, min_samples=4)
+        pieces = [c for c in np.argsort(-sizes) if sizes[c] >= min_piece]
+        if len(pieces) < 2:
+            out.append(ins)
+            continue
+        n_split += 1
+        for c in pieces:
+            part = ins.splats[lab == c]
+            info = dict(ins.info)
+            info["split_from"] = {"id": ins.id, "width": round(width, 3), "n": ins.n}
+            out.append(Instance(len(out), part.astype(np.int32), ins.label, ins.confidence, dict(ins.scores),
+                                list(ins.views), list(ins.detections), ins.source, info))
+    for k, ins in enumerate(out):
+        ins.id = k
+    log.info("%d oversized instances split; %d instances now", n_split, len(out))
+    return out
+
+
 def lift(sc: Scene, dets: list[Detection], min_views: int = 2, seen: np.ndarray | None = None,
          vis: sparse.csr_matrix | None = None) -> list[Instance]:
     dets = [d for d in dets if d.splat_ids is not None and len(d.splat_ids) >= 30]
@@ -219,6 +258,7 @@ def lift(sc: Scene, dets: list[Detection], min_views: int = 2, seen: np.ndarray 
     instances = vote(dets, comp, M, min_views=min_views)
     instances = fill_unseen(sc, instances, seen)
     instances = split_connected(sc, instances)
+    instances = split_oversized(sc, instances)
     for ins in instances:
         ins.info["label_votes"] = Counter({k: round(v, 2) for k, v in ins.scores.items()}).most_common(3)
     return instances

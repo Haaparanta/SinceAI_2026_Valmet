@@ -23,6 +23,7 @@ uv run python -m autoscene.run all          # every stage, cached per stage unde
 | 5 `detect` | 2D objects in every picture | **YOLOE-26 seg** with text prompts (industrial vocabulary) + a prompt-free pass (4,585-word vocabulary) | `out/masks.npz` |
 | 6 `lift` | 2D masks → 3D instances | mask pixels → splat IDs (depth-gated), greedy view-consensus merging of mask groups (`merge.py`), per-splat majority vote, nearest-neighbour fill of the splats no view saw, connectivity split | `out/instances.npz` |
 | 7 `cluster` | what the detector missed | residual non-structure splats → 2 cm voxels → DBSCAN; the pipe network is split into runs by local direction (x / z / vertical / fitting), the remainder by density | `out/instances_all.npz` |
+| 7b `relabel` | a second look at every object | each object rendered alone with the room dimmed, YOLOE on that close-up; the detection covering the object's own screen box names geometry clusters and can override a weak detector label | `out/instances_named.npz` |
 | 8 `rebuild` | the new room, one object at a time | order: floor → ceiling → walls → equipment by confidence → pipes → unlabelled; per object an SH0 PLY, the growing `room.ply`, `scene.json` with OBB + label + scores | `out/objects/*.ply`, `out/room.ply`, `out/scene.json` |
 | 9 `pictures` | a picture of every added object | **Gaussian-splat render** (true colours and textures) of the object close up with the rest faint, plus the outside view of the whole room with the object highlighted, plus the best 2D detection crop as proof | `out/images/NNNN_<time>_<object>_*.png`, contact sheet, flipbook |
 
@@ -54,6 +55,10 @@ uv run python -m autoscene.run all          # every stage, cached per stage unde
 - **Greedy consensus merging, not union-find.** Union-find chained three ladders and a cage into one 96,000-splat
   "step ladder" through masks that covered two of them. Groups now merge one pair at a time and every merge is
   re-checked against the views that see both (MaskClustering's view consensus); a 2D unit test pins the behaviour.
+- **Oversized objects are split by density, not by a stricter merge.** Raising the consensus threshold from 0.5 to
+  0.8 cut the instances from 114 to 87 and the claimed splats by a quarter, and still left four objects wider than
+  2 u. Re-clustering only the objects wider than their label allows (1.3 u; 2.6 u for pipes and trays) at 3 cm
+  split all ten of them into plausible pieces (114 → 198 instances) and lost nothing elsewhere.
 - **Pipes by local direction.** The ceiling pipe network came out as one 512,000-splat cluster; a per-voxel PCA on a
   4 cm grid (12 cm neighbourhood, majority-smoothed) splits it into x-runs, z-runs, verticals and fittings: 99 pipes,
   76 vertical pipes, 34 fittings.
