@@ -180,7 +180,7 @@ def wall(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarra
 def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.ndarray, x: float, y: float, z: float,
               radius: float = 0.8, label: str = "Equipment", cls: str = "other", voxel: float = 0.04,
               min_alpha: float = 0.15, min_per_voxel: int = 3, y_top: float = 0.62, number: int = 1,
-              box: str = "", min_group: int = 40, nearest: float = 0.0) -> PartProposal:
+              box: str = "", min_group: int = 40, nearest: float = 0.0, exclude: str = "") -> PartProposal:
     """One technical object grown from a seed point (x, y, z): pool points with opacity >= `min_alpha`, below
     `y_top` (under the ceiling pipe band) and within `radius` of the seed are put on a `voxel` grid (a voxel counts
     with >= `min_per_voxel` points); the 26-connected group of voxels nearest the seed is the object, and all pool
@@ -190,7 +190,8 @@ def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.n
     With `box` = "x0,x1,y0,y1,z0,z1" the object is everything in that box instead (its full extent read from all
     sides, e.g. a pump whose faint casing is not connected to its motor): pool points with opacity >= `min_alpha`
     in voxel groups of at least `min_group` points, so loose specks inside the box are dropped; with `nearest` = 1
-    only the one group nearest the seed (a numbered piece of a probe image, e.g. 0446). (Pump 1 at 0414 was
+    only the one group nearest the seed (a numbered piece of a probe image, e.g. 0446). `exclude` =
+    "x0,x1,y0,y1,z0,z1[;...]": boxes left out before grouping (a ladder touching a pump). (Pump 1 at 0414 was
     only the motor and pipe section: the user rejected it as far too small.)"""
     from scipy import ndimage
 
@@ -201,6 +202,10 @@ def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.n
                 & (xyz[:, 2] >= b[4]) & (xyz[:, 2] <= b[5]))
     else:
         near = (np.linalg.norm(xyz - seed, axis=1) <= radius) & (xyz[:, 1] < y_top)
+    for ex in filter(None, str(exclude).split(";")):
+        e = [float(v) for v in ex.split(",")]
+        near &= ~((xyz[:, 0] >= e[0]) & (xyz[:, 0] <= e[1]) & (xyz[:, 1] >= e[2]) & (xyz[:, 1] <= e[3])
+                  & (xyz[:, 2] >= e[4]) & (xyz[:, 2] <= e[5]))
     solid = near & (alpha_of(pool) >= min_alpha)
     take = np.zeros(len(xyz), dtype=bool)
     info: dict = {"seed": [x, y, z]}
@@ -245,7 +250,7 @@ def equipment(xyz: np.ndarray, bmin: np.ndarray, bmax: np.ndarray, *, pool: np.n
         camera=R.overview_camera(bmin, bmax),
         params={"x": x, "y": y, "z": z, "radius": radius, "label": label, "cls": cls, "voxel": voxel,
                 "min_alpha": min_alpha, "min_per_voxel": min_per_voxel, "y_top": y_top, "box": box,
-                "min_group": min_group},
+                "min_group": min_group, "nearest": nearest, "exclude": exclude},
         info=info,
     )
 
