@@ -27,9 +27,13 @@ function derivedFiles(): Plugin {
     name: "a2b-derived-files",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const file = routes[(req.url ?? "").split("?")[0]];
+        const path = (req.url ?? "").split("?")[0];
+        // numbered step images, same rule as api/main.py (GET /api/images/{name})
+        const img = /^\/api\/images\/(\d{4,}_\d{8}-\d{6}(?:_[\w-]+)?\.png)$/.exec(path);
+        const file = img ? resolve(repoRoot, "images", img[1]) : routes[path];
         if (!file || !existsSync(file)) return next();
-        res.setHeader("Content-Type", file.endsWith(".json") ? "application/json" : "application/octet-stream");
+        const type = file.endsWith(".json") ? "application/json" : file.endsWith(".png") ? "image/png" : "application/octet-stream";
+        res.setHeader("Content-Type", type);
         res.setHeader("Content-Length", statSync(file).size);
         res.setHeader("X-A2B-Source", "vite-dev-fallback");
         createReadStream(file).pipe(res);

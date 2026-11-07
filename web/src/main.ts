@@ -1,6 +1,9 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
+import { MeasureView, pickPoint } from "./measure";
+import { fmtGap, neighbours, ProximityView } from "./proximity";
 import {
   BuildCloud,
   buildFromUrl,
@@ -39,6 +42,16 @@ const loadingEl = document.querySelector<HTMLElement>("#loading")!;
 const loadingText = document.querySelector<HTMLElement>("#loading-text")!;
 const toastEl = document.querySelector<HTMLElement>("#toast")!;
 const tipEl = document.querySelector<HTMLElement>("#tip")!;
+const nearBtn = document.querySelector<HTMLButtonElement>("#near")!;
+const measureBtn = document.querySelector<HTMLButtonElement>("#measure")!;
+const playBtn = document.querySelector<HTMLButtonElement>("#play")!;
+const filterEl = document.querySelector<HTMLInputElement>("#filter")!;
+const kindsEl = document.querySelector<HTMLElement>("#kinds")!;
+const cardEl = document.querySelector<HTMLElement>("#card")!;
+const lightboxEl = document.querySelector<HTMLElement>("#lightbox")!;
+const lbImg = document.querySelector<HTMLImageElement>("#lb-img")!;
+const lbCap = document.querySelector<HTMLElement>("#lb-cap")!;
+const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 const params = new URLSearchParams(location.search);
 /** metres per scene unit in VR (?mpu=), and VR point thinning (?xrstride=, 1 = every point) */
 const MPU = Number(params.get("mpu")) || METRES_PER_UNIT_GUESS;
@@ -54,6 +67,10 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0d14);
 const camera = new THREE.PerspectiveCamera(FOV, 1, 0.02, 200);
 const controls = new OrbitControls(camera, renderer.domElement);
+// HTML labels pinned to 3D points (distances); drawn after each WebGL render, not in VR
+const labels = new CSS2DRenderer();
+labels.domElement.id = "labels";
+canvas.after(labels.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.35; // a little smoothing without a long glide (as in the 3D Model Anything viewer)
 controls.zoomToCursor = true;
@@ -63,7 +80,12 @@ let cloud: BuildCloud | undefined;
 let xr: XrWalk | undefined;
 let state: ViewState;
 let cutManual = false;
+let nearOn = true;
+let measuring = false;
 let dirty = true;
+const proximity = new ProximityView();
+const measure = new MeasureView(MPU);
+scene.add(proximity.group, measure.group);
 const invalidate = (): void => {
   dirty = true;
 };
@@ -85,6 +107,7 @@ function setPanelOpen(open: boolean): void {
 function resize(): void {
   if (renderer.xr.isPresenting) return; // the headset owns the framebuffer
   renderer.setSize(window.innerWidth, window.innerHeight, false);
+  labels.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   cloud?.setViewportHeight(renderer.getDrawingBufferSize(new THREE.Vector2()).y);
@@ -123,6 +146,11 @@ function render(meta: SceneMeta): void {
   }
   cutBtn.setAttribute("aria-pressed", String(cutManual));
   boxesBtn.setAttribute("aria-pressed", String(state.boxes));
+  nearBtn.setAttribute("aria-pressed", String(nearOn));
+  measureBtn.setAttribute("aria-pressed", String(measuring));
+  playBtn.setAttribute("aria-pressed", String(playTimer !== 0));
+  canvas.classList.toggle("measuring", measuring);
+  updateCard(meta);
   uptoEl.value = String(state.upto);
   const last = meta.parts[state.upto - 1];
   uptoLabel.textContent = `${state.upto} / ${meta.parts.length}${last ? ` · ${last.label}` : ""}`;
@@ -152,7 +180,193 @@ function select(meta: SceneMeta, seq: number, fly = true): void {
   const p = meta.parts[seq - 1];
   set(meta, { selected: seq, upto: Math.max(state.upto, seq) });
   if (p && fly) flyTo(partBox(p), undefined, 0.45);
+  if (matchMedia("(max-width: 640px)").matches && !playTimer) setPanelOpen(false); // the card takes the space
   partsEl.querySelector(`li[data-seq="${seq}"]`)?.scrollIntoView({ block: "nearest" });
+}
+
+/** "Pump 1" card: facts, approval images and nearest parts; also drives the 3D proximity lines. */
+let cardKey = "";
+function updateCard(meta: SceneMeta): void {
+  const sel = state.selected > 0 && state.selected <= state.upto ? meta.parts[state.selected - 1] : undefined;
+  const key = sel ? `${sel.seq}|${state.upto}|${nearOn}` : "";
+  if (key === cardKey) return;
+  cardKey = key;
+  cardEl.hidden = !sel;
+  if (!sel) {
+    proximity.clear();
+    return;
+  }
+  const near = neighbours(meta, sel, state.upto);
+  if (nearOn) proximity.show(near, MPU);
+  else proximity.clear();
+
+  const b = sel.bbox;
+  const size = [0, 1, 2].map((k) => b.max[k] - b.min[k]);
+  const centre = [0, 1, 2].map((k) => (b.max[k] + b.min[k]) / 2);
+  const lift = b.min[1] - meta.floor_y;
+  $("#card-seq").textContent = `#${String(sel.seq).padStart(2, "0")}`;
+  $("#card-title").textContent = sel.label;
+  $("#card-kind").textContent = sel.kind;
+  const facts: [string, string, string?][] = [
+    ["Size", `${size.map((v) => v.toFixed(2)).join(" × ")} u`, `≈ ${size.map((v) => (v * MPU).toFixed(2)).join(" × ")} m (x × y × z)`],
+    ["Centre", `(${centre.map((v) => v.toFixed(2)).join(", ")}) u`],
+    ["Height", lift < 0.05 ? "stands on the floor" : `${lift.toFixed(2)} u above the floor`, lift < 0.05 ? undefined : `≈ ${(lift * MPU).toFixed(2)} m`],
+    ["Points", fmt(sel.count)],
+  ];
+  if (sel.accepted_at) {
+    const when = new Date(sel.accepted_at);
+    const t = Number.isNaN(when.getTime()) ? sel.accepted_at : when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")} · ${t}`]);
+  } else facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")}`]);
+  $("#card-facts").replaceChildren(
+    ...facts.flatMap(([k, v, sub]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = k;
+      const dd = document.createElement("dd");
+      dd.textContent = v;
+      if (sub) {
+        const small = document.createElement("small");
+        small.textContent = ` ${sub}`;
+        dd.append(document.createElement("br"), small);
+      }
+      return [dt, dd];
+    }),
+  );
+
+  const images = sel.images ?? [];
+  $("#card-images-wrap").hidden = images.length === 0;
+  $("#card-images").replaceChildren(
+    ...images.map((name, i) => {
+      const btn = document.createElement("button");
+      btn.title = name;
+      btn.innerHTML = `<img loading="lazy" alt="" /><span class="no"></span>`;
+      const img = btn.querySelector("img")!;
+      img.src = `/api/images/${encodeURIComponent(name)}`;
+      img.alt = `approval image ${name}`;
+      img.addEventListener("error", () => btn.remove(), { once: true });
+      btn.querySelector(".no")!.textContent = name.slice(0, 4);
+      btn.addEventListener("click", () => openLightbox(images, i));
+      return btn;
+    }),
+  );
+
+  $("#card-near-wrap").hidden = near.length === 0;
+  $("#card-near").replaceChildren(
+    ...near.map((n) => {
+      const li = document.createElement("li");
+      li.tabIndex = 0;
+      li.innerHTML = `<span class="n"></span><span class="d"></span>`;
+      li.querySelector(".n")!.textContent = n.part.label;
+      li.querySelector(".d")!.textContent = fmtGap(n.gap, MPU);
+      const go = () => select(meta, n.part.seq);
+      li.addEventListener("click", go);
+      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
+      return li;
+    }),
+  );
+}
+
+let lb: { images: string[]; i: number } | null = null;
+function openLightbox(images: string[], i: number): void {
+  lb = { images, i: (i + images.length) % images.length };
+  const name = lb.images[lb.i];
+  lbImg.src = `/api/images/${encodeURIComponent(name)}`;
+  lbImg.alt = `approval image ${name}`;
+  lbCap.textContent = `${lb.i + 1} / ${images.length} · ${name}`;
+  lightboxEl.hidden = false;
+}
+function closeLightbox(): void {
+  lb = null;
+  lightboxEl.hidden = true;
+}
+function wireLightbox(): void {
+  $("#lb-prev").addEventListener("click", () => lb && openLightbox(lb.images, lb.i - 1));
+  $("#lb-next").addEventListener("click", () => lb && openLightbox(lb.images, lb.i + 1));
+  $("#lb-close").addEventListener("click", closeLightbox);
+  lightboxEl.addEventListener("click", (e) => e.target === lightboxEl && closeLightbox());
+}
+
+/** Parts list: free-text filter plus one chip per kind. */
+function wireFilter(meta: SceneMeta): void {
+  const kinds = [...new Set(meta.parts.map((p) => p.kind))];
+  let kind = "";
+  const chip = (k: string, label: string, n: number) => {
+    const b = document.createElement("button");
+    b.dataset.kind = k;
+    b.innerHTML = `<span></span><span class="n"></span>`;
+    b.firstElementChild!.textContent = label;
+    b.lastElementChild!.textContent = String(n);
+    b.addEventListener("click", () => {
+      kind = k;
+      apply();
+    });
+    return b;
+  };
+  kindsEl.replaceChildren(chip("", "all", meta.parts.length), ...kinds.map((k) => chip(k, k, meta.parts.filter((p) => p.kind === k).length)));
+  const empty = document.createElement("li");
+  empty.className = "empty";
+  empty.textContent = "no part matches";
+  const apply = () => {
+    const q = filterEl.value.trim().toLowerCase();
+    let shown = 0;
+    for (const li of partsEl.querySelectorAll<HTMLLIElement>("li[data-seq]")) {
+      const p = meta.parts[Number(li.dataset.seq) - 1];
+      const ok = (!kind || p.kind === kind) && (!q || `${p.label} ${p.name} ${p.kind}`.toLowerCase().includes(q));
+      li.classList.toggle("filtered", !ok);
+      if (ok) shown++;
+    }
+    for (const b of kindsEl.querySelectorAll<HTMLButtonElement>("button")) b.setAttribute("aria-pressed", String(b.dataset.kind === kind));
+    if (shown) empty.remove();
+    else partsEl.append(empty);
+  };
+  filterEl.addEventListener("input", apply);
+  filterEl.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      filterEl.value = "";
+      apply();
+      filterEl.blur();
+    }
+  });
+  apply();
+}
+
+/** ▶ Replay: parts appear one by one (newest highlighted) while the camera orbits the room slowly. */
+let playTimer = 0;
+const PLAY_MS = 900;
+function stopPlay(meta: SceneMeta): void {
+  if (!playTimer) return;
+  clearInterval(playTimer);
+  playTimer = 0;
+  controls.autoRotate = false;
+  render(meta);
+}
+function togglePlay(meta: SceneMeta): void {
+  if (playTimer) return stopPlay(meta);
+  const n = meta.parts.length;
+  if (!n) return;
+  measure.clear();
+  if (state.upto >= n) set(meta, { upto: 0, selected: 0 });
+  flyTo(roomBox(meta));
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.9;
+  playTimer = window.setInterval(() => {
+    if (state.upto >= n) {
+      stopPlay(meta);
+      set(meta, { selected: 0 });
+      return;
+    }
+    const next = state.upto + 1;
+    set(meta, { upto: next, selected: next });
+  }, PLAY_MS);
+  render(meta);
+}
+
+function setMeasuring(meta: SceneMeta, on: boolean): void {
+  measuring = on;
+  if (!on) measure.clear();
+  else toast("measure: click two points on the scan · M or Esc to stop", 4000);
+  tipEl.hidden = true;
+  render(meta);
 }
 
 /** The part under a screen point (CSS px), honouring the replay slider and the dollhouse cut. */
@@ -170,6 +384,7 @@ function wirePicking(meta: SceneMeta): void {
   let down: { x: number; y: number; t: number } | null = null;
   canvas.addEventListener("pointerdown", (e) => {
     down = e.isPrimary ? { x: e.clientX, y: e.clientY, t: performance.now() } : null;
+    controls.autoRotate = false; // grabbing the view stops the replay's orbit (the replay itself keeps going)
   });
   canvas.addEventListener("pointerup", (e) => {
     if (!down || !e.isPrimary || e.button !== 0) return;
@@ -177,11 +392,25 @@ function wirePicking(meta: SceneMeta): void {
     const quick = performance.now() - down.t < 500;
     down = null;
     if (moved > 6 || !quick) return;
+    if (measuring) {
+      const rect = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      const rc = new THREE.Raycaster();
+      rc.setFromCamera(ndc, camera);
+      const radPerPx = THREE.MathUtils.degToRad(camera.fov) / rect.height;
+      const p = pickPoint(cloud!, { ...state, cut: autoCut(meta) }, rc.ray, radPerPx);
+      if (!p) return toast("no scan point there: click on the cloud", 2000);
+      const d = measure.add(p);
+      if (d === null) toast("now click the second point", 2000);
+      else toastEl.hidden = true; // the label on the line says it all
+      invalidate();
+      return;
+    }
     const hit = partAt(meta, e.clientX, e.clientY);
     if (hit) select(meta, hit.part.seq);
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse" || e.buttons) {
+    if (e.pointerType !== "mouse" || e.buttons || measuring) {
       tipEl.hidden = true;
       return;
     }
@@ -218,14 +447,20 @@ function buildPanel(meta: SceneMeta): void {
       li.innerHTML = `<span class="seq mono">${String(p.seq).padStart(2, "0")}</span>
         <span class="name">${p.label}</span><span class="kind mono" data-kind="${p.kind}">${p.kind}</span>
         <span class="count mono">${fmt(p.count)}</span>`;
-      li.addEventListener("click", () => select(meta, p.seq));
+      li.addEventListener("click", () => {
+        stopPlay(meta);
+        select(meta, p.seq);
+      });
       li.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") select(meta, p.seq);
       });
       return li;
     }),
   );
-  uptoEl.addEventListener("input", () => set(meta, { upto: Number(uptoEl.value) }));
+  uptoEl.addEventListener("input", () => {
+    stopPlay(meta);
+    set(meta, { upto: Number(uptoEl.value) });
+  });
 }
 
 function wireControls(meta: SceneMeta): void {
@@ -246,13 +481,48 @@ function wireControls(meta: SceneMeta): void {
     flyTo(roomBox(meta));
   });
   panelToggle.addEventListener("click", () => setPanelOpen(panelEl.classList.contains("collapsed")));
+  nearBtn.addEventListener("click", () => {
+    nearOn = !nearOn;
+    render(meta);
+  });
+  measureBtn.addEventListener("click", () => setMeasuring(meta, !measuring));
+  playBtn.addEventListener("click", () => togglePlay(meta));
+  $("#card-close").addEventListener("click", () => set(meta, { selected: 0 }));
   window.addEventListener("keydown", (e) => {
-    if (e.target instanceof HTMLInputElement) return;
+    if (!lightboxEl.hidden) {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowRight" && lb) openLightbox(lb.images, lb.i + 1);
+      else if (e.key === "ArrowLeft" && lb) openLightbox(lb.images, lb.i - 1);
+      return;
+    }
+    if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target instanceof HTMLButtonElement && (e.key === " " || e.key === "Enter")) return;
     const n = Number(e.key);
     if (n >= 1 && n <= SOURCES.length) set(meta, { source: SOURCES[n - 1] });
-    else if (e.key === "Escape") set(meta, { selected: 0 });
-    else if (e.key === "ArrowRight") set(meta, { upto: Math.min(meta.parts.length, state.upto + 1) });
-    else if (e.key === "ArrowLeft") set(meta, { upto: Math.max(0, state.upto - 1) });
+    else if (e.key === "Escape") {
+      if (measuring && measure.points.length) {
+        measure.clear();
+        invalidate();
+      } else if (measuring) setMeasuring(meta, false);
+      else set(meta, { selected: 0 });
+    } else if (e.key === " ") {
+      e.preventDefault();
+      togglePlay(meta);
+    } else if (e.key === "m" || e.key === "M") setMeasuring(meta, !measuring);
+    else if (e.key === "n" || e.key === "N") {
+      nearOn = !nearOn;
+      render(meta);
+    } else if (e.key === "/") {
+      e.preventDefault();
+      setPanelOpen(true);
+      filterEl.focus();
+    } else if (e.key === "ArrowRight") {
+      stopPlay(meta);
+      set(meta, { upto: Math.min(meta.parts.length, state.upto + 1) });
+    } else if (e.key === "ArrowLeft") {
+      stopPlay(meta);
+      set(meta, { upto: Math.max(0, state.upto - 1) });
+    }
     else if (e.key === "d" || e.key === "D") {
       cutManual = !cutManual;
       render(meta);
@@ -274,6 +544,8 @@ async function main(): Promise<void> {
   state = readState(params, meta);
   buildPanel(meta);
   wireControls(meta);
+  wireFilter(meta);
+  wireLightbox();
   wirePicking(meta);
   setupXr(meta);
   // small screens start with the build list folded away so the room is visible
@@ -314,6 +586,7 @@ async function main(): Promise<void> {
     if (!dirty) return; // idle rendering: 1.6 M points only redraw when something changed
     dirty = false;
     renderer.render(scene, camera);
+    labels.render(scene, camera);
   });
 }
 

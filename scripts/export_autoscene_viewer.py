@@ -51,6 +51,12 @@ def main() -> int:
     offsets = np.r_[0, np.cumsum(z["sizes"])]
     assert len(objects) == len(z["sizes"]), "scene.json and objects.npz disagree: rerun the rebuild stage"
 
+    images_of: dict[str, list[str]] = {}
+    manifest_path = out_dir / "images_manifest.json"
+    if manifest_path.exists():
+        for m in orjson.loads(manifest_path.read_bytes()):
+            images_of[m["name"]] = [Path(v).name for v in m["images"].values()]
+
     claimed = np.zeros(len(splats), dtype=bool)
     claimed[z["splats"]] = True
     pool_idx = np.flatnonzero(state["keep"] & ~claimed).astype(np.int64)
@@ -68,6 +74,7 @@ def main() -> int:
             "seq": k, "step": obj["index"], "name": obj["name"], "label": obj["label"],
             "kind": KIND.get(obj["source"], "object"), "source": obj["source"], "confidence": obj["confidence"],
             "count": len(idx), "start": start, "end": start + len(idx), "bbox": obj["aabb"], "obb": obj["obb"],
+            "images": images_of.get(obj["name"], []),
         })
         start += len(idx)
 
