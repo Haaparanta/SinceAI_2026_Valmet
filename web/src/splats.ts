@@ -2,7 +2,8 @@
  * Gaussian splat view of the build (Spark, @sparkjsdev/spark): the same rows as the point cloud, drawn as real splats.
  *
  * Data: data/derived/viewer/scene.splat (scripts/export_viewer_scene.py), 32 bytes per splat, row i = row i of
- * scene.bin. The file is cut into one SplatMesh for the pool and one per part, so the Scan / Model / Overlay / Wireframe
+ * scene.bin. Build "both" joins the two builds' files the way scene.ts mergeBuilds joins scene.bin: every manual row,
+ * then the automatic rows after its pool. The file is cut into one SplatMesh for the pool and one per part, so the Scan / Model / Overlay / Wireframe
  * looks, build replay and selection work exactly as for the points: each mesh gets the opacity and tint of its role.
  * Spark sorts all meshes together, so the parts blend correctly with the rest of the room.
  *
@@ -20,7 +21,7 @@ import {
   SplatFileType,
   SplatMesh,
 } from "@sparkjsdev/spark";
-import { buildBase, looksFor, type Build, type SceneMeta, type ViewState } from "./scene";
+import { buildBase, looksFor, manualCount, type Build, type SceneMeta, type ViewState } from "./scene";
 
 const BYTES = 32;
 const WHITE = new THREE.Color(1, 1, 1);
@@ -32,14 +33,16 @@ export class SplatLayer {
   private cuts: SplatEdit[] = [];
   private spark: SparkRenderer | null = null;
   private readonly meta: SceneMeta;
-  private readonly url: string;
-  private readonly script: string;
+  /** files to join, in order, each from row `skip` on */
+  private readonly files: { url: string; script: string; skip: number }[];
   ready = false;
 
   constructor(meta: SceneMeta, build: Build = "manual") {
     this.meta = meta;
-    this.url = `${buildBase(build)}/scene.splat`;
-    this.script = build === "auto" ? "make viewer-auto" : "make viewer";
+    const manual = { url: `${buildBase("manual")}/scene.splat`, script: "make viewer", skip: 0 };
+    const auto = { url: `${buildBase("auto")}/scene.splat`, script: "make viewer-auto", skip: 0 };
+    this.files =
+      build === "both" ? [manual, { ...auto, skip: meta.auto_pool_count ?? 0 }] : [build === "auto" ? auto : manual];
     this.group.visible = false;
   }
 
@@ -50,22 +53,51 @@ export class SplatLayer {
     onDirty: () => void,
     onProgress: (f: number) => void,
   ): Promise<void> {
-    const res = await fetch(this.url);
-    if (!res.ok) throw new Error(`GET ${this.url} -> ${res.status}: run \`${this.script}\` (it writes scene.splat)`);
-    const total = Number(res.headers.get("Content-Length")) || this.meta.count * BYTES;
-    const buf = new Uint8Array(total);
+    const responses = await Promise.all(
+      this.files.map(async (f) => {
+        const res = await fetch(f.url);
+        if (!res.ok) throw new Error(`GET ${f.url} -> ${res.status}: run \`${f.script}\` (it writes scene.splat)`);
+        return res;
+      }),
+    );
+    const sizes = responses.map((r) => Number(r.headers.get("Content-Length")) || 0);
+    const total = sizes.reduce((a, b) => a + b, 0) || this.meta.count * BYTES;
+    const parts: Uint8Array[] = [];
     let got = 0;
-    const reader = res.body!.getReader();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (got + value.length > buf.length) throw new Error("scene.splat is larger than its Content-Length");
-      buf.set(value, got);
-      got += value.length;
-      onProgress(got / total);
+    for (const [i, res] of responses.entries()) {
+      const chunks: Uint8Array[] = [];
+      let n = 0;
+      const reader = res.body!.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        n += value.length;
+        got += value.length;
+        onProgress(Math.min(1, got / total));
+      }
+      const skip = this.files[i].skip * BYTES;
+      if (n < skip) throw new Error(`${this.files[i].url} has ${n} bytes, fewer than its ${this.files[i].skip} pool rows`);
+      const whole = new Uint8Array(n);
+      let at = 0;
+      for (const c of chunks) {
+        whole.set(c, at);
+        at += c.length;
+      }
+      parts.push(whole.subarray(skip));
     }
-    if (got !== this.meta.count * BYTES) {
-      throw new Error(`scene.splat has ${got} bytes, scene.json says ${this.meta.count} splats: re-run \`${this.script}\``);
+    const length = parts.reduce((a, b) => a + b.length, 0);
+    if (length !== this.meta.count * BYTES) {
+      const names = this.files.map((f) => f.script).join(" + ");
+      throw new Error(`scene.splat has ${length / BYTES} splats, scene.json says ${this.meta.count}: re-run \`${names}\``);
+    }
+    const buf = parts.length === 1 ? parts[0] : new Uint8Array(length);
+    if (parts.length > 1) {
+      let at = 0;
+      for (const p of parts) {
+        buf.set(p, at);
+        at += p.length;
+      }
     }
 
     this.spark = new SparkRenderer({ renderer, covSplats: true, onDirty });
@@ -97,12 +129,14 @@ export class SplatLayer {
     const n = this.meta.parts.length;
     const upto = Math.max(0, Math.min(s.upto, n));
     const sel = s.selected > 0 && s.selected <= upto ? s.selected : -1;
+    const split = manualCount(this.meta);
     this.meshes.forEach((mesh, i) => {
       const role = i === 0 || i > upto ? 0 : i === sel ? 2 : 1;
       const look = looks[role];
       mesh.opacity = look.alpha;
       mesh.visible = look.alpha > 0;
-      mesh.recolor.copy(look.tint ?? WHITE); // multiplies: red / grey for the snapshot style
+      // multiplies: red / grey for the snapshot style, cyan / amber by origin
+      mesh.recolor.copy((i > split && look.autoTint) || look.tint || WHITE);
       const cut = this.cuts[i];
       const wantCut = s.cut && role < 2;
       if (wantCut && cut.parent !== mesh) mesh.add(cut);

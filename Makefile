@@ -63,11 +63,11 @@ web:             ## Vite dev server on :5173
 web-vr:          ## Vite over HTTPS on all interfaces: open https://<this-ip>:5173 in Quest Browser, then Enter VR
 	cd web && npm run dev:vr
 
-viewer-fixture:  ## synthetic data/derived/viewer/scene.{bin,json} from build/manifest.json (no .ply needed; never replaces a real export)
+viewer-fixture:  ## synthetic viewer exports for both builds (viewer/, viewer_auto/) from committed files (no .ply; never replaces a real export)
 	$(PY) scripts/make_viewer_fixture.py
 
-test-web:        ## browser tests: viewer + capture.html in headless Chromium (own Vite on :5199); fixture if no export yet
-	@test -f data/derived/viewer/scene.json || $(PY) scripts/make_viewer_fixture.py
+test-web:        ## browser tests: viewer + capture.html in headless Chromium (own Vite on :5199); fixtures for builds with no export
+	@$(PY) scripts/make_viewer_fixture.py --missing-only
 	node --test --test-reporter=spec tests/web/*.test.mjs
 
 viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,splat,json} for web/ (seconds)

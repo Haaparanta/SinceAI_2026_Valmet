@@ -128,3 +128,14 @@ To see the automatic build in the web viewer (build slider, boxes, cutaway, VR),
 ```bash
 make viewer-auto && make web     # then http://localhost:5173/?scene=auto
 ```
+
+To see **both builds in one room**, export both and open `?scene=both` (or press **Both** in the viewer's Build
+switch): the manual parts come first, then the automatic objects; parts are tagged MANUAL / AUTO in the list, the
+**By origin** style colours them cyan / amber, and a part's card links to the other build's best-overlapping part.
+
+```bash
+make viewer && make viewer-auto && make web     # then http://localhost:5173/?scene=both
+```
+
+Without the scan (cloud sessions, CI), `make viewer-fixture` writes synthetic stand-ins for both exports from the
+committed `build/manifest.json` and `autoscene/out/scene.json`, and `make test-web` runs the browser tests on them.

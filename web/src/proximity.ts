@@ -15,7 +15,7 @@ export interface Neighbour {
   b: THREE.Vector3;
 }
 
-/** Floor and ceiling touch everything; leave them out of "what is near this". */
+/** Floor and ceiling touch everything; leave them out of "what is near this" (by name or label: "001_floor_1"). */
 const IGNORE = new Set(["floor", "ceiling"]);
 
 /** Closest points between two boxes, axis by axis (exact for axis-aligned boxes). */
@@ -34,11 +34,11 @@ function closest(a: PartMeta["bbox"], b: PartMeta["bbox"]): [THREE.Vector3, THRE
   return [pa, pb];
 }
 
-/** The built parts nearest to `sel`, closest first. */
-export function neighbours(meta: SceneMeta, sel: PartMeta, upto: number, k = 5): Neighbour[] {
+/** The built parts nearest to `sel`, closest first; `keep` narrows the candidates (e.g. to the same build). */
+export function neighbours(meta: SceneMeta, sel: PartMeta, upto: number, k = 5, keep?: (p: PartMeta) => boolean): Neighbour[] {
   const out: Neighbour[] = [];
   for (const p of meta.parts.slice(0, upto)) {
-    if (p.seq === sel.seq || IGNORE.has(p.name)) continue;
+    if (p.seq === sel.seq || IGNORE.has(p.name) || IGNORE.has(p.label.toLowerCase()) || (keep && !keep(p))) continue;
     const [a, b] = closest(sel.bbox, p.bbox);
     out.push({ part: p, gap: a.distanceTo(b), a, b });
   }
