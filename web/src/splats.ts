@@ -2,9 +2,11 @@
  * Gaussian splat view of the build (Spark, @sparkjsdev/spark): the same rows as the point cloud, drawn as real splats.
  *
  * Data: the detail levels lod/<k>.splat (scripts/lod.py), streamed coarse to fine, or the single scene.splat of older
- * exports; 32 bytes per splat. Every level keeps the segment order (0 = pool, k = part k), so the splats of one segment
- * are one range per level. Each segment is one SplatMesh: when a level arrives, every segment that gained splats is
- * rebuilt from all its levels so far and swapped in once decoded (no gap on screen). The Scan / Model / Overlay /
+ * exports; 32 bytes per splat. Build "both" joins the two builds' files the way scene.ts mergeRows joins the points:
+ * every manual row, then the automatic rows after its pool. Every level keeps the segment order (0 = pool, k = part k), so the splats of one segment
+ * are one range per level. Each level file is decoded once (one PackedSplats, in row order); each segment's slice of it
+ * is then appended to that segment's own PackedSplats (a copy of packed words, no second decode), and the segment's
+ * SplatMesh, created the first time the segment gets splats, re-accumulates. The Scan / Model / Overlay /
  * Wireframe looks, build replay and selection work as for the points: each mesh gets the opacity and tint of its role.
  * Spark sorts all meshes together, so the parts blend correctly with the rest of the room.
  *
@@ -14,6 +16,7 @@
  */
 import * as THREE from "three";
 import {
+  PackedSplats,
   SparkRenderer,
   SplatEdit,
   SplatEditRgbaBlendMode,
@@ -22,7 +25,18 @@ import {
   SplatFileType,
   SplatMesh,
 } from "@sparkjsdev/spark";
-import { buildBase, exportHint, fetchBytes, looksFor, type Build, type SceneMeta, type ViewState } from "./scene";
+import {
+  buildBase,
+  exportHint,
+  fetchBytes,
+  looksFor,
+  streamInOrder,
+  manualCount,
+  type Build,
+  type LodMeta,
+  type SceneMeta,
+  type ViewState,
+} from "./scene";
 
 const BYTES = 32;
 const WHITE = new THREE.Color(1, 1, 1);
@@ -31,8 +45,8 @@ export class SplatLayer {
   readonly group = new THREE.Group();
   /** per segment: [pool, part 1, …, part n]; undefined until the segment has splats */
   private meshes: (SplatMesh | undefined)[] = [];
-  /** per segment: the byte blocks received so far, one per level */
-  private pieces: Uint8Array[][] = [];
+  /** per segment: its splats so far (all levels received), shared with its mesh */
+  private packed: (PackedSplats | undefined)[] = [];
   private cuts: SplatEdit[] = [];
   private spark: SparkRenderer | null = null;
   /** set by load(): Spark joins the scene only once the first level is decoded (an empty one blanks the canvas) */
@@ -40,7 +54,9 @@ export class SplatLayer {
   private last: ViewState | null = null;
   private readonly meta: SceneMeta;
   private readonly build: Build;
+  /** true from the first level on (splats can be drawn); `complete` once every level asked for is in */
   ready = false;
+  complete = false;
   /** splats loaded so far */
   count = 0;
 
@@ -51,7 +67,7 @@ export class SplatLayer {
     const segments = meta.parts.length + 1;
     const cutY = meta.dollhouse_cut_y ?? meta.room_bounds.max[1];
     for (let s = 0; s < segments; s++) {
-      this.pieces.push([]);
+      this.packed.push(undefined);
       this.meshes.push(undefined);
       // the cut: a half-space above the dollhouse height, alpha multiplied by 0
       const edit = new SplatEdit({ rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY, softEdge: 0.01 });
@@ -80,62 +96,110 @@ export class SplatLayer {
       this.spark.visible = this.group.visible;
       scene.add(this.spark);
     };
-    const base = buildBase(this.build);
-    const hint = `${exportHint(this.build)} (it writes the splat files)`;
     const lods = this.meta.lods?.filter((l) => l.level <= maxLevel) ?? [];
     if (!lods.length) {
-      const buf = await fetchBytes(`${base}/scene.splat`, hint, onProgress);
+      const both = this.build === "both";
+      const buf = await this.fetchJoined(
+        both ? "manual" : this.build,
+        "scene.splat",
+        both ? "scene.splat" : null,
+        this.meta.auto_pool_count ?? 0,
+        onProgress,
+      );
       const ranges: [number, number][] = [[0, this.meta.pool_count], ...this.meta.parts.map((p) => [p.start, p.end] as [number, number])];
       await this.addLevel(buf, this.meta.count, ranges, "scene.splat");
+      this.complete = true;
       onDirty();
       onLevel(0);
       return;
     }
     const total = lods.reduce((a, l) => a + l.count, 0);
-    let before = 0;
-    for (const lod of lods) {
-      const buf = await fetchBytes(`${base}/${lod.splat}`, hint, (f) => onProgress((before + f * lod.count) / total));
-      before += lod.count;
-      await this.addLevel(buf, lod.count, lod.ranges, lod.splat);
-      onDirty();
-      onLevel(lod.level);
-    }
+    let done = 0;
+    await streamInOrder(
+      lods.length,
+      // level 0 streams with progress; later levels prefetch while the previous one decodes
+      (k) => this.fetchLevel(lods[k], k === 0 ? (f) => onProgress((f * lods[0].count) / total) : undefined),
+      async (k, buf) => {
+        const lod = lods[k];
+        await this.addLevel(buf, lod.count, lod.ranges, lod.splat);
+        done += lod.count;
+        if (k === lods.length - 1) this.complete = true;
+        onProgress(done / total);
+        onDirty();
+        onLevel(lod.level);
+      },
+    );
   }
 
-  /** Append one level's splats to their segments, rebuild those meshes, and swap them in once decoded. */
+  /** One level's splat bytes; for "both" the two builds' level files joined (manual rows, then automatic after its pool). */
+  private fetchLevel(lod: LodMeta, onProgress?: (f: number) => void): Promise<ArrayBuffer> {
+    if (!lod.sources) return this.fetchJoined(this.build === "auto" ? "auto" : "manual", lod.splat, null, 0, onProgress);
+    const { manual, auto } = lod.sources;
+    return this.fetchJoined("manual", manual.splat, auto.splat, auto.ranges[0][1], onProgress);
+  }
+
+  /** GET `first` from a build (and, for "both", `second` from the automatic build, from row `skip` on) as one buffer. */
+  private async fetchJoined(
+    build: "manual" | "auto",
+    first: string,
+    second: string | null,
+    skip: number,
+    onProgress?: (f: number) => void,
+  ): Promise<ArrayBuffer> {
+    const hint = `${exportHint(this.build)} (it writes the splat files)`;
+    const got = [0, 0];
+    const report = (i: number) =>
+      onProgress &&
+      ((f: number) => {
+        got[i] = f;
+        onProgress(second ? (got[0] + got[1]) / 2 : got[0]);
+      });
+    const [a, b] = await Promise.all([
+      fetchBytes(`${buildBase(build)}/${first}`, hint, report(0)),
+      second ? fetchBytes(`${buildBase("auto")}/${second}`, hint, report(1)) : Promise.resolve(null),
+    ]);
+    if (!b) return a;
+    if (b.byteLength < skip * BYTES) throw new Error(`${second} has fewer than its ${skip} pool rows: re-export`);
+    const out = new Uint8Array(a.byteLength + b.byteLength - skip * BYTES);
+    out.set(new Uint8Array(a), 0);
+    out.set(new Uint8Array(b, skip * BYTES), a.byteLength);
+    return out.buffer;
+  }
+
+  /** Decode one level once, append each segment's slice to that segment's splats, and add meshes for new segments. */
   private async addLevel(buf: ArrayBuffer, count: number, ranges: [number, number][], what: string): Promise<void> {
     if (buf.byteLength !== count * BYTES) {
       throw new Error(`${what} has ${buf.byteLength} bytes, scene.json says ${count} splats: re-export`);
     }
-    const changed: number[] = [];
+    const level = new PackedSplats({ fileBytes: buf, fileType: SplatFileType.SPLAT });
+    await level.initialized;
+    const words = level.packedArray;
+    if (!words || level.numSplats !== count) {
+      throw new Error(`${what}: decoded ${level.numSplats} splats, scene.json says ${count}: re-export`);
+    }
+    const fresh: [number, SplatMesh][] = [];
     ranges.forEach(([a, b], s) => {
-      if (b <= a || s >= this.pieces.length) return;
-      this.pieces[s].push(new Uint8Array(buf.slice(a * BYTES, b * BYTES)));
-      changed.push(s);
+      if (b <= a || s >= this.packed.length) return;
+      const n = b - a;
+      let seg = this.packed[s];
+      const at = seg?.numSplats ?? 0;
+      if (!seg) seg = this.packed[s] = new PackedSplats({ splatEncoding: level.splatEncoding });
+      seg.ensureSplats(at + n).set(words.subarray(a * 4, b * 4), at * 4); // 4 packed words per splat
+      seg.numSplats = at + n;
+      seg.needsUpdate = true;
+      const mesh = this.meshes[s];
+      if (mesh) {
+        mesh.updateGenerator();
+        mesh.updateVersion();
+      } else fresh.push([s, new SplatMesh({ packedSplats: seg })]);
     });
-    const fresh = changed.map((s) => {
-      const blocks = this.pieces[s];
-      const bytes = new Uint8Array(blocks.reduce((n, p) => n + p.length, 0));
-      let at = 0;
-      for (const p of blocks) {
-        bytes.set(p, at);
-        at += p.length;
-      }
-      // a fresh copy per mesh: the decoder may take ownership of (transfer) the bytes it is given
-      return new SplatMesh({ fileBytes: bytes, fileType: SplatFileType.SPLAT });
-    });
-    await Promise.all(fresh.map((m) => m.initialized));
+    level.dispose();
+    await Promise.all(fresh.map(([, m]) => m.initialized));
     if (!this.spark) this.attach?.();
-    changed.forEach((s, i) => {
-      const old = this.meshes[s];
-      if (old) {
-        if (this.cuts[s].parent === old) old.remove(this.cuts[s]);
-        this.group.remove(old);
-        old.dispose();
-      }
-      this.meshes[s] = fresh[i];
-      this.group.add(fresh[i]);
-    });
+    for (const [s, mesh] of fresh) {
+      this.meshes[s] = mesh;
+      this.group.add(mesh);
+    }
     this.count += count;
     this.ready = true;
     if (this.last) this.apply(this.last);
@@ -149,13 +213,15 @@ export class SplatLayer {
     const n = this.meta.parts.length;
     const upto = Math.max(0, Math.min(s.upto, n));
     const sel = s.selected > 0 && s.selected <= upto ? s.selected : -1;
+    const split = manualCount(this.meta);
     this.meshes.forEach((mesh, i) => {
       if (!mesh) return;
       const role = i === 0 || i > upto ? 0 : i === sel ? 2 : 1;
       const look = looks[role];
       mesh.opacity = look.alpha;
       mesh.visible = look.alpha > 0;
-      mesh.recolor.copy(look.tint ?? WHITE); // multiplies: red / grey for the snapshot style
+      // multiplies: red / grey for the snapshot style, cyan / amber by origin
+      mesh.recolor.copy((i > split && look.autoTint) || look.tint || WHITE);
       const cut = this.cuts[i];
       const wantCut = s.cut && role < 2;
       if (wantCut && cut.parent !== mesh) mesh.add(cut);

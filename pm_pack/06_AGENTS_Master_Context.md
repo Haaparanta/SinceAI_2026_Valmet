@@ -65,6 +65,7 @@ brew install ffmpeg                               # S7 + video, background
 
 `make check` = `uv run ruff check . && uv run pytest -q && (cd web && npm run typecheck && npm run build)`. `make demo` = pipeline (cached) + API + web in Demo Mode.
 While developing, run only some tests: `make test T="parts cleaning"` (files), `make test K=lamp` (test-name match), `make test-pick` (menu), `make test-changed` (tests related to changed .py files), `make test-failed` (last failures); `make test-list` shows what can be picked. `make check` always runs every test.
+Frontend: `make test-web` drives `index.html` and `capture.html` in headless Chromium (`tests/web/*.test.mjs`, `node:test` + `playwright-core`); with no `.ply` it first writes synthetic viewer scenes for both builds (`make viewer-fixture`). The viewer shows the manual build, the automatic one (`?scene=auto`) or both merged (`?scene=both`). It is not part of `make check`.
 
 ---
 

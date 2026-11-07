@@ -23,6 +23,11 @@
           <span class="badge" title="the asset data is the partner's synthetic builder pack">SYNTHETIC DATA</span>
         </div>
         <div class="hud-controls" role="toolbar" aria-label="View">
+          <div class="seg" role="group" aria-label="Build" id="build">
+            <button data-build="manual" title="the manual step-by-step build: parts accepted one by one">Manual</button>
+            <button data-build="auto" title="the automatic build: objects found by detection and clustering">Auto</button>
+            <button data-build="both" title="both builds in one room: manual parts, then automatic objects">Both</button>
+          </div>
           <div class="seg" role="group" aria-label="Render as" id="render">
             <button data-render="points" title="the scan as dots: fast everywhere (G)">Points</button>
             <button data-render="splats" title="the scan as real Gaussian splats: photographic, heavier (G)">Splats</button>
@@ -36,6 +41,7 @@
           <div class="seg" role="group" aria-label="Snapshot style" id="style">
             <button data-style="true" title="real colours">True<span class="long"> colour</span></button>
             <button data-style="redgrey" title="AGENTS.md M5: selected red, built grey, scan hidden">Red / grey</button>
+            <button data-style="origin" title="built parts coloured by build: manual cyan, automatic amber">By origin</button>
           </div>
           <div class="seg" role="group" aria-label="Options">
             <button id="cut" aria-pressed="false" title="hide everything above the dollhouse cut (D); automatic from above">Cutaway</button>
@@ -81,6 +87,7 @@
           <span id="card-seq" class="mono"></span>
           <h2 id="card-title"></h2>
           <span id="card-kind" class="chip-static mono"></span>
+          <span id="card-origin" class="origin-tag mono" hidden></span>
           <button id="card-close" class="icon-btn" aria-label="Clear selection" title="clear selection (Esc)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </button>

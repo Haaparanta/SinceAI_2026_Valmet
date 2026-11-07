@@ -12,6 +12,10 @@
  * selected (one part). Each pass has its own opacity and tint, so the Scan / Model / Overlay / Wireframe sources (after
  * the 3D Model Anything viewer, MIT, Wes Bos) and both snapshot styles come from one shader. A part after `upto` counts
  * as pool: scrubbing `upto` replays the build.
+ *
+ * Builds: the manual step-by-step build (default), the automatic one (?scene=auto, scripts/export_autoscene_viewer.py) or
+ * both at once (?scene=both): the manual export as is (its pool is the whole kept scan) followed by the automatic
+ * objects, so parts 1..manual_parts are manual and the rest automatic. Every part carries its `origin`.
  */
 import * as THREE from "three";
 
@@ -37,6 +41,8 @@ export interface PartMeta {
   images?: string[];
   /** ISO time of the acceptance step */
   accepted_at?: string;
+  /** which build the part comes from (set by loadScene) */
+  origin?: Origin;
 }
 /** One detail level (scripts/lod.py): `count` rows, `ranges[s]` = rows of segment s (0 = pool, k = part k). */
 export interface LodMeta {
@@ -47,11 +53,17 @@ export interface LodMeta {
   bin: string;
   splat: string;
   ranges: [number, number][];
+  /** build "both": the two exports' own level k, merged row by row when loaded */
+  sources?: { manual: LodMeta; auto: LodMeta };
 }
 export interface SceneMeta {
   version: number;
-  /** "autoscene" for the automatic build; absent for the manual one */
+  /** "autoscene" for the automatic build, "both" for the two merged (loadScene); absent for the manual one */
   build?: string;
+  /** build "both": parts 1..manual_parts are the manual build, the rest the automatic one */
+  manual_parts?: number;
+  /** build "both": rows of the automatic export's pool that were dropped (its scene.splat skips the same rows) */
+  auto_pool_count?: number;
   exported_at: string;
   source: { file: string; header_rows: number; real_rows: number };
   frame: string;
@@ -80,8 +92,13 @@ export interface Chunk {
 
 export type Source = "scan" | "model" | "overlay" | "wireframe";
 export const SOURCES: Source[] = ["scan", "model", "overlay", "wireframe"];
-/** true = real colours (the user's image rule since 2026-11-06 22:25); redgrey = AGENTS.md M5 recipe. */
-export type Style = "true" | "redgrey";
+/**
+ * true = real colours (the user's image rule since 2026-11-06 22:25); redgrey = AGENTS.md M5 recipe;
+ * origin = built parts tinted by the build they come from (manual cyan, automatic amber), selected red.
+ */
+export type Style = "true" | "redgrey" | "origin";
+export const STYLES: Style[] = ["true", "redgrey", "origin"];
+export type Origin = "manual" | "auto";
 
 export interface ViewState {
   source: Source;
@@ -99,10 +116,16 @@ export interface ViewState {
 const RED = new THREE.Color(0xff2d55);
 const GREY = new THREE.Color(0x9aa0a6);
 const WIRE = new THREE.Color(0x9de2f0);
+/** "By origin" colours (also the list tags in style.css: keep in sync) */
+export const ORIGIN_COLOUR: Record<Origin, string> = { manual: "#00e5ff", auto: "#ffb020" };
+const MANUAL_TINT = new THREE.Color(ORIGIN_COLOUR.manual);
+const AUTO_TINT = new THREE.Color(ORIGIN_COLOUR.auto);
 
 interface RoleLook {
   alpha: number;
   tint?: THREE.Color;
+  /** tint for automatic parts when it differs from `tint` (style "origin") */
+  autoTint?: THREE.Color;
 }
 type Looks = [pool: RoleLook, built: RoleLook, selected: RoleLook];
 
@@ -112,6 +135,9 @@ export function looksFor(s: ViewState): Looks {
   if (s.style === "redgrey") {
     // AGENTS.md M5 snapshot recipe: new object red and opaque, other approved objects grey at 25 %, raw points hidden.
     return [{ alpha: 0 }, { alpha: 0.25, tint: GREY }, { alpha: 1, tint: RED }];
+  }
+  if (s.style === "origin") {
+    return [{ alpha: sel ? 0.05 : 0.1 }, { alpha: sel ? 0.3 : 1, tint: MANUAL_TINT, autoTint: AUTO_TINT }, { alpha: 1, tint: RED }];
   }
   switch (s.source) {
     case "scan":
@@ -137,6 +163,8 @@ uniform float uCutOn;
 uniform float uHalfH;
 uniform float uSizeScale;
 uniform vec3 uTint;
+uniform vec3 uTintAuto;
+uniform float uSplit;
 uniform float uTintMix;
 varying vec3 vColor;
 void main() {
@@ -152,7 +180,7 @@ void main() {
   bool ortho = projectionMatrix[3][3] > 0.5;
   float pxPerUnit = projectionMatrix[1][1] * uHalfH / (ortho ? 1.0 : max(-mv.z, 0.001));
   gl_PointSize = clamp(psize * 0.001 * uSizeScale * pxPerUnit, 1.0, 48.0);
-  vColor = mix(rgb, uTint, uTintMix);
+  vColor = mix(rgb, part > uSplit + 0.5 ? uTintAuto : uTint, uTintMix);
 }`;
 
 const fragmentShader = /* glsl */ `
@@ -211,40 +239,207 @@ export async function fetchBytes(url: string, hint: string, onProgress?: (f: num
   return got === total ? buf.buffer : buf.slice(0, got).buffer;
 }
 
-/** Which build to show: the manual step-by-step build (default) or the automatic one (?scene=auto). */
-export type Build = "manual" | "auto";
-export function buildFromUrl(params: URLSearchParams): Build {
-  return params.get("scene") === "auto" ? "auto" : "manual";
+/**
+ * Fetch `n` items in order and apply them in order, with the next download already running while the current item is
+ * applied (decoded, uploaded): the network and the decoder overlap, and items still appear strictly coarse to fine.
+ */
+export async function streamInOrder<T>(
+  n: number,
+  fetchItem: (k: number) => Promise<T>,
+  applyItem: (k: number, item: T) => Promise<void> | void,
+): Promise<void> {
+  let next = n > 0 ? fetchItem(0) : null;
+  for (let k = 0; k < n; k++) {
+    const item = await next!;
+    next = k + 1 < n ? fetchItem(k + 1) : null;
+    await applyItem(k, item);
+  }
 }
 
-/** API folder of a build's viewer files (scene.json, scene.bin, scene.splat). */
+/** Which build to show: the manual step-by-step build (default), the automatic one (?scene=auto) or both (?scene=both). */
+export type Build = "manual" | "auto" | "both";
+export const BUILDS: Build[] = ["manual", "auto", "both"];
+export function buildFromUrl(params: URLSearchParams): Build {
+  const b = params.get("scene");
+  return b === "auto" || b === "both" ? b : "manual";
+}
+
+/** Number of manual parts at the start of meta.parts (the rest are automatic). */
+export function manualCount(meta: SceneMeta): number {
+  return meta.manual_parts ?? (meta.build === "autoscene" ? 0 : meta.parts.length);
+}
+
+/** API folder of a build's viewer files (scene.json, scene.bin, scene.splat, lod/); "both" has none of its own. */
 export function buildBase(build: Build): string {
   return build === "auto" ? "/api/viewer-auto" : "/api/viewer";
 }
 
 export function exportHint(build: Build): string {
-  return `run \`make ${build === "auto" ? "viewer-auto" : "viewer"}\` first`;
+  return build === "both"
+    ? "run `make viewer` and `make viewer-auto` first"
+    : build === "auto"
+      ? "run `make viewer-auto` (scripts/export_autoscene_viewer.py) first"
+      : "run `make viewer` (scripts/export_viewer_scene.py) first";
 }
 
-/** scene.json only: enough to build the UI before any point arrives. */
-export async function loadMeta(build: Build = "manual"): Promise<SceneMeta> {
-  const url = `${buildBase(build)}/scene.json`;
+const BYTES_PER_POINT = 12 + 2 + 3 + 1;
+
+interface RawScene {
+  meta: SceneMeta;
+  buf: ArrayBuffer;
+}
+
+/** One export's scene.json, every part tagged with its origin. */
+async function fetchMeta(origin: Origin): Promise<SceneMeta> {
+  const url = `${buildBase(origin)}/scene.json`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}: ${exportHint(build)}`);
-  return (await res.json()) as SceneMeta;
+  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}: ${exportHint(origin)}`);
+  const meta = (await res.json()) as SceneMeta;
+  meta.parts = meta.parts.map((p) => ({ ...p, origin }));
+  return meta;
 }
 
-/** One detail level as a chunk. */
+/**
+ * Rows of both builds as one block in the scene.bin layout: all `nm` manual rows, then the automatic rows after its
+ * first `ap` (its pool: the same scan, already in the manual pool and parts), part ids shifted by `shift`. Used for the
+ * whole scene (mergeBuilds) and for one detail level at a time (loadLevel).
+ */
+export function mergeRows(mBuf: ArrayBuffer, nm: number, aBuf: ArrayBuffer, na: number, ap: number, shift: number): ArrayBuffer {
+  for (const [buf, count] of [[mBuf, nm], [aBuf, na]] as const) {
+    const want = count * BYTES_PER_POINT;
+    if (buf.byteLength !== want) {
+      throw new Error(`scene.bin is ${buf.byteLength} bytes, scene.json says ${count} points (${want} bytes): re-export`);
+    }
+  }
+  const add = na - ap;
+  const n = nm + add;
+  const buf = new ArrayBuffer(n * BYTES_PER_POINT);
+  const xyz = new Float32Array(buf, 0, n * 3);
+  xyz.set(new Float32Array(mBuf, 0, nm * 3));
+  xyz.set(new Float32Array(aBuf, ap * 12, add * 3), nm * 3);
+  const part = new Uint16Array(buf, n * 12, n);
+  part.set(new Uint16Array(mBuf, nm * 12, nm));
+  const autoPart = new Uint16Array(aBuf, na * 12 + ap * 2, add);
+  for (let i = 0; i < add; i++) part[nm + i] = autoPart[i] + shift;
+  const rgb = new Uint8Array(buf, n * 14, n * 3);
+  rgb.set(new Uint8Array(mBuf, nm * 14, nm * 3));
+  rgb.set(new Uint8Array(aBuf, na * 14 + ap * 3, add * 3), nm * 3);
+  const size = new Uint8Array(buf, n * 17, n);
+  size.set(new Uint8Array(mBuf, nm * 17, nm));
+  size.set(new Uint8Array(aBuf, na * 17 + ap, add), nm);
+  return buf;
+}
+
+/**
+ * Both builds' scene.json as one: the manual parts, then the automatic ones (seq shifted by the manual part count, rows
+ * after the manual rows). With detail levels in both exports, level k is level k of each, merged the same way.
+ */
+export function mergeMeta(m: SceneMeta, a: SceneMeta): SceneMeta {
+  const shift = m.parts.length;
+  if (shift + a.parts.length > 65535) throw new Error("too many parts for uint16 part ids");
+  const ap = a.pool_count;
+  const offset = m.count - ap;
+  const bounds: BBox = {
+    min: [0, 1, 2].map((k) => Math.min(m.room_bounds.min[k], a.room_bounds.min[k])) as V3,
+    max: [0, 1, 2].map((k) => Math.max(m.room_bounds.max[k], a.room_bounds.max[k])) as V3,
+  };
+  let lods: LodMeta[] | undefined;
+  if (m.lods?.length && m.lods.length === a.lods?.length) {
+    lods = m.lods.map((ml, k) => {
+      const al = a.lods![k];
+      const pool = al.ranges[0][1];
+      const off = ml.count - pool;
+      return {
+        ...ml,
+        count: ml.count + al.count - pool,
+        ranges: [...ml.ranges, ...al.ranges.slice(1).map(([x, y]) => [x + off, y + off] as [number, number])],
+        sources: { manual: ml, auto: al },
+      };
+    });
+  }
+  return {
+    ...m,
+    build: "both",
+    manual_parts: shift,
+    auto_pool_count: ap,
+    count: m.count + a.count - ap,
+    room_bounds: bounds,
+    dollhouse_cut_y: m.dollhouse_cut_y ?? a.dollhouse_cut_y,
+    lods,
+    parts: [
+      ...m.parts.map((p) => ({ ...p, origin: "manual" as const })),
+      ...a.parts.map((p) => ({ ...p, origin: "auto" as const, seq: p.seq + shift, start: p.start + offset, end: p.end + offset })),
+    ],
+  };
+}
+
+/**
+ * Both builds as one scene: the manual export unchanged (pool + parts), then the automatic export's parts block. Points
+ * of a part the two builds share are drawn twice, once per build.
+ */
+export function mergeBuilds(manual: RawScene, auto: RawScene): RawScene {
+  const meta = mergeMeta(manual.meta, auto.meta);
+  const buf = mergeRows(manual.buf, manual.meta.count, auto.buf, auto.meta.count, auto.meta.pool_count, manual.meta.parts.length);
+  return { meta, buf };
+}
+
+/** scene.json only (both merged for "both"): enough to build the UI before any point arrives. */
+export async function loadMeta(build: Build = "manual"): Promise<SceneMeta> {
+  if (build === "both") return mergeMeta(...(await Promise.all([fetchMeta("manual"), fetchMeta("auto")])));
+  return fetchMeta(build);
+}
+
+/** One detail level as a chunk; for "both" the two builds' level files, merged row by row. */
 export async function loadLevel(build: Build, meta: SceneMeta, lod: LodMeta, onProgress?: (f: number) => void): Promise<Chunk> {
-  const buf = await fetchBytes(`${buildBase(build)}/${lod.bin}`, exportHint(build), onProgress);
+  let buf: ArrayBuffer;
+  if (lod.sources) {
+    const { manual: ml, auto: al } = lod.sources;
+    const done = [0, 0];
+    const total = ml.count + al.count;
+    const report = (i: number, n: number) => (f: number) => {
+      done[i] = f * n;
+      onProgress?.((done[0] + done[1]) / total);
+    };
+    const [mb, ab] = await Promise.all([
+      fetchBytes(`${buildBase("manual")}/${ml.bin}`, exportHint("both"), report(0, ml.count)),
+      fetchBytes(`${buildBase("auto")}/${al.bin}`, exportHint("both"), report(1, al.count)),
+    ]);
+    buf = mergeRows(mb, ml.count, ab, al.count, al.ranges[0][1], manualCount(meta));
+  } else {
+    buf = await fetchBytes(`${buildBase(build)}/${lod.bin}`, exportHint(build), onProgress);
+  }
   return { geometry: parseScene(buf, meta, lod.count, lod.bin), count: lod.count, ranges: lod.ranges, level: lod.level };
 }
 
 /** scene.json + the full scene.bin in one go (the snapshot page, which must draw every point). */
 export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
-  const meta = await loadMeta(build);
-  const buf = await fetchBytes(`${buildBase(build)}/scene.bin`, exportHint(build));
-  return { meta, geometry: parseScene(buf, meta) };
+  const full = async (origin: Origin): Promise<RawScene> => {
+    const [meta, buf] = await Promise.all([fetchMeta(origin), fetchBytes(`${buildBase(origin)}/scene.bin`, exportHint(origin))]);
+    return { meta, buf };
+  };
+  const raw = build === "both" ? mergeBuilds(...(await Promise.all([full("manual"), full("auto")]))) : await full(build);
+  return { meta: raw.meta, geometry: parseScene(raw.buf, raw.meta) };
+}
+
+/** Axis-aligned box overlap (intersection over union), 0..1. */
+export function iou(a: BBox, b: BBox): number {
+  let inter = 1;
+  for (let k = 0; k < 3; k++) inter *= Math.max(0, Math.min(a.max[k], b.max[k]) - Math.max(a.min[k], b.min[k]));
+  const vol = (x: BBox) => (x.max[0] - x.min[0]) * (x.max[1] - x.min[1]) * (x.max[2] - x.min[2]);
+  const union = vol(a) + vol(b) - inter;
+  return union > 0 ? inter / union : 0;
+}
+
+/** Build "both": the part from the other build whose box overlaps `sel` most (IoU >= minIou), among parts 1..upto. */
+export function counterpart(meta: SceneMeta, sel: PartMeta, upto: number, minIou = 0.1): { part: PartMeta; iou: number } | null {
+  if (meta.build !== "both" || !sel.origin) return null;
+  let best: { part: PartMeta; iou: number } | null = null;
+  for (const p of meta.parts.slice(0, upto)) {
+    if (p.origin === sel.origin) continue;
+    const v = iou(sel.bbox, p.bbox);
+    if (v >= minIou && (!best || v > best.iou)) best = { part: p, iou: v };
+  }
+  return best;
 }
 
 /**
@@ -297,6 +492,11 @@ export class BuildCloud {
     return this.chunks.filter((c) => c.level <= this.maxLevel);
   }
 
+  /** The Points of one role (0 pool, 1 built, 2 selected) in every chunk (tests hide the selected passes to measure them). */
+  rolePasses(role: number): THREE.Points[] {
+    return this.draws.map((d) => d.passes[role].points);
+  }
+
   /** Add a chunk (a detail level that just arrived); it takes the current view state at once. */
   addChunk(chunk: Chunk): void {
     const passes: Pass[] = [];
@@ -313,6 +513,8 @@ export class BuildCloud {
           uHalfH: { value: this.halfH },
           uSizeScale: { value: 1 },
           uTint: { value: new THREE.Color() },
+          uTintAuto: { value: new THREE.Color() },
+          uSplit: { value: manualCount(this.meta) },
           uTintMix: { value: 0 },
           uAlpha: { value: 1 },
         },
@@ -391,6 +593,7 @@ export class BuildCloud {
         u.uAlpha.value = look.alpha;
         u.uTintMix.value = look.tint ? 1 : 0;
         if (look.tint) (u.uTint.value as THREE.Color).copy(look.tint);
+        if (look.tint) (u.uTintAuto.value as THREE.Color).copy(look.autoTint ?? look.tint);
         const opaque = look.alpha >= 0.99;
         mat.transparent = !opaque;
         mat.depthWrite = opaque;
@@ -474,7 +677,7 @@ export function readState(params: URLSearchParams, meta: SceneMeta, fallback: Pa
   }
   return {
     source: src && SOURCES.includes(src) ? src : (fallback.source ?? "overlay"),
-    style: params.get("style") === "redgrey" ? "redgrey" : "true",
+    style: STYLES.includes(params.get("style") as Style) ? (params.get("style") as Style) : (fallback.style ?? defaultStyle(meta)),
     selected,
     upto,
     cut: params.has("dollhouse") ? params.get("dollhouse") !== "0" : (fallback.cut ?? false),
@@ -482,9 +685,14 @@ export function readState(params: URLSearchParams, meta: SceneMeta, fallback: Pa
   };
 }
 
+/** The style a build opens with when the URL names none: both builds at once are told apart by colour. */
+export function defaultStyle(meta: SceneMeta): Style {
+  return meta.build === "both" ? "origin" : "true";
+}
+
 export function writeState(params: URLSearchParams, s: ViewState, meta: SceneMeta): void {
   params.set("src", s.source);
-  if (s.style === "redgrey") params.set("style", "redgrey");
+  if (s.style !== defaultStyle(meta)) params.set("style", s.style);
   else params.delete("style");
   const sel = meta.parts[s.selected - 1];
   if (sel) params.set("part", sel.name);

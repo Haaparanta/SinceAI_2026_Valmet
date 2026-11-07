@@ -140,7 +140,7 @@ button:focus-visible, #parts li:focus-visible, #upto:focus-visible { outline: 2p
 #upto { width: 100%; margin: 4px 0; accent-color: var(--cyan); height: 22px; }
 #parts { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
 #parts li {
-  display: grid; grid-template-columns: 24px 1fr auto; grid-template-rows: auto auto; column-gap: 8px;
+  display: grid; grid-template-columns: 28px 1fr auto; grid-template-rows: auto auto; column-gap: 8px;
   padding: 6px 8px; border-radius: 6px; cursor: pointer;
   transition: background var(--dur-fast, 150ms), opacity var(--dur-fast, 150ms);
 }
@@ -153,6 +153,23 @@ button:focus-visible, #parts li:focus-visible, #upto:focus-visible { outline: 2p
 #parts .count { grid-column: 3; grid-row: 1; }
 #parts .kind { grid-column: 2; }
 #parts .kind[data-kind="equipment"] { color: color-mix(in oklab, var(--cyan) 75%, var(--muted-foreground, #9aa0b4)); }
+/* build of origin (style "By origin" uses the same colours: scene.ts ORIGIN_COLOUR) */
+.origin-tag {
+  display: inline-block; padding: 0 5px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  line-height: 15px; vertical-align: 1px; border: 1px solid currentColor;
+}
+.origin-tag[data-origin="manual"] { color: #00e5ff; }
+.origin-tag[data-origin="auto"] { color: #ffb020; }
+#parts .name .origin-tag { margin-right: 6px; }
+#parts li[data-origin="auto"] .seq { color: #ffb020; }
+.chips button[data-origin="manual"] { border-color: color-mix(in oklab, #00e5ff 45%, transparent); }
+.chips button[data-origin="auto"] { border-color: color-mix(in oklab, #ffb020 55%, transparent); }
+.chips button[data-origin="auto"][aria-pressed="true"] { border-color: #ffb020; background: color-mix(in oklab, #ffb020 16%, transparent); }
+#card-facts dd button.link {
+  padding: 0; border: 0; background: none; color: var(--cyan); font: inherit; cursor: pointer; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#card-facts dd button.link[data-origin="auto"] { color: #ffb020; }
 #stats { margin: 0; padding-top: 8px; border-top: 1px solid var(--hud-border); font-size: 10px; line-height: 1.5; }
 
 /* --- replay row, filter, chips --- */
@@ -194,7 +211,8 @@ button:focus-visible, #parts li:focus-visible, #upto:focus-visible { outline: 2p
   padding: 12px 14px 14px; border-radius: 12px; font-size: 12px; box-sizing: border-box;
   border-left: 3px solid #ff2d55; animation: toast-in var(--dur-base, 220ms) var(--ease-snap, ease);
 }
-.card-head { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; }
+.card-head { display: grid; grid-template-columns: auto 1fr auto auto auto; align-items: center; gap: 8px; }
+.card-head .origin-tag[hidden] { display: none; }
 #card h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #card h3 { margin: 12px 0 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground, #9aa0b4); font-weight: 600; }
 .chip-static { padding: 1px 8px; border-radius: 999px; border: 1px solid var(--hud-border); font-size: 10px; }

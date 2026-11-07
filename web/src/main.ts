@@ -8,6 +8,7 @@ import type { SplatLayer } from "./splats"; // the module (and Spark, ~1 MB gzip
 import {
   BuildCloud,
   buildFromUrl,
+  counterpart,
   frameBox,
   fetchBytes,
   exportHint,
@@ -15,8 +16,8 @@ import {
   loadLevel,
   loadMeta,
   parseScene,
+  streamInOrder,
   buildBase,
-  type Build,
   METRES_PER_UNIT_GUESS,
   partBox,
   pickPart,
@@ -24,8 +25,12 @@ import {
   roomBox,
   SOURCES,
   writeState,
+  type Build,
+  type Origin,
+  type PartMeta,
   type SceneMeta,
   type Source,
+  type Style,
   type ViewState,
 } from "./scene";
 import type { XrWalk } from "./xr"; // the VR module loads last, and only where WebXR VR is supported
@@ -73,6 +78,18 @@ const XR_LOD = params.has("xrlod") ? Math.max(0, Math.floor(Number(params.get("x
 const SPLAT_LOD = params.has("splatlod") ? Math.max(0, Math.floor(Number(params.get("splatlod")) || 0)) : null;
 const LIGHT_DEVICE = matchMedia("(pointer: coarse)").matches || /OculusBrowser|Quest/i.test(navigator.userAgent);
 const SOURCE_LABEL: Record<Source, string> = { scan: "Scan", model: "Model", overlay: "Overlay", wireframe: "Wireframe" };
+const BUILD: Build = buildFromUrl(params);
+const ORIGIN_LABEL: Record<Origin, string> = { manual: "MANUAL", auto: "AUTO" };
+/** In "both", tag each part with its build; a single build needs no tag. */
+const showOrigin = BUILD === "both";
+/** A part's tag element ("MANUAL" / "AUTO"), coloured by style.css. */
+function originTag(origin: Origin | undefined): HTMLElement {
+  const el = document.createElement("span");
+  el.className = "origin-tag mono";
+  el.dataset.origin = origin ?? "manual";
+  el.textContent = ORIGIN_LABEL[origin ?? "manual"];
+  return el;
+}
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -210,6 +227,7 @@ function setRender(meta: SceneMeta, mode: RenderMode): void {
       if (!layer) return;
       btn.textContent = "Splats";
       showProgress(null);
+      document.body.dataset.splats = "1";
       toast(`${fmt(layer.count)} Gaussian splats loaded`, 2500);
       render(meta);
     })
@@ -238,6 +256,9 @@ function render(meta: SceneMeta): void {
   for (const b of document.querySelectorAll<HTMLButtonElement>("#style button")) {
     b.setAttribute("aria-pressed", String(b.dataset.style === state.style));
   }
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#build button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.build === BUILD));
+  }
   cutBtn.setAttribute("aria-pressed", String(cutManual));
   boxesBtn.setAttribute("aria-pressed", String(state.boxes));
   nearBtn.setAttribute("aria-pressed", String(nearOn));
@@ -253,13 +274,21 @@ function render(meta: SceneMeta): void {
     li.classList.toggle("selected", seq === state.selected);
     li.classList.toggle("future", seq > state.upto);
   }
-  const built = meta.parts.slice(0, state.upto).reduce((a, p) => a + p.count, 0);
+  const builtParts = meta.parts.slice(0, state.upto);
+  const built = builtParts.reduce((a, p) => a + p.count, 0);
   const loaded = cloud.chunks.reduce((a, c) => a + c.count, 0);
   const levels = meta.lods?.length ?? 1;
-  const detail = loaded < meta.count ? ` (${fmt(loaded)} loaded, detail ${cloud.chunks.length}/${levels})` : "";
-  statsEl.textContent =
-    `${fmt(meta.count)} points${detail} · ${fmt(built)} in ${state.upto} accepted parts · ` +
-    `${fmt(meta.removed_count)} removed by cleaning · ${meta.source.file}`;
+  const points = `${fmt(meta.count)} points${loaded < meta.count ? ` (${fmt(loaded)} loaded, detail ${cloud.chunks.length}/${levels})` : ""}`;
+  if (showOrigin) {
+    const nManual = builtParts.filter((p) => p.origin === "manual").length;
+    statsEl.textContent =
+      `${points} · ${fmt(built)} in ${state.upto} parts: ` +
+      `${nManual} manual + ${state.upto - nManual} automatic · ${fmt(meta.removed_count)} removed by cleaning · ${meta.source.file}`;
+  } else {
+    statsEl.textContent =
+      `${points} · ${fmt(built)} in ${state.upto} accepted parts · ` +
+      `${fmt(meta.removed_count)} removed by cleaning · ${meta.source.file}`;
+  }
   syncUrl(meta);
   invalidate();
 }
@@ -281,6 +310,21 @@ function select(meta: SceneMeta, seq: number, fly = true): void {
   partsEl.querySelector(`li[data-seq="${seq}"]`)?.scrollIntoView({ block: "nearest" });
 }
 
+/** "Lamp 1 · 64 % overlap": the other build's part for the same thing, one click away. */
+function matchLink(meta: SceneMeta, part: PartMeta, overlap: number): HTMLElement {
+  const btn = document.createElement("button");
+  btn.className = "link";
+  btn.dataset.origin = part.origin ?? "manual";
+  btn.textContent = `${ORIGIN_LABEL[part.origin ?? "manual"].toLowerCase()}: ${part.label}`;
+  btn.title = `select #${part.seq} ${part.name}`;
+  btn.addEventListener("click", () => select(meta, part.seq));
+  const small = document.createElement("small");
+  small.textContent = ` · ${Math.round(overlap * 100)} % box overlap`;
+  const span = document.createElement("span");
+  span.append(btn, small);
+  return span;
+}
+
 /** "Pump 1" card: facts, approval images and nearest parts; also drives the 3D proximity lines. */
 let cardKey = "";
 function updateCard(meta: SceneMeta): void {
@@ -293,7 +337,9 @@ function updateCard(meta: SceneMeta): void {
     proximity.clear();
     return;
   }
-  const near = neighbours(meta, sel, state.upto);
+  // in "both", a part's nearest neighbour would often be its own copy from the other build: list those apart
+  const near = neighbours(meta, sel, state.upto, 5, showOrigin ? (p) => p.origin === sel.origin : undefined);
+  const twin = counterpart(meta, sel, state.upto);
   if (nearOn) proximity.show(near, MPU);
   else proximity.clear();
 
@@ -304,23 +350,32 @@ function updateCard(meta: SceneMeta): void {
   $("#card-seq").textContent = `#${String(sel.seq).padStart(2, "0")}`;
   $("#card-title").textContent = sel.label;
   $("#card-kind").textContent = sel.kind;
+  const tag = $("#card-origin");
+  tag.hidden = !showOrigin;
+  tag.dataset.origin = sel.origin ?? "manual";
+  tag.textContent = ORIGIN_LABEL[sel.origin ?? "manual"];
   const facts: [string, string, string?][] = [
     ["Size", `${size.map((v) => v.toFixed(2)).join(" × ")} u`, `≈ ${size.map((v) => (v * MPU).toFixed(2)).join(" × ")} m (x × y × z)`],
     ["Centre", `(${centre.map((v) => v.toFixed(2)).join(", ")}) u`],
     ["Height", lift < 0.05 ? "stands on the floor" : `${lift.toFixed(2)} u above the floor`, lift < 0.05 ? undefined : `≈ ${(lift * MPU).toFixed(2)} m`],
     ["Points", fmt(sel.count)],
   ];
-  if (sel.accepted_at) {
+  if (sel.origin === "auto") {
+    const conf = sel.confidence !== undefined ? ` · confidence ${Math.round(sel.confidence * 100)} %` : "";
+    facts.push(["Found by", `${sel.source ?? "automatic build"}${conf}`, `object ${String(sel.step).padStart(3, "0")} of the automatic build`]);
+  } else if (sel.accepted_at) {
     const when = new Date(sel.accepted_at);
     const t = Number.isNaN(when.getTime()) ? sel.accepted_at : when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
     facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")} · ${t}`]);
   } else facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")}`]);
+  if (showOrigin) facts.push(["Match", twin ? "" : `no ${sel.origin === "auto" ? "manual part" : "automatic object"} overlaps it`]);
   $("#card-facts").replaceChildren(
     ...facts.flatMap(([k, v, sub]) => {
       const dt = document.createElement("dt");
       dt.textContent = k;
       const dd = document.createElement("dd");
       dd.textContent = v;
+      if (k === "Match" && twin) dd.append(matchLink(meta, twin.part, twin.iou));
       if (sub) {
         const small = document.createElement("small");
         small.textContent = ` ${sub}`;
@@ -387,19 +442,37 @@ function wireLightbox(): void {
 function wireFilter(meta: SceneMeta): void {
   const kinds = [...new Set(meta.parts.map((p) => p.kind))];
   let kind = "";
-  const chip = (k: string, label: string, n: number) => {
+  let origin = "";
+  const chip = (label: string, n: number, onClick: () => void) => {
     const b = document.createElement("button");
-    b.dataset.kind = k;
     b.innerHTML = `<span></span><span class="n"></span>`;
     b.firstElementChild!.textContent = label;
     b.lastElementChild!.textContent = String(n);
     b.addEventListener("click", () => {
-      kind = k;
+      onClick();
       apply();
     });
     return b;
   };
-  kindsEl.replaceChildren(chip("", "all", meta.parts.length), ...kinds.map((k) => chip(k, k, meta.parts.filter((p) => p.kind === k).length)));
+  const kindChip = (k: string, label: string, n: number) => {
+    const b = chip(label, n, () => (kind = k));
+    b.dataset.kind = k;
+    return b;
+  };
+  // origin and kind combine: "automatic" + "pipe" lists the automatic pipe runs
+  const originChip = (o: Origin) => {
+    const b = chip(o === "manual" ? "manual" : "automatic", meta.parts.filter((p) => p.origin === o).length, () => {
+      origin = origin === o ? "" : o;
+    });
+    b.dataset.origin = o;
+    b.title = `only the ${o === "manual" ? "manual" : "automatic"} build (click again for both)`;
+    return b;
+  };
+  kindsEl.replaceChildren(
+    ...(showOrigin ? [originChip("manual"), originChip("auto")] : []),
+    kindChip("", "all", meta.parts.length),
+    ...kinds.map((k) => kindChip(k, k, meta.parts.filter((p) => p.kind === k).length)),
+  );
   const empty = document.createElement("li");
   empty.className = "empty";
   empty.textContent = "no part matches";
@@ -408,11 +481,16 @@ function wireFilter(meta: SceneMeta): void {
     let shown = 0;
     for (const li of partsEl.querySelectorAll<HTMLLIElement>("li[data-seq]")) {
       const p = meta.parts[Number(li.dataset.seq) - 1];
-      const ok = (!kind || p.kind === kind) && (!q || `${p.label} ${p.name} ${p.kind}`.toLowerCase().includes(q));
+      const ok =
+        (!kind || p.kind === kind) &&
+        (!origin || p.origin === origin) &&
+        (!q || `${p.label} ${p.name} ${p.kind} ${p.origin ?? ""}`.toLowerCase().includes(q));
       li.classList.toggle("filtered", !ok);
       if (ok) shown++;
     }
-    for (const b of kindsEl.querySelectorAll<HTMLButtonElement>("button")) b.setAttribute("aria-pressed", String(b.dataset.kind === kind));
+    for (const b of kindsEl.querySelectorAll<HTMLButtonElement>("button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.origin ? b.dataset.origin === origin : b.dataset.kind === kind));
+    }
     if (shown) empty.remove();
     else partsEl.append(empty);
   };
@@ -515,7 +593,7 @@ function wirePicking(meta: SceneMeta): void {
     canvas.style.cursor = hit ? "pointer" : "";
     tipEl.hidden = !hit;
     if (!hit) return;
-    tipEl.textContent = `${hit.part.label} · ${hit.part.kind}`;
+    tipEl.textContent = `${hit.part.label} · ${hit.part.kind}${showOrigin ? ` · ${hit.part.origin === "auto" ? "automatic" : "manual"}` : ""}`;
     tipEl.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 14}px)`;
   });
   canvas.addEventListener("pointerleave", () => (tipEl.hidden = true));
@@ -525,6 +603,7 @@ function wirePicking(meta: SceneMeta): void {
 function snapshotUrl(meta: SceneMeta): string {
   const url = new URL("capture.html", location.href);
   writeState(url.searchParams, state, meta);
+  if (BUILD !== "manual") url.searchParams.set("scene", BUILD);
   const f = (v: THREE.Vector3) => [v.x, v.y, v.z].map((c) => c.toFixed(3)).join(",");
   url.searchParams.set("cam", f(camera.position));
   url.searchParams.set("look", f(controls.target));
@@ -536,14 +615,19 @@ function snapshotUrl(meta: SceneMeta): string {
 
 function buildPanel(meta: SceneMeta): void {
   uptoEl.max = String(meta.parts.length);
+  const pad = String(meta.parts.length).length > 2 ? 3 : 2;
   partsEl.replaceChildren(
     ...meta.parts.map((p) => {
       const li = document.createElement("li");
       li.dataset.seq = String(p.seq);
+      if (p.origin) li.dataset.origin = p.origin;
       li.tabIndex = 0;
-      li.innerHTML = `<span class="seq mono">${String(p.seq).padStart(2, "0")}</span>
-        <span class="name">${p.label}</span><span class="kind mono" data-kind="${p.kind}">${p.kind}</span>
+      li.innerHTML = `<span class="seq mono">${String(p.seq).padStart(pad, "0")}</span>
+        <span class="name"></span><span class="kind mono" data-kind="${p.kind}">${p.kind}</span>
         <span class="count mono">${fmt(p.count)}</span>`;
+      const name = li.querySelector<HTMLElement>(".name")!;
+      if (showOrigin) name.append(originTag(p.origin));
+      name.append(p.label);
       li.addEventListener("click", () => {
         stopPlay(meta);
         select(meta, p.seq);
@@ -565,7 +649,22 @@ function wireControls(meta: SceneMeta): void {
     b.addEventListener("click", () => set(meta, { source: b.dataset.source as Source }));
   }
   for (const b of document.querySelectorAll<HTMLButtonElement>("#style button")) {
-    b.addEventListener("click", () => set(meta, { style: b.dataset.style === "redgrey" ? "redgrey" : "true" }));
+    b.addEventListener("click", () => set(meta, { style: (b.dataset.style ?? "true") as Style }));
+  }
+  // "By origin" only means something with both builds on screen
+  document.querySelector<HTMLButtonElement>('#style button[data-style="origin"]')!.hidden = !showOrigin && state.style !== "origin";
+  // switching builds reloads: part numbers differ between builds, so only the view (source, style) carries over
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#build button")) {
+    b.addEventListener("click", () => {
+      const to = b.dataset.build as Build;
+      if (to === BUILD) return;
+      const url = new URL(location.href);
+      for (const k of ["part", "upto", "style"]) url.searchParams.delete(k);
+      if (state.style !== "true" && state.style !== "origin") url.searchParams.set("style", state.style);
+      if (to === "manual") url.searchParams.delete("scene");
+      else url.searchParams.set("scene", to);
+      location.assign(url);
+    });
   }
   for (const b of document.querySelectorAll<HTMLButtonElement>("#render button")) {
     b.addEventListener("click", () => setRender(meta, b.dataset.render === "splats" ? "splats" : "points"));
@@ -660,20 +759,24 @@ async function loadPoints(build: Build, meta: SceneMeta, firstShown: () => void)
     return;
   }
   const total = levels.reduce((a, l) => a + l.count, 0);
-  let before = 0;
-  for (const lod of levels) {
-    const chunk = await loadLevel(build, meta, lod, (f) =>
-      showProgress((before + f * lod.count) / total, `detail ${lod.level + 1}/${levels.length}`),
-    );
-    before += lod.count;
-    cloud!.addChunk(chunk);
-    render(meta);
-    if (lod.level === 0) firstShown();
-  }
+  let done = 0;
+  await streamInOrder(
+    levels.length,
+    // level 0 streams with progress (it is the first picture); later levels prefetch while the previous one is drawn
+    (k) => loadLevel(build, meta, levels[k], k === 0 ? (f) => showProgress((f * levels[0].count) / total, "detail 1") : undefined),
+    (k, chunk) => {
+      done += levels[k].count;
+      cloud!.addChunk(chunk);
+      showProgress(done / total, `detail ${k + 1}/${levels.length}`);
+      render(meta);
+      if (k === 0) firstShown();
+    },
+  );
 }
 
 async function main(): Promise<void> {
-  const build = buildFromUrl(params);
+  loadingText.textContent = BUILD === "both" ? "loading both builds …" : loadingText.textContent;
+  const build = BUILD;
   const meta = await loadMeta(build);
   cloud = new BuildCloud(meta);
   scene.add(cloud.group);
@@ -716,6 +819,7 @@ async function main(): Promise<void> {
   });
   showProgress(null);
   pointsDone();
+  document.body.dataset.loaded = "points"; // every point level is in (tests and scripted screenshots wait for this)
   render(meta);
   await setupXr(meta);
 }

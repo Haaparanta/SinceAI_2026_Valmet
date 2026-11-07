@@ -4,7 +4,8 @@
  * same orthographic views, section cut, metre grid and readiness flag, applied to our point cloud.
  *
  * /capture.html?<state>&<camera>&<caption>
- *   state    src=scan|model|overlay|wireframe  part=<name|seq>  upto=<name|seq>  style=true|redgrey  boxes=1  dollhouse=1
+ *   state    src=scan|model|overlay|wireframe  part=<name|seq>  upto=<name|seq>  style=true|redgrey|origin  boxes=1  dollhouse=1
+ *            scene=auto|both (default: the manual build)
  *            ps=<point size scale, default 1>
  *   camera   view=top|up|n|s|e|w [ppm=120] [cut=<coord>] [nogrid]     orthographic plan / elevation with a grid
  *            cam=x,y,z&look=x,y,z [fov=50] [size=WxH]                   perspective
@@ -30,6 +31,7 @@ const vec = (s: string): THREE.Vector3 => new THREE.Vector3(...s.split(",").map(
 
 function legendFor(s: ViewState, hasSel: boolean): string {
   if (s.style === "redgrey") return "red = selected · grey (25 %) = built · scan points hidden";
+  if (s.style === "origin") return `cyan = manual build · amber = automatic build${hasSel ? " · red = selected" : ""} · rest of scan faint`;
   const l = looksFor(s);
   const pct = (a: number) => `${Math.round(a * 100)} %`;
   const parts = [
