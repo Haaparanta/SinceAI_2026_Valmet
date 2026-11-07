@@ -5,6 +5,7 @@ import {
   BuildCloud,
   frameBox,
   loadScene,
+  METRES_PER_UNIT_GUESS,
   partBox,
   readState,
   roomBox,
@@ -14,6 +15,7 @@ import {
   type Source,
   type ViewState,
 } from "./scene";
+import { vrSupported, XrWalk } from "./xr";
 
 const fmt = (n: number): string => n.toLocaleString("en-US");
 const FOV = 50;
@@ -26,6 +28,19 @@ const uptoLabel = document.querySelector<HTMLElement>("#upto-label")!;
 const cutBtn = document.querySelector<HTMLButtonElement>("#cut")!;
 const boxesBtn = document.querySelector<HTMLButtonElement>("#boxes")!;
 const snapBtn = document.querySelector<HTMLButtonElement>("#snap")!;
+const homeBtn = document.querySelector<HTMLButtonElement>("#home")!;
+const vrBtn = document.querySelector<HTMLButtonElement>("#vr")!;
+const vrLabel = document.querySelector<HTMLElement>("#vr-label")!;
+const panelEl = document.querySelector<HTMLElement>("#panel")!;
+const panelToggle = document.querySelector<HTMLButtonElement>("#panel-toggle")!;
+const loadingEl = document.querySelector<HTMLElement>("#loading")!;
+const loadingText = document.querySelector<HTMLElement>("#loading-text")!;
+const toastEl = document.querySelector<HTMLElement>("#toast")!;
+const params = new URLSearchParams(location.search);
+/** metres per scene unit in VR (?mpu=), and VR point thinning (?xrstride=, 1 = every point) */
+const MPU = Number(params.get("mpu")) || METRES_PER_UNIT_GUESS;
+const XR_STRIDE = Math.max(1, Number(params.get("xrstride")) || 2);
+const SOURCE_LABEL: Record<Source, string> = { scan: "Scan", model: "Model", overlay: "Overlay", wireframe: "Wireframe" };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -39,6 +54,7 @@ controls.zoomToCursor = true;
 controls.screenSpacePanning = true;
 
 let cloud: BuildCloud | undefined;
+let xr: XrWalk | undefined;
 let state: ViewState;
 let cutManual = false;
 let dirty = true;
@@ -47,7 +63,21 @@ const invalidate = (): void => {
 };
 controls.addEventListener("change", invalidate);
 
+let toastTimer = 0;
+function toast(text: string, ms = 3500): void {
+  toastEl.textContent = text;
+  toastEl.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => (toastEl.hidden = true), ms);
+}
+
+function setPanelOpen(open: boolean): void {
+  panelEl.classList.toggle("collapsed", !open);
+  panelToggle.setAttribute("aria-expanded", String(open));
+}
+
 function resize(): void {
+  if (renderer.xr.isPresenting) return; // the headset owns the framebuffer
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -58,6 +88,7 @@ window.addEventListener("resize", resize);
 
 /** Dollhouse: hide everything above the cut while the camera is above the room (or when forced on). */
 function autoCut(meta: SceneMeta): boolean {
+  if (xr?.presenting) return false; // standing in the room: keep the ceiling and the pipe band
   return cutManual || camera.position.y > meta.room_bounds.max[1];
 }
 
@@ -138,7 +169,7 @@ function buildPanel(meta: SceneMeta): void {
       li.dataset.seq = String(p.seq);
       li.tabIndex = 0;
       li.innerHTML = `<span class="seq mono">${String(p.seq).padStart(2, "0")}</span>
-        <span class="name">${p.label}</span><span class="kind mono">${p.kind}</span>
+        <span class="name">${p.label}</span><span class="kind mono" data-kind="${p.kind}">${p.kind}</span>
         <span class="count mono">${fmt(p.count)}</span>`;
       li.addEventListener("click", () => select(meta, p.seq));
       li.addEventListener("keydown", (e) => {
@@ -163,6 +194,11 @@ function wireControls(meta: SceneMeta): void {
   });
   boxesBtn.addEventListener("click", () => set(meta, { boxes: !state.boxes }));
   snapBtn.addEventListener("click", () => window.open(snapshotUrl(meta), "_blank"));
+  homeBtn.addEventListener("click", () => {
+    set(meta, { selected: 0 });
+    flyTo(roomBox(meta));
+  });
+  panelToggle.addEventListener("click", () => setPanelOpen(panelEl.classList.contains("collapsed")));
   window.addEventListener("keydown", (e) => {
     if (e.target instanceof HTMLInputElement) return;
     const n = Number(e.key);
@@ -188,18 +224,37 @@ async function main(): Promise<void> {
   grid.position.set((room.min.x + room.max.x) / 2, meta.floor_y - 0.005, (room.min.z + room.max.z) / 2);
   scene.add(grid);
 
-  state = readState(new URLSearchParams(location.search), meta);
+  state = readState(params, meta);
   buildPanel(meta);
   wireControls(meta);
+  setupXr(meta);
+  // small screens start with the build list folded away so the room is visible
+  if (matchMedia("(max-width: 640px), (max-height: 500px)").matches) setPanelOpen(false);
   resize();
   const sel = meta.parts[state.selected - 1];
   if (sel) flyTo(partBox(sel), undefined, 0.45);
   else flyTo(room);
   render(meta);
 
-  if (import.meta.env.DEV) Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta } });
+  if (import.meta.env.DEV) Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta, xr } });
   let wasCut = autoCut(meta);
-  renderer.setAnimationLoop(() => {
+  let lastT = 0;
+  let eyeH = 0;
+  loadingEl.classList.add("done");
+  setTimeout(() => (loadingEl.hidden = true), 450);
+  if (matchMedia("(pointer: coarse)").matches) toast("drag to orbit · pinch to zoom · tap a part to fly to it");
+  renderer.setAnimationLoop((t: number) => {
+    const dt = lastT ? Math.min((t - lastT) / 1000, 0.1) : 0;
+    lastT = t;
+    if (xr?.presenting) {
+      // the headset needs a frame every refresh: no idle skipping in VR
+      xr.update(dt);
+      const h = xr.eyeHeight();
+      if (h && h !== eyeH) cloud!.setViewportHeight((eyeH = h));
+      renderer.render(scene, camera);
+      return;
+    }
+    eyeH = 0;
     controls.update();
     const cut = autoCut(meta);
     if (cut !== wasCut) {
@@ -213,7 +268,78 @@ async function main(): Promise<void> {
   });
 }
 
+/** WebXR walk-through (Quest 3): the Enter VR button, and what changes while the headset is on. */
+function setupXr(meta: SceneMeta): void {
+  let before: Source | null = null;
+  const order: Source[] = ["scan", "model", "overlay"];
+  const walk = new XrWalk(
+    renderer,
+    scene,
+    camera,
+    meta,
+    {
+      onStart() {
+        controls.enabled = false;
+        // inside the room the real scan reads best; overlay/wireframe haze is for looking from outside
+        before = state.source;
+        if (state.source === "overlay" || state.source === "wireframe") state = { ...state, source: "scan" };
+        cloud!.setStride(XR_STRIDE);
+        cloud!.sizeScale = MPU; // view space is metres in XR, point sizes are in scene units
+        render(meta);
+        vrLabel.textContent = "Exit VR";
+      },
+      onEnd() {
+        controls.enabled = true;
+        cloud!.setStride(1);
+        cloud!.sizeScale = 1;
+        if (before) state = { ...state, source: before };
+        before = null;
+        resize();
+        controls.update();
+        render(meta);
+        vrLabel.textContent = "Enter VR";
+      },
+      cycleSource() {
+        const i = order.indexOf(state.source);
+        set(meta, { source: order[(i + 1) % order.length] });
+      },
+      toggleBoxes() {
+        set(meta, { boxes: !state.boxes });
+      },
+      status() {
+        const last = meta.parts[state.upto - 1];
+        const sel = meta.parts[state.selected - 1];
+        return [
+          `${SOURCE_LABEL[state.source]} · ${state.upto}/${meta.parts.length} parts`,
+          sel ? `selected: ${sel.label}` : last ? `latest: ${last.label} · 1 u ≈ ${MPU} m` : `1 u ≈ ${MPU} m`,
+        ];
+      },
+    },
+    { metresPerUnit: MPU, focus: () => meta.parts[state.selected - 1] },
+  );
+  xr = walk;
+  vrBtn.addEventListener("click", () => {
+    walk.toggle().catch((err: unknown) => toast(`VR: ${err instanceof Error ? err.message : String(err)}`, 6000));
+  });
+  vrSupported().then((ok) => {
+    if (ok) {
+      vrBtn.hidden = false;
+      return;
+    }
+    // Quest Browser hides WebXR on plain http:// over the LAN: say why instead of showing nothing
+    if (/OculusBrowser|Quest/i.test(navigator.userAgent) && !window.isSecureContext) {
+      vrBtn.hidden = false;
+      vrBtn.disabled = true;
+      vrLabel.textContent = "VR needs HTTPS";
+      vrBtn.title = "open this page over https:// (make web-vr) or via adb reverse on localhost";
+    }
+  });
+}
+
 main().catch((err: unknown) => {
-  statsEl.textContent = err instanceof Error ? err.message : String(err);
+  const msg = err instanceof Error ? err.message : String(err);
+  statsEl.textContent = msg;
+  loadingEl.classList.add("error");
+  loadingText.textContent = msg;
   console.error(err);
 });

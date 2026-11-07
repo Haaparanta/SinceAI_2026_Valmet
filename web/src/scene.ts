@@ -155,11 +155,21 @@ export async function loadScene(): Promise<{ meta: SceneMeta; geometry: THREE.Bu
   return { meta, geometry: parseScene(await binRes.arrayBuffer(), meta) };
 }
 
+/**
+ * Metric scale guess for WebXR, where one physical metre walked must be one metre in the room. The scan is in scene units
+ * and its metric scale is unverified (research/00, AGENTS.md §3). In the Equipment Room the pallet jack is 1.05 u tall at
+ * the handle and 0.47 u wide (a real one: about 1.2 m and 0.55 m), and floor-to-ceiling is 2.6 u (about 3 m), so
+ * 1 u is about 1.15 m [HYPOTHESIS]. Override with ?mpu=<metres per unit>.
+ */
+export const METRES_PER_UNIT_GUESS = 1.15;
+
 /** The point cloud in three passes plus the part wire boxes, driven by a ViewState. */
 export class BuildCloud {
   readonly group = new THREE.Group();
-  private passes: { points: THREE.Points; mat: THREE.ShaderMaterial }[] = [];
+  private passes: { points: THREE.Points; mat: THREE.ShaderMaterial; geo: THREE.BufferGeometry }[] = [];
   private boxes: THREE.Box3Helper[] = [];
+  private stride = 1;
+  private strideIndex: THREE.BufferAttribute | null = null;
   sizeScale = 1;
   readonly meta: SceneMeta;
   readonly geometry: THREE.BufferGeometry;
@@ -184,10 +194,16 @@ export class BuildCloud {
           uAlpha: { value: 1 },
         },
       });
-      const points = new THREE.Points(geometry, mat);
+      // One geometry per pass over the same (shared, uploaded once) attributes, so each pass can draw only the range
+      // its role can occur in: the parts block is in acceptance order, so "built" and "selected" are contiguous ranges.
+      const geo = new THREE.BufferGeometry();
+      for (const [name, attr] of Object.entries(geometry.attributes)) geo.setAttribute(name, attr);
+      geo.boundingBox = geometry.boundingBox;
+      geo.boundingSphere = geometry.boundingSphere;
+      const points = new THREE.Points(geo, mat);
       points.frustumCulled = false;
       points.renderOrder = role;
-      this.passes.push({ points, mat });
+      this.passes.push({ points, mat, geo });
       this.group.add(points);
     }
     for (const p of meta.parts) {
@@ -212,17 +228,45 @@ export class BuildCloud {
     for (const { mat } of this.passes) mat.uniforms.uHalfH.value = px / 2;
   }
 
+  /**
+   * Draw every k-th point only (k = 1: all). Used in VR, where the headset renders the cloud twice per frame at 72 Hz.
+   * Point order is pool then parts, so a uniform stride thins every part evenly.
+   */
+  setStride(k: number): void {
+    k = Math.max(1, Math.floor(k));
+    if (k === this.stride) return;
+    this.stride = k;
+    this.strideIndex = null;
+    if (k > 1) {
+      const n = Math.ceil(this.meta.count / k);
+      const idx = new Uint32Array(n);
+      for (let i = 0; i < n; i++) idx[i] = i * k;
+      this.strideIndex = new THREE.BufferAttribute(idx, 1);
+    }
+    for (const { geo } of this.passes) geo.setIndex(this.strideIndex);
+  }
+
+  /** [start, end) point range a role can occur in, for the current upto/selection */
+  private rangeFor(role: number, upto: number, selected: number): [number, number] {
+    const parts = this.meta.parts;
+    if (role === 0) return [0, upto >= parts.length ? this.meta.pool_count : this.meta.count];
+    if (role === 1) return upto > 0 ? [parts[0].start, parts[upto - 1].end] : [0, 0];
+    const sel = parts[selected - 1];
+    return sel ? [sel.start, sel.end] : [0, 0];
+  }
+
   apply(s: ViewState): void {
     const looks = looksFor(s);
     const upto = Math.max(0, Math.min(s.upto, this.meta.parts.length));
     const selected = s.selected > 0 && s.selected <= upto ? s.selected : -1;
-    this.passes.forEach(({ points, mat }, role) => {
+    const k = this.stride;
+    this.passes.forEach(({ points, mat, geo }, role) => {
       const look = looks[role];
       const u = mat.uniforms;
       u.uUpto.value = upto;
       u.uSelected.value = selected;
       u.uCutOn.value = s.cut ? 1 : 0;
-      u.uSizeScale.value = this.sizeScale;
+      u.uSizeScale.value = this.sizeScale * (k > 1 ? Math.sqrt(k) * 0.85 : 1); // fill most of the gaps a stride leaves
       u.uAlpha.value = look.alpha;
       u.uTintMix.value = look.tint ? 1 : 0;
       if (look.tint) (u.uTint.value as THREE.Color).copy(look.tint);
@@ -230,7 +274,10 @@ export class BuildCloud {
       mat.transparent = !opaque;
       mat.depthWrite = opaque;
       mat.needsUpdate = true;
-      points.visible = look.alpha > 0;
+      const [a, b] = this.rangeFor(role, upto, selected);
+      const start = Math.ceil(a / k);
+      geo.setDrawRange(start, Math.max(0, Math.ceil(b / k) - start));
+      points.visible = look.alpha > 0 && b > a;
       // opaque passes first, then the faint ones, selection last so it reads on top of the haze
       points.renderOrder = (opaque ? 0 : 10) + role;
     });

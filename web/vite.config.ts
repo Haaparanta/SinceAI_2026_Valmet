@@ -1,6 +1,7 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 import { defineConfig, type Plugin } from "vite";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,8 +35,15 @@ function derivedFiles(): Plugin {
   };
 }
 
+/**
+ * VR=1 (`make web-vr`): HTTPS with a self-signed certificate on every network interface, so a Meta Quest 3 on the same
+ * Wi-Fi can open https://<laptop-ip>:5173 and enter VR (browsers only expose WebXR on https:// or localhost). Accept the
+ * certificate warning once in Quest Browser. With a USB cable, `adb reverse tcp:5173 tcp:5173` + http://localhost works too.
+ */
+const vr = process.env.VR === "1";
+
 export default defineConfig({
-  plugins: [derivedFiles()],
+  plugins: [derivedFiles(), ...(vr ? [basicSsl({ name: "a2b-quest" })] : [])],
   build: {
     rollupOptions: {
       input: { main: resolve(here, "index.html"), capture: resolve(here, "capture.html") },
@@ -43,6 +51,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: vr ? true : undefined,
     fs: { allow: [here, resolve(repoRoot, "design")] }, // style.css imports design/cyberpunk-tokens.css
     proxy: { "/api": { target: "http://127.0.0.1:8000", changeOrigin: true } },
   },
