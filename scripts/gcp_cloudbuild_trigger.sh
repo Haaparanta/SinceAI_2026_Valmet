@@ -30,8 +30,11 @@ say "APIs"
 g services enable cloudbuild.googleapis.com secretmanager.googleapis.com
 
 say "Cloud Build service agent may keep the GitHub token in Secret Manager"
-g projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:${AGENT}" \
-  --role=roles/secretmanager.admin --condition=None >/dev/null
+for try in 1 2 3 4 5; do   # IAM returns "concurrent policy changes" now and then: retry
+  g projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:${AGENT}" \
+    --role=roles/secretmanager.admin --condition=None >/dev/null && break
+  [ "$try" = 5 ] && exit 1; sleep $((try * 3))
+done
 
 say "connection $CONNECTION ($REGION)"
 if ! g builds connections describe "$CONNECTION" --region="$REGION" >/dev/null 2>&1; then
