@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | compare
-.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse viewer snap help
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | compare
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer snap help
 UV ?= uv
 PY := $(UV) run python
 
@@ -53,6 +53,9 @@ check:           ## lint + contract drift + tests + web typecheck/build  (must b
 
 timelapse:       ## equipment-room images (else images/) -> docs/timelapse.mp4 (30-60 s); pass ARGS="--first 7 --hold-last 3" etc.
 	$(UV) run --group video python scripts/timelapse.py $(ARGS)
+
+media:           ## README videos + GIF previews of both builds from the committed images -> docs/media/ (no .ply needed)
+	$(UV) run --group video python scripts/readme_media.py $(ARGS)
 
 api:             ## FastAPI on :8000 (reload)
 	$(UV) run uvicorn api.main:app --reload --port 8000

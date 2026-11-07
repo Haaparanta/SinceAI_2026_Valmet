@@ -162,9 +162,23 @@ button:focus-visible, #parts li:focus-visible, #upto:focus-visible { outline: 2p
 .origin-tag[data-origin="auto"] { color: #ffb020; }
 #parts .name .origin-tag { margin-right: 6px; }
 #parts li[data-origin="auto"] .seq { color: #ffb020; }
-.chips button[data-origin="manual"] { border-color: color-mix(in oklab, #00e5ff 45%, transparent); }
-.chips button[data-origin="auto"] { border-color: color-mix(in oklab, #ffb020 55%, transparent); }
-.chips button[data-origin="auto"][aria-pressed="true"] { border-color: #ffb020; background: color-mix(in oklab, #ffb020 16%, transparent); }
+/* Manual | Auto: which parts are choosable (listed, pickable, drawn as built); pressed = choosable */
+.origin-seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; box-sizing: border-box; }
+.origin-seg button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; padding: 4px 8px; font-weight: 600; letter-spacing: 0.04em;
+}
+.origin-seg .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.55; flex: none; }
+.origin-seg .n { font-weight: 400; font-size: 11px; color: inherit; opacity: 0.7; }
+.origin-seg .n:empty { display: none; }
+.origin-seg button[data-origin="manual"] { color: color-mix(in oklab, #00e5ff 70%, var(--muted-foreground, #9aa0b4)); }
+.origin-seg button[data-origin="auto"] { color: color-mix(in oklab, #ffb020 70%, var(--muted-foreground, #9aa0b4)); }
+.origin-seg button[aria-pressed="true"] .dot { opacity: 1; }
+.origin-seg button[data-origin="manual"][aria-pressed="true"] { background: #00e5ff; color: var(--primary-foreground, #0b0d14); }
+.origin-seg button[data-origin="auto"][aria-pressed="true"] { background: #ffb020; color: var(--primary-foreground, #0b0d14); }
+.origin-seg button[data-origin="manual"]:not([aria-pressed="true"]):hover { background: color-mix(in oklab, #00e5ff 12%, transparent); }
+.origin-seg button[data-origin="auto"]:not([aria-pressed="true"]):hover { background: color-mix(in oklab, #ffb020 12%, transparent); }
+.origin-seg button:disabled { opacity: 0.45; cursor: not-allowed; }
 #card-facts dd button.link {
   padding: 0; border: 0; background: none; color: var(--cyan); font: inherit; cursor: pointer; text-decoration: underline;
   text-underline-offset: 2px;

@@ -19,6 +19,7 @@ import {
   streamInOrder,
   buildBase,
   loadCompare,
+  manualCount,
   METRES_PER_UNIT_GUESS,
   partBox,
   pickPart,
@@ -34,6 +35,7 @@ import {
   type Origin,
   type PartMeta,
   type SceneMeta,
+  type Show,
   type Source,
   type Style,
   type ViewState,
@@ -87,6 +89,17 @@ const BUILD: Build = buildFromUrl(params);
 const ORIGIN_LABEL: Record<Origin, string> = { manual: "MANUAL", auto: "AUTO" };
 /** In "both", tag each part with its build; a single build needs no tag. */
 const showOrigin = BUILD === "both";
+/**
+ * The Manual | Auto buttons of the build panel: which parts are choosable (listed, pickable, drawn as built). There are
+ * many more automatic objects than manual parts, so one click narrows the list to one build. Pressed = choosable.
+ */
+const originEl = document.querySelector<HTMLElement>("#origin")!;
+/** part count per build for the buttons; in a single build the other build's count arrives lazily */
+const originCount: Partial<Record<Origin, number>> = {};
+/** false once the other build's export turned out to be missing (its button is then disabled) */
+const originAvailable: Record<Origin, boolean> = { manual: true, auto: true };
+/** re-applies the parts-list filter (set by wireFilter) */
+let applyFilter: () => void = () => {};
 /** scripts/compare_builds.py output (build "both" only), indexed by part name */
 let compare: Compare | null = null;
 const cmpManual = new Map<string, CompareManual>();
@@ -283,6 +296,7 @@ function render(meta: SceneMeta): void {
   for (const b of document.querySelectorAll<HTMLButtonElement>("#build button")) {
     b.setAttribute("aria-pressed", String(b.dataset.build === BUILD));
   }
+  renderOriginButtons();
   cutBtn.setAttribute("aria-pressed", String(cutManual));
   boxesBtn.setAttribute("aria-pressed", String(state.boxes));
   nearBtn.setAttribute("aria-pressed", String(nearOn));
@@ -520,7 +534,6 @@ function wireLightbox(): void {
 function wireFilter(meta: SceneMeta): void {
   const kinds = [...new Set(meta.parts.map((p) => p.kind))];
   let kind = "";
-  let origin: "" | Origin = state.show === "both" ? "" : state.show;
   let status = "";
   const chip = (label: string, n: number, onClick: () => void) => {
     const b = document.createElement("button");
@@ -536,19 +549,6 @@ function wireFilter(meta: SceneMeta): void {
   const kindChip = (k: string, label: string, n: number) => {
     const b = chip(label, n, () => (kind = k));
     b.dataset.kind = k;
-    return b;
-  };
-  // origin and kind combine: "automatic" + "pipe" lists the automatic pipe runs
-  const originChip = (o: Origin) => {
-    const b = chip(o === "manual" ? "manual" : "automatic", meta.parts.filter((p) => p.origin === o).length, () => {
-      origin = origin === o ? "" : o;
-      // the chip also hides the other build in the room; a selection there would be invisible, so drop it
-      const show = origin || "both";
-      const sel = meta.parts[state.selected - 1];
-      set(meta, { show, ...(sel && cloud && !cloud.visibleIn(sel.seq, show) ? { selected: 0 } : {}) });
-    });
-    b.dataset.origin = o;
-    b.title = `only the ${o === "manual" ? "manual" : "automatic"} build, in the list and in the room (click again for both)`;
     return b;
   };
   // build "both" with compare.json: how the automatic build saw each manual part
@@ -597,7 +597,6 @@ function wireFilter(meta: SceneMeta): void {
     li.append(tag);
   }
   kindsEl.replaceChildren(
-    ...(showOrigin ? [originChip("manual"), originChip("auto")] : []),
     kindChip("", "all", meta.parts.length),
     ...kinds.map((k) => kindChip(k, k, meta.parts.filter((p) => p.kind === k).length)),
   );
@@ -609,16 +608,17 @@ function wireFilter(meta: SceneMeta): void {
     let shown = 0;
     for (const li of partsEl.querySelectorAll<HTMLLIElement>("li[data-seq]")) {
       const p = meta.parts[Number(li.dataset.seq) - 1];
+      // the Manual | Auto buttons and the kind chips combine: "Auto" + "pipe" lists the automatic pipe runs
       const ok =
         (!kind || p.kind === kind) &&
-        (!origin || p.origin === origin) &&
+        (!showOrigin || state.show === "both" || p.origin === state.show) &&
         (!status || statusOf(p) === status) &&
         (!q || `${p.label} ${p.name} ${p.kind} ${p.origin ?? ""}`.toLowerCase().includes(q));
       li.classList.toggle("filtered", !ok);
       if (ok) shown++;
     }
     for (const b of kindsEl.querySelectorAll<HTMLButtonElement>("button")) {
-      b.setAttribute("aria-pressed", String(b.dataset.origin ? b.dataset.origin === origin : b.dataset.kind === kind));
+      b.setAttribute("aria-pressed", String(b.dataset.kind === kind));
     }
     for (const b of document.querySelectorAll<HTMLButtonElement>("#compare-chips button")) {
       b.setAttribute("aria-pressed", String(b.dataset.status === status));
@@ -626,6 +626,7 @@ function wireFilter(meta: SceneMeta): void {
     if (shown) empty.remove();
     else partsEl.append(empty);
   };
+  applyFilter = apply;
   filterEl.addEventListener("input", apply);
   filterEl.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -776,6 +777,66 @@ function buildPanel(meta: SceneMeta): void {
   });
 }
 
+/** Switching builds reloads: part numbers differ between builds, so only the view (source, style) carries over. */
+function goToBuild(to: Build): void {
+  if (to === BUILD) return;
+  const url = new URL(location.href);
+  for (const k of ["part", "upto", "style", "show"]) url.searchParams.delete(k);
+  if (state.style !== "true" && state.style !== "origin") url.searchParams.set("style", state.style);
+  if (to === "manual") url.searchParams.delete("scene");
+  else url.searchParams.set("scene", to);
+  location.assign(url);
+}
+
+/**
+ * Manual | Auto: make one build's parts the choosable ones; the pressed button again makes both choosable. With both
+ * builds loaded this is a filter (state.show: list, picking and the room follow); in a single build it switches builds.
+ */
+function chooseOrigin(meta: SceneMeta, o: Origin): void {
+  if (showOrigin) {
+    const show: Show = state.show === o ? "both" : o;
+    // the hidden build is neither drawn as built nor pickable, so a selection there is dropped
+    const sel = meta.parts[state.selected - 1];
+    set(meta, { show, ...(sel && cloud && !cloud.visibleIn(sel.seq, show) ? { selected: 0 } : {}) });
+    applyFilter();
+    return;
+  }
+  const other: Origin = BUILD === "auto" ? "manual" : "auto";
+  if (!originAvailable[other]) {
+    toast(exportHint(other), 5000);
+    return;
+  }
+  goToBuild(BUILD === o ? "both" : o);
+}
+
+/** Pressed = choosable: both pressed when both builds are choosable, the current build in a single build. */
+function renderOriginButtons(): void {
+  for (const b of originEl.querySelectorAll<HTMLButtonElement>("button")) {
+    const o = b.dataset.origin as Origin;
+    const pressed = showOrigin ? state.show === "both" || state.show === o : BUILD === o;
+    b.setAttribute("aria-pressed", String(pressed));
+    const n = originCount[o];
+    b.querySelector(".n")!.textContent = n === undefined ? "" : fmt(n);
+    b.disabled = !originAvailable[o];
+  }
+}
+
+/** Single build: the other build's part count for its button, fetched once every point level is in; a missing export disables the button and says how to make one. */
+async function countOtherBuild(other: Origin): Promise<void> {
+  await pointsReady;
+  try {
+    const res = await fetch(`${buildBase(other)}/scene.json`);
+    if (res.ok) originCount[other] = ((await res.json()) as SceneMeta).parts.length;
+    else {
+      originAvailable[other] = false;
+      originEl.querySelector<HTMLButtonElement>(`button[data-origin="${other}"]`)!.title = exportHint(other);
+    }
+  } catch {
+    // no API at all: the button keeps working, just without a count
+  }
+  renderOriginButtons();
+}
+
 function wireControls(meta: SceneMeta): void {
   for (const b of document.querySelectorAll<HTMLButtonElement>("#source button")) {
     b.addEventListener("click", () => set(meta, { source: b.dataset.source as Source }));
@@ -785,18 +846,11 @@ function wireControls(meta: SceneMeta): void {
   }
   // "By origin" only means something with both builds on screen
   document.querySelector<HTMLButtonElement>('#style button[data-style="origin"]')!.hidden = !showOrigin && state.style !== "origin";
-  // switching builds reloads: part numbers differ between builds, so only the view (source, style) carries over
   for (const b of document.querySelectorAll<HTMLButtonElement>("#build button")) {
-    b.addEventListener("click", () => {
-      const to = b.dataset.build as Build;
-      if (to === BUILD) return;
-      const url = new URL(location.href);
-      for (const k of ["part", "upto", "style"]) url.searchParams.delete(k);
-      if (state.style !== "true" && state.style !== "origin") url.searchParams.set("style", state.style);
-      if (to === "manual") url.searchParams.delete("scene");
-      else url.searchParams.set("scene", to);
-      location.assign(url);
-    });
+    b.addEventListener("click", () => goToBuild(b.dataset.build as Build));
+  }
+  for (const b of originEl.querySelectorAll<HTMLButtonElement>("button")) {
+    b.addEventListener("click", () => chooseOrigin(meta, b.dataset.origin as Origin));
   }
   for (const b of document.querySelectorAll<HTMLButtonElement>("#render button")) {
     b.addEventListener("click", () => setRender(meta, b.dataset.render === "splats" ? "splats" : "points"));
@@ -911,6 +965,10 @@ async function main(): Promise<void> {
   const build = BUILD;
   const [meta, cmp] = await Promise.all([loadMeta(build), BUILD === "both" ? loadCompare() : null]);
   for (const p of meta.parts) seqByName.set(p.name, p.seq);
+  if (showOrigin) {
+    originCount.manual = manualCount(meta);
+    originCount.auto = meta.parts.length - originCount.manual;
+  } else originCount[BUILD === "auto" ? "auto" : "manual"] = meta.parts.length;
   // only trust a comparison made from these very builds: every name in it must be a part here
   if (cmp && [...cmp.manual, ...cmp.auto].every((r) => seqByName.has(r.name))) {
     compare = cmp;
@@ -950,6 +1008,7 @@ async function main(): Promise<void> {
     });
   }
   startLoop(meta);
+  if (!showOrigin) void countOtherBuild(BUILD === "auto" ? "manual" : "auto");
 
   await loadPoints(build, meta, () => {
     loadingEl.classList.add("done");
