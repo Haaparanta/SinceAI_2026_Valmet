@@ -24,6 +24,14 @@ make deploy            # Cloud Build: scene -> image -> Cloud Run (~2 min)
 
 Local check of the exact image: `make viewer && make docker-build && make docker-run` → http://localhost:8080.
 
+## Site files (web/public)
+
+Copied as-is to the site root by Vite: `favicon.ico` / `favicon.svg` / `apple-touch-icon.png` / `icon-192.png` /
+`icon-512.png`, `site.webmanifest`, `robots.txt` (blocks `/api/` and `/capture.html`), `sitemap.xml` (update
+`<lastmod>` after big changes) and `og-image.jpg`, the 1200×630 link preview. Re-render the preview with
+`cd web && node tools/snap.mjs --file public/og-image.png "src=overlay&part=process_pump_1&frame=room&dollhouse=1&size=1200x630&legend=0&textscale=2.6&title=…"`
+and convert to JPEG. `tests/test_web_public.py` checks that the page head only references files that exist.
+
 ## One-time setup (already done on 2026-11-07)
 
 ```bash

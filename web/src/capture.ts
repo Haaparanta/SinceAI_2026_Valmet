@@ -10,7 +10,7 @@
  *            cam=x,y,z&look=x,y,z [fov=50] [size=WxH]                   perspective
  *            (neither)  frame the selected part (or the room; frame=room forces it) from dir=x,y,z
  *                       [fill=0.45 part / 0.6 room: larger = tighter] [fov=50] [size=WxH]
- *   caption  title=  sub=  badge=  legend=0
+ *   caption  title=  sub=  badge=  legend=0  textscale=<caption + badge size factor, e.g. 2.5 for a social card>
  * When done: body[data-ready="1"], body[data-info] = JSON (size, camera, visible part names).
  */
 import * as THREE from "three";
@@ -207,6 +207,12 @@ async function main(): Promise<void> {
   const badge = document.querySelector<HTMLElement>("#badge")!;
   badge.textContent = badgeText;
   badge.style.background = badgeColour(badgeText);
+  // textscale=2.5 for social cards and slides, where the image is shown much smaller than it is rendered
+  const textScale = Number(params.get("textscale") ?? 1);
+  if (textScale > 0 && textScale !== 1) {
+    caption.style.zoom = String(textScale);
+    badge.style.zoom = String(textScale);
+  }
 
   document.body.dataset.info = JSON.stringify({
     size: [W, H],

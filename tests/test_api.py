@@ -26,6 +26,7 @@ def client(tmp_path: Path) -> TestClient:
     (dist / "index.html").write_text("<!doctype html><title>viewer</title>")
     (dist / "capture.html").write_text("<!doctype html><title>snapshot</title>")
     (dist / "assets" / "main-abc123.js").write_text("console.log('x');" * 200)
+    (dist / "robots.txt").write_text("User-agent: *\nAllow: /\n")
     return TestClient(create_app(tmp_path / "data", dist))
 
 
@@ -60,6 +61,9 @@ def test_viewer_pages_and_cache_headers(client: TestClient) -> None:
     assert "snapshot" in client.get("/capture.html").text
     asset = client.get("/assets/main-abc123.js")
     assert "immutable" in asset.headers["cache-control"]
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200 and robots.headers["cache-control"] == "public, max-age=3600"
+    assert client.get("/capture.html").headers["cache-control"] == "no-cache"
 
 
 def test_api_route_wins_over_static_and_unknown_api_is_404(client: TestClient) -> None:

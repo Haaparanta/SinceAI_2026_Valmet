@@ -51,11 +51,13 @@ def create_app(data_dir: Path | None = None, web_dist: Path | None = None) -> Fa
     async def cache_headers(request: Request, call_next):
         response = await call_next(request)
         path = request.url.path
-        if "cache-control" not in response.headers:
+        if "cache-control" not in response.headers and not path.startswith("/api/"):
             if path.startswith("/assets/"):  # Vite file names carry a content hash
                 response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-            elif not path.startswith("/api/"):
+            elif path == "/" or path.endswith(".html"):  # pages: always revalidate, so a deploy shows at once
                 response.headers["Cache-Control"] = "no-cache"
+            else:  # web/public files (icons, og-image, robots.txt, sitemap.xml, manifest): unhashed names
+                response.headers["Cache-Control"] = "public, max-age=3600"
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         return response
 
