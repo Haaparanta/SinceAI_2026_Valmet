@@ -33,30 +33,32 @@ is the checkout you run `make deploy` in (uploaded as the build source), so run 
 Local check of the exact image: `make viewer viewer-auto compare && make docker-build && make docker-run` →
 http://localhost:8080. `make test T=api` runs the API tests (temp folders, no export needed).
 
-## Deploy on every merge to main (GitHub Actions -> Cloud Build -> Cloud Run)
+## Deploy on every merge to main (Cloud Build trigger)
 
-`.github/workflows/deploy.yml` runs the same `make deploy` on every push to `main` that changes something in the image
-(`api/`, `web/`, `design/`, `Dockerfile`, `cloudbuild.yaml`, `Makefile`; README and docs changes don't deploy), and
-on *Run workflow* in the Actions tab. The job signs in to Google Cloud as `a2b-build` with **Workload Identity
-Federation**: GitHub's OIDC token for this repository is exchanged for the service account, so no key is stored in
-GitHub or anywhere else, and only `Haaparanta/SinceAI_2026_Valmet` can use the pool. Cloud Build then builds the image
-from the bucket's exports and deploys it, exactly as from the laptop. `make publish-scene` stays the way to update
-the exports.
+Trigger `deploy-main` (region `europe-north1`) runs `cloudbuild.yaml` as `a2b-build` on every push to `main` that
+changes something in the image (`api/`, `web/`, `design/`, `Dockerfile`, `cloudbuild.yaml`, `Makefile`; README and
+docs changes don't deploy). It is a native Cloud Build trigger on a Cloud Build GitHub connection, so it does not use
+GitHub Actions (the Haaparanta account's Actions are locked by a GitHub billing issue) and stores no key: Google keeps
+the GitHub app token in Secret Manager. `make publish-scene` stays the way to update the exports.
 
-One-time cloud setup (idempotent, needs a logged-in `gcloud` with owner rights on the project):
+One-time setup (idempotent; needs a logged-in `gcloud` with owner rights and your browser once):
 
 ```bash
-make deploy-github     # scripts/gcp_github_deploy.sh: WIF pool `github` + provider, IAM for a2b-build, staging bucket
+make deploy-trigger    # scripts/gcp_cloudbuild_trigger.sh
 ```
 
-What it grants: the repo's workflows get `workloadIdentityUser` on `a2b-build`; `a2b-build` gets
-`cloudbuild.builds.editor` + `logging.viewer` on the project, `serviceAccountUser` on itself (to submit builds that run
-as itself) and `objectAdmin` on the source staging bucket `gs://twinbuild-a2b_cloudbuild` (sources are deleted after
-a day). The provider path in the workflow is `projects/566541224410/locations/global/workloadIdentityPools/github/providers/github`
-(566541224410 is the project number). Watch a run: `gh run list --workflow deploy` / `gh run watch`.
+The script grants `secretmanager.admin` to the Cloud Build service agent, creates connection `github`, prints **one
+link** (open it, sign in to GitHub, install the Cloud Build app on `Haaparanta/SinceAI_2026_Valmet`; the script waits),
+links the repository and creates the trigger. Re-running it recreates the trigger with the current file filter.
 
-Alternative without GitHub Actions: a Cloud Build trigger (`make deploy-trigger`) after connecting the repository once
-in the console (Cloud Build → *Triggers* → *Connect repository* → GitHub, needs your browser).
+```bash
+make deploy-trigger-run                                             # run the trigger now, as if main was pushed
+gcloud builds list --project twinbuild-a2b --region europe-north1 --limit 5   # recent builds (regional, not global)
+```
+
+Alternative when GitHub Actions works: `make deploy-github` (`scripts/gcp_github_deploy.sh`) sets up Workload Identity
+Federation so a workflow can run `make deploy` as `a2b-build` without a key; the workflow itself was removed in favour
+of the trigger (git history of `.github/workflows/deploy.yml` has it). Don't run both, or every merge deploys twice.
 
 ## Site files (web/public)
 

@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | viewer-auto | compare | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | docker-build | docker-run | publish-scene | deploy | deploy-github | deploy-trigger (docs/DEPLOY.md)
-.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer viewer-auto snap help docker-build docker-run gcp-setup publish-scene deploy deploy-github deploy-trigger
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | viewer-auto | compare | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | docker-build | docker-run | publish-scene | deploy | deploy-trigger | deploy-trigger-run | deploy-github (docs/DEPLOY.md)
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer viewer-auto snap help docker-build docker-run gcp-setup publish-scene deploy deploy-trigger deploy-trigger-run deploy-github
 UV ?= uv
 PY := $(UV) run python
 # Google Cloud (docs/DEPLOY.md): the project, the Cloud Build account and the private bucket that holds the exports
@@ -108,13 +108,14 @@ publish-scene: viewer viewer-auto compare  ## export both builds + the compariso
 	gcloud storage rsync -r --exclude='scene\.splat$$' data/derived/viewer_auto $(SCENE_BUCKET)/viewer_auto --project $(PROJECT)
 	gcloud storage cp data/derived/compare.json $(SCENE_BUCKET)/compare.json --project $(PROJECT)
 
-deploy:          ## Cloud Build: exports from the bucket -> image -> Cloud Run europe-north1 (what the GitHub workflow does on merge to main)
+deploy:          ## Cloud Build: exports from the bucket -> image -> Cloud Run europe-north1 (what the deploy-main trigger does on merge to main)
 	gcloud beta builds submit --project $(PROJECT) --config cloudbuild.yaml --service-account $(BUILD_SA) .
 
-deploy-github:   ## one-time: deploy on every merge to main from GitHub Actions (.github/workflows/deploy.yml, no keys)
-	PROJECT=$(PROJECT) scripts/gcp_github_deploy.sh
+deploy-trigger:  ## one-time: build + deploy on every merge to main (Cloud Build trigger; opens one GitHub link). docs/DEPLOY.md
+	PROJECT=$(PROJECT) scripts/gcp_cloudbuild_trigger.sh
 
-deploy-trigger:  ## alternative: a Cloud Build trigger (connect the GitHub repo in Cloud Build > Triggers first)
-	gcloud builds triggers create github --project $(PROJECT) --region global --name deploy-main \
-	  --repo-owner Haaparanta --repo-name SinceAI_2026_Valmet --branch-pattern '^main$$' \
-	  --build-config cloudbuild.yaml --service-account $(BUILD_SA)
+deploy-trigger-run:  ## run the main trigger now (same as a merge to main)
+	gcloud builds triggers run deploy-main --region europe-north1 --branch main --project $(PROJECT)
+
+deploy-github:   ## alternative when GitHub Actions is available: WIF for a workflow that runs `make deploy` (see docs/DEPLOY.md)
+	PROJECT=$(PROJECT) scripts/gcp_github_deploy.sh
