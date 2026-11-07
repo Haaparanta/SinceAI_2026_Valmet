@@ -7,6 +7,7 @@ import {
   loadScene,
   METRES_PER_UNIT_GUESS,
   partBox,
+  pickPart,
   readState,
   roomBox,
   SOURCES,
@@ -36,10 +37,14 @@ const panelToggle = document.querySelector<HTMLButtonElement>("#panel-toggle")!;
 const loadingEl = document.querySelector<HTMLElement>("#loading")!;
 const loadingText = document.querySelector<HTMLElement>("#loading-text")!;
 const toastEl = document.querySelector<HTMLElement>("#toast")!;
+const tipEl = document.querySelector<HTMLElement>("#tip")!;
 const params = new URLSearchParams(location.search);
 /** metres per scene unit in VR (?mpu=), and VR point thinning (?xrstride=, 1 = every point) */
 const MPU = Number(params.get("mpu")) || METRES_PER_UNIT_GUESS;
 const XR_STRIDE = Math.max(1, Number(params.get("xrstride")) || 2);
+/** VR thins more points on its own when the headset misses frames, unless ?xrstride= pins the density */
+const XR_ADAPT = !params.has("xrstride");
+const XR_MAX_STRIDE = 6;
 const SOURCE_LABEL: Record<Source, string> = { scan: "Scan", model: "Model", overlay: "Overlay", wireframe: "Wireframe" };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -138,14 +143,55 @@ function set(meta: SceneMeta, patch: Partial<ViewState>): void {
   render(meta);
 }
 
-function select(meta: SceneMeta, seq: number): void {
+function select(meta: SceneMeta, seq: number, fly = true): void {
   if (seq === state.selected || seq <= 0) {
     set(meta, { selected: 0 });
     return;
   }
   const p = meta.parts[seq - 1];
   set(meta, { selected: seq, upto: Math.max(state.upto, seq) });
-  if (p) flyTo(partBox(p), undefined, 0.45);
+  if (p && fly) flyTo(partBox(p), undefined, 0.45);
+  partsEl.querySelector(`li[data-seq="${seq}"]`)?.scrollIntoView({ block: "nearest" });
+}
+
+/** The part under a screen point (CSS px), honouring the replay slider and the dollhouse cut. */
+function partAt(meta: SceneMeta, x: number, y: number) {
+  const rect = canvas.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1);
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(ndc, camera);
+  const cutY = autoCut(meta) ? (meta.dollhouse_cut_y ?? meta.room_bounds.max[1]) : undefined;
+  return pickPart(ray.ray, meta, state.upto, cutY);
+}
+
+/** Click or tap a part in the room to select it (a drag still orbits); hover shows its name with a mouse. */
+function wirePicking(meta: SceneMeta): void {
+  let down: { x: number; y: number; t: number } | null = null;
+  canvas.addEventListener("pointerdown", (e) => {
+    down = e.isPrimary ? { x: e.clientX, y: e.clientY, t: performance.now() } : null;
+  });
+  canvas.addEventListener("pointerup", (e) => {
+    if (!down || !e.isPrimary || e.button !== 0) return;
+    const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+    const quick = performance.now() - down.t < 500;
+    down = null;
+    if (moved > 6 || !quick) return;
+    const hit = partAt(meta, e.clientX, e.clientY);
+    if (hit) select(meta, hit.part.seq);
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse" || e.buttons) {
+      tipEl.hidden = true;
+      return;
+    }
+    const hit = partAt(meta, e.clientX, e.clientY);
+    canvas.style.cursor = hit ? "pointer" : "";
+    tipEl.hidden = !hit;
+    if (!hit) return;
+    tipEl.textContent = `${hit.part.label} · ${hit.part.kind}`;
+    tipEl.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 14}px)`;
+  });
+  canvas.addEventListener("pointerleave", () => (tipEl.hidden = true));
 }
 
 /** The current camera and state as a capture.html URL (same params, so the snapshot matches what is on screen). */
@@ -227,6 +273,7 @@ async function main(): Promise<void> {
   state = readState(params, meta);
   buildPanel(meta);
   wireControls(meta);
+  wirePicking(meta);
   setupXr(meta);
   // small screens start with the build list folded away so the room is visible
   if (matchMedia("(max-width: 640px), (max-height: 500px)").matches) setPanelOpen(false);
@@ -249,6 +296,7 @@ async function main(): Promise<void> {
     if (xr?.presenting) {
       // the headset needs a frame every refresh: no idle skipping in VR
       xr.update(dt);
+      adaptStride(meta, dt);
       const h = xr.eyeHeight();
       if (h && h !== eyeH) cloud!.setViewportHeight((eyeH = h));
       renderer.render(scene, camera);
@@ -268,6 +316,26 @@ async function main(): Promise<void> {
   });
 }
 
+/**
+ * Keep VR smooth on an untested scan size: when frames run long (under ~55 fps on a 72 Hz headset) for a second and a
+ * half, draw fewer points. Only ever thins (no oscillation); every VR session starts again from XR_STRIDE.
+ */
+let xrStride = XR_STRIDE;
+let slowFor = 0;
+let frameAvg = 0;
+function adaptStride(meta: SceneMeta, dt: number): void {
+  if (!XR_ADAPT || !cloud || dt <= 0) return;
+  frameAvg = frameAvg ? frameAvg * 0.9 + dt * 0.1 : dt;
+  slowFor = frameAvg > 1 / 55 ? slowFor + dt : 0;
+  if (slowFor > 1.5 && xrStride < XR_MAX_STRIDE) {
+    xrStride++;
+    cloud.setStride(xrStride);
+    render(meta);
+    slowFor = 0;
+    frameAvg = 0;
+  }
+}
+
 /** WebXR walk-through (Quest 3): the Enter VR button, and what changes while the headset is on. */
 function setupXr(meta: SceneMeta): void {
   let before: Source | null = null;
@@ -283,7 +351,9 @@ function setupXr(meta: SceneMeta): void {
         // inside the room the real scan reads best; overlay/wireframe haze is for looking from outside
         before = state.source;
         if (state.source === "overlay" || state.source === "wireframe") state = { ...state, source: "scan" };
-        cloud!.setStride(XR_STRIDE);
+        xrStride = XR_STRIDE;
+        slowFor = frameAvg = 0;
+        cloud!.setStride(xrStride);
         cloud!.sizeScale = MPU; // view space is metres in XR, point sizes are in scene units
         render(meta);
         vrLabel.textContent = "Exit VR";
@@ -306,16 +376,20 @@ function setupXr(meta: SceneMeta): void {
       toggleBoxes() {
         set(meta, { boxes: !state.boxes });
       },
+      select(seq) {
+        select(meta, seq, false);
+      },
       status() {
         const last = meta.parts[state.upto - 1];
         const sel = meta.parts[state.selected - 1];
+        const density = xrStride > 1 ? ` · 1/${xrStride} pts` : "";
         return [
-          `${SOURCE_LABEL[state.source]} · ${state.upto}/${meta.parts.length} parts`,
+          `${SOURCE_LABEL[state.source]} · ${state.upto}/${meta.parts.length} parts${density}`,
           sel ? `selected: ${sel.label}` : last ? `latest: ${last.label} · 1 u ≈ ${MPU} m` : `1 u ≈ ${MPU} m`,
         ];
       },
     },
-    { metresPerUnit: MPU, focus: () => meta.parts[state.selected - 1] },
+    { metresPerUnit: MPU, focus: () => meta.parts[state.selected - 1], upto: () => state.upto },
   );
   xr = walk;
   vrBtn.addEventListener("click", () => {

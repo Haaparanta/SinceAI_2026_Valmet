@@ -106,7 +106,8 @@ uniform float uTintMix;
 varying vec3 vColor;
 void main() {
   float role = (part < 0.5 || part > uUpto + 0.5) ? 0.0 : (abs(part - uSelected) < 0.5 ? 2.0 : 1.0);
-  if (abs(role - uRole) > 0.5 || (uCutOn > 0.5 && position.y > uCutY)) {
+  // the dollhouse cut never hides the selected part (a lamp or a pipe up by the ceiling stays visible)
+  if (abs(role - uRole) > 0.5 || (uCutOn > 0.5 && role < 1.5 && position.y > uCutY)) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     return;
@@ -289,6 +290,32 @@ export class BuildCloud {
       (box.material as THREE.LineBasicMaterial).color.copy(isSel ? RED : WIRE);
     });
   }
+}
+
+/**
+ * The built part a ray points at: nearest bbox entry among parts 1..upto. Structures (floor, walls, ceiling) are skipped
+ * so that pointing at empty space never selects the floor; boxes the ray starts inside are skipped too (standing inside
+ * a pipe run's bbox in VR). With `cutY`, parts entirely above the dollhouse cut are not pickable.
+ */
+export function pickPart(
+  ray: THREE.Ray,
+  meta: SceneMeta,
+  upto: number,
+  cutY?: number,
+): { part: PartMeta; point: THREE.Vector3; distance: number } | null {
+  let best: { part: PartMeta; point: THREE.Vector3; distance: number } | null = null;
+  const box = new THREE.Box3();
+  const hit = new THREE.Vector3();
+  for (const p of meta.parts.slice(0, upto)) {
+    if (p.kind === "structure") continue;
+    if (cutY !== undefined && p.bbox.min[1] > cutY) continue;
+    box.min.set(...p.bbox.min);
+    box.max.set(...p.bbox.max);
+    if (box.containsPoint(ray.origin) || !ray.intersectBox(box, hit)) continue;
+    const distance = hit.distanceTo(ray.origin);
+    if (!best || distance < best.distance) best = { part: p, point: hit.clone(), distance };
+  }
+  return best;
 }
 
 export function roomBox(meta: SceneMeta): THREE.Box3 {
