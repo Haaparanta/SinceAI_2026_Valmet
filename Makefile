@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture
-.PHONY: setup pipeline api web check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture contracts timelapse viewer snap help
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture contracts timelapse viewer snap help
 UV ?= uv
 PY := $(UV) run python
 
@@ -60,6 +60,9 @@ api:             ## FastAPI on :8000 (reload)
 web:             ## Vite dev server on :5173
 	cd web && npm run dev
 
+web-vr:          ## Vite over HTTPS on all interfaces: open https://<this-ip>:5173 in Quest Browser, then Enter VR
+	cd web && npm run dev:vr
+
 viewer-fixture:  ## synthetic data/derived/viewer/scene.{bin,json} from build/manifest.json (no .ply needed; never replaces a real export)
 	$(PY) scripts/make_viewer_fixture.py
 
@@ -75,3 +78,6 @@ snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome;
 
 demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 	DEMO_MODE=1 $(UV) run uvicorn api.main:app --port 8000 & PID=$$!; trap "kill $$PID" EXIT; cd web && npm run dev
+
+viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,json}; open the viewer with ?scene=auto
+	$(PY) scripts/export_autoscene_viewer.py

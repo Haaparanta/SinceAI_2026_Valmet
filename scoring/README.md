@@ -2,7 +2,7 @@
 
 How Valmet will judge the build, what that means for what we build first, and a self-score we update at every roadmap gate.
 
-**Source of truth:** sections 06 (evaluation criteria) and 07 (submission format) of `Source-Data-Do-Not_change/Valmet_x_SinceAI_2026_Challenge_Brief_FINAL_updated (1).docx`, plus hints from the Excel builder pack. The `pm_pack/02_Requirements_Management_PRD.md` on `main` predates the brief and uses guessed criteria. The wedge-D version (branch `claude/hackathon-pm-pack-generator-e42988`, not merged yet) maps its requirements to the same five criteria. This folder adds what the PRD lacks: sub-criteria, measurable targets and a running self-score.
+**Source of truth:** sections 06 (evaluation criteria) and 07 (submission format) of `Source-Data-Do-Not_change/Valmet_x_SinceAI_2026_Challenge_Brief_FINAL_updated (1).docx`, plus hints from the Excel builder pack. The wedge-D PRD (`pm_pack/02_Requirements_Management_PRD.md`) maps its requirements to the same five criteria. This folder adds what the PRD lacks: sub-criteria, measurable targets and a running self-score.
 
 | File | What it is |
 |---|---|

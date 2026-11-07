@@ -2,41 +2,115 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>a2b · Approve-to-Build Twin</title>
   </head>
   <body>
     <div id="app">
       <canvas id="scene"></canvas>
+      <div id="loading" role="status" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <span id="loading-text" class="mono">loading scene …</span>
+      </div>
       <header id="hud">
-        <span class="brand">a2b · APPROVE-TO-BUILD TWIN</span>
-        <span class="badge">SYNTHETIC DATA</span>
-        <div class="seg" role="group" aria-label="Source" id="source">
-          <button data-source="scan" title="every kept scan point (1)">Scan</button>
-          <button data-source="model" title="accepted parts only: the twin (2)">Model</button>
-          <button data-source="overlay" title="twin over a faint scan (3)">Overlay</button>
-          <button data-source="wireframe" title="part boxes over a faint scan (4)">Wireframe</button>
+        <div class="hud-brand">
+          <span class="brand"><span class="logo">a2b</span><span class="brand-full"> · APPROVE-TO-BUILD TWIN</span></span>
+          <span class="badge" title="the asset data is the partner's synthetic builder pack">SYNTHETIC DATA</span>
         </div>
-        <div class="seg" role="group" aria-label="Snapshot style" id="style">
-          <button data-style="true" title="real colours">True colour</button>
-          <button data-style="redgrey" title="AGENTS.md M5: selected red, built grey, scan hidden">Red / grey</button>
+        <div class="hud-controls" role="toolbar" aria-label="View">
+          <div class="seg" role="group" aria-label="Source" id="source">
+            <button data-source="scan" title="every kept scan point (1)">Scan</button>
+            <button data-source="model" title="accepted parts only: the twin (2)">Model</button>
+            <button data-source="overlay" title="twin over a faint scan (3)">Overlay</button>
+            <button data-source="wireframe" title="part boxes over a faint scan (4)">Wire<span class="long">frame</span></button>
+          </div>
+          <div class="seg" role="group" aria-label="Snapshot style" id="style">
+            <button data-style="true" title="real colours">True<span class="long"> colour</span></button>
+            <button data-style="redgrey" title="AGENTS.md M5: selected red, built grey, scan hidden">Red / grey</button>
+          </div>
+          <div class="seg" role="group" aria-label="Options">
+            <button id="cut" aria-pressed="false" title="hide everything above the dollhouse cut (D); automatic from above">Cutaway</button>
+            <button id="boxes" aria-pressed="false" title="wire box around every built part (B)">Boxes</button>
+            <button id="near" aria-pressed="true" title="distance lines from the selected part to its nearest neighbours (N)">Nearby</button>
+            <button id="measure" aria-pressed="false" title="click two points on the scan to measure between them (M)">Measure</button>
+            <button id="home" title="frame the whole room (Home)">Reset</button>
+            <button id="snap" class="desktop-only" title="open this exact view as a snapshot page (P)">Snapshot</button>
+          </div>
         </div>
-        <div class="seg" role="group" aria-label="Options">
-          <button id="cut" aria-pressed="false" title="hide everything above the dollhouse cut (D); automatic from above">Cutaway</button>
-          <button id="boxes" aria-pressed="false" title="wire box around every built part (B)">Boxes</button>
-          <button id="snap" title="open this exact view as a snapshot page (P)">Snapshot</button>
+        <div class="hud-actions">
+          <button id="vr" class="cta" hidden title="walk the room in VR (Meta Quest 3)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v6a2.5 2.5 0 0 1-2.5 2.5h-3.2a2 2 0 0 1-1.7-.95l-.9-1.45a.8.8 0 0 0-1.4 0l-.9 1.45a2 2 0 0 1-1.7.95H5.5A2.5 2.5 0 0 1 3 14.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11.5" r="1.6" fill="currentColor"/><circle cx="16" cy="11.5" r="1.6" fill="currentColor"/></svg>
+            <span id="vr-label">Enter VR</span>
+          </button>
         </div>
-        <span id="stats" class="mono">loading scene.bin …</span>
       </header>
-      <aside id="panel">
-        <div class="panel-head">
-          <span>BUILD</span>
+      <aside id="panel" aria-label="Build">
+        <button class="panel-head" id="panel-toggle" aria-expanded="true" aria-controls="panel-body">
+          <span class="grip" aria-hidden="true"></span>
+          <span class="panel-title">BUILD</span>
           <span id="upto-label" class="mono"></span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="replay">
+          <button id="play" class="icon-btn" aria-pressed="false" aria-label="Play the build" title="play the build part by part (Space)">
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+          </button>
+          <input id="upto" type="range" min="0" max="0" value="0" aria-label="Built up to part" />
         </div>
-        <input id="upto" type="range" min="0" max="0" value="0" aria-label="Built up to part" />
-        <ol id="parts"></ol>
+        <div id="panel-body">
+          <div class="filter">
+            <input id="filter" type="search" placeholder="Filter parts" aria-label="Filter parts" autocomplete="off" />
+            <div id="kinds" class="chips" role="group" aria-label="Kind"></div>
+          </div>
+          <ol id="parts"></ol>
+          <p id="stats" class="mono">loading scene.bin …</p>
+        </div>
       </aside>
-      <footer id="help" class="mono">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select + frame, Esc · clear &nbsp;|&nbsp; ←/→ · replay build &nbsp;|&nbsp; scene units (u)</footer>
+      <section id="card" aria-label="Selected part" hidden>
+        <header class="card-head">
+          <span id="card-seq" class="mono"></span>
+          <h2 id="card-title"></h2>
+          <span id="card-kind" class="chip-static mono"></span>
+          <button id="card-close" class="icon-btn" aria-label="Clear selection" title="clear selection (Esc)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </header>
+        <dl id="card-facts"></dl>
+        <div id="card-images-wrap">
+          <h3>Approval images</h3>
+          <div id="card-images" class="thumbs"></div>
+        </div>
+        <div id="card-near-wrap">
+          <h3>Nearest parts</h3>
+          <ol id="card-near"></ol>
+        </div>
+      </section>
+      <div id="lightbox" role="dialog" aria-modal="true" aria-label="Approval image" hidden>
+        <img id="lb-img" alt="" />
+        <div class="lb-bar">
+          <button id="lb-prev" class="icon-btn" aria-label="Previous image">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span id="lb-cap" class="mono"></span>
+          <button id="lb-next" class="icon-btn" aria-label="Next image">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="lb-close" class="icon-btn" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <footer id="help" class="mono">
+        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby</span>
+        <span class="pointer-coarse">drag · orbit &nbsp;·&nbsp; pinch · zoom &nbsp;·&nbsp; tap a part · select</span>
+      </footer>
+      <div id="toast" class="mono" role="status" aria-live="polite" hidden></div>
+      <div id="tip" class="mono" aria-hidden="true" hidden></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
