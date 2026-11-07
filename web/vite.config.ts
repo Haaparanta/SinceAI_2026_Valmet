@@ -15,6 +15,9 @@ function derivedFiles(): Plugin {
   const routes: Record<string, string> = {
     "/api/scene/points": resolve(derived, "scene_points.bin"),
     "/api/scene/stats": resolve(derived, "clean_stats.json"),
+    // scripts/export_viewer_scene.py (the step-by-step build for the viewer and capture.html)
+    "/api/viewer/scene.bin": resolve(derived, "viewer/scene.bin"),
+    "/api/viewer/scene.json": resolve(derived, "viewer/scene.json"),
   };
   return {
     name: "a2b-derived-files",
@@ -33,6 +36,11 @@ function derivedFiles(): Plugin {
 
 export default defineConfig({
   plugins: [derivedFiles()],
+  build: {
+    rollupOptions: {
+      input: { main: resolve(here, "index.html"), capture: resolve(here, "capture.html") },
+    },
+  },
   server: {
     port: 5173,
     fs: { allow: [here, resolve(repoRoot, "design")] }, // style.css imports design/cyberpunk-tokens.css

@@ -1,6 +1,7 @@
 """a2b API (FastAPI) - scaffold.
 
-Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats.
+Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats,
+GET /api/viewer/scene.bin, GET /api/viewer/scene.json.
 The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots) land with M4-M9.
 
     uv run uvicorn api.main:app --reload --port 8000
@@ -50,6 +51,25 @@ def demo_mode() -> dict:
 def scene_points() -> FileResponse:
     """scene_points.bin: uint32 count | float32 xyz*count | uint8 rgb*count (AGENTS.md S3)."""
     return _derived_file("scene_points.bin", "application/octet-stream")
+
+
+def _viewer_file(name: str, media_type: str) -> FileResponse:
+    path = DERIVED / "viewer" / name
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"viewer/{name} missing: run `uv run python scripts/export_viewer_scene.py`")
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/api/viewer/scene.bin")
+def viewer_scene_bin() -> FileResponse:
+    """The step-by-step build as one point cloud (layout in scripts/export_viewer_scene.py)."""
+    return _viewer_file("scene.bin", "application/octet-stream")
+
+
+@app.get("/api/viewer/scene.json")
+def viewer_scene_json() -> FileResponse:
+    """Parts (name, kind, count, [start, end) range, bbox), room bounds and dollhouse cut for scene.bin."""
+    return _viewer_file("scene.json", "application/json")
 
 
 @app.get("/api/scene/stats")
