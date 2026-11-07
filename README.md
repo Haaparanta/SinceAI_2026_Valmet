@@ -61,11 +61,13 @@ In VR you stand on the floor of the scanned room, on open floor away from the eq
 | Left stick | Walk where you look (stops at the room walls) |
 | Right stick left/right | 30° snap turn around your head |
 | Trigger, or pinch with hand tracking | Teleport: aim the arc at the floor and release |
+| Point at equipment or a pipe | Its box lights up and a label shows name, kind and point count |
+| Squeeze (grip) while pointing | Select that part (red); squeeze again to clear |
 | A / X | Cycle Scan → Model → Overlay |
 | B / Y | Part boxes on/off |
 | Left stick click | Back to the start point |
 
-The left controller carries a small panel showing the current view. Metric scale is still unverified. VR assumes **1 u ≈ 1.15 m**, from the pallet jack's size and the 2.6 u ceiling height. Override it with `?mpu=<metres per unit>`. To hold 72 Hz, VR draws every 2nd point with slightly larger points; `?xrstride=1` draws all of them. Nothing is fetched at runtime (controllers are drawn as rays, hands as spheres), so the demo also runs offline.
+The left controller carries a small panel showing the current view. Metric scale is still unverified. VR assumes **1 u ≈ 1.15 m**, from the pallet jack's size and the 2.6 u ceiling height. Override it with `?mpu=<metres per unit>`. To hold 72 Hz, VR draws every 2nd point with slightly larger points, and it thins further on its own (down to every 6th point; the wrist panel shows `1/N pts`) when frames run long. `?xrstride=N` pins the density, and `?xrstride=1` draws every point. Nothing is fetched at runtime (controllers are drawn as rays, hands as spheres), so the demo also runs offline.
 
 ## Repo map
 
@@ -76,7 +78,7 @@ The left controller carries a small panel showing the current view. Metric scale
 | [`pipeline/`](pipeline/) | Offline Python. `build.py` + `stepbuild/` = the step-by-step build (cleaning filters, part detectors, CPU splat renderer, state and image numbering); `01_clean.py` = M1 clean loader; `05_bind_metadata.py` = xlsx dump + `AssetRecord` merge; `common/` = PLY reading, real-row detection, world orientation |
 | [`build/`](build/) | Build state: `manifest.json`, `parts/*.idx.npy` and `removed/*.idx.npy` (splat indices into the master scan), earlier runs in `archive/`. The `.ply` files are rebuilt from the indices and stay local |
 | [`images/`](images/) | One numbered image per build step: `NNNN_YYYYMMDD-HHMMSS.png`, numbering never restarts |
-| [`web/`](web/) | three.js viewer of the step-by-step build (`index.html`: Scan / Model / Overlay / Wireframe, parts list, build replay; responsive for phones; `src/xr.ts` = WebXR walk-through for Quest 3) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `make snap` writes numbered PNGs to `images/` |
+| [`web/`](web/) | three.js viewer of the step-by-step build (`index.html`: Scan / Model / Overlay / Wireframe, parts list, build replay; responsive for phones; click or tap a part in the room to select it; `src/xr.ts` = WebXR walk-through for Quest 3) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `make snap` writes numbered PNGs to `images/` |
 | [`api/`](api/) | FastAPI scaffold (`make api`, port 8000) |
 | [`contracts/`](contracts/) | Frozen shared types: pydantic (`py/`), TypeScript (`ts/`), exported JSON Schema (`json-schema/`). `make contracts` re-exports; `make check` fails on drift |
 | [`scripts/`](scripts/) | `export_viewer_scene.py` (build → web), `timelapse.py`, `check_contracts.py`, `run_tests.py` (pick which tests to run) |

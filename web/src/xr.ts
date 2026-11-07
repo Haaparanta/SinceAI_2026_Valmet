@@ -6,6 +6,7 @@
  * - Spawn: on an open patch of floor away from equipment, facing the selected part (or the biggest piece of equipment).
  * - Left stick: smooth walk where you look. Right stick: 30° snap turn around your head.
  * - Trigger (or pinch with hand tracking): teleport arc to the floor.
+ * - Point at equipment or a pipe: its box lights up and a label floats at the spot. Squeeze (grip): select / deselect it.
  * - A / X: cycle Scan, Model, Overlay. B / Y: part boxes on/off. Left stick click: back to the spawn point.
  *
  * Nothing here downloads at runtime (no controller-profile CDN): controllers are drawn as simple rays, hands as spheres,
@@ -13,7 +14,7 @@
  */
 import * as THREE from "three";
 import { XRHandModelFactory } from "three/addons/webxr/XRHandModelFactory.js";
-import type { PartMeta, SceneMeta } from "./scene";
+import { pickPart, type PartMeta, type SceneMeta } from "./scene";
 
 export interface XrHooks {
   /** called when the session starts / ends (after the rig is placed / restored) */
@@ -23,6 +24,8 @@ export interface XrHooks {
   cycleSource(): void;
   /** B / Y button */
   toggleBoxes(): void;
+  /** squeeze while pointing at a part: select it, or clear the selection if it already is */
+  select(seq: number): void;
   /** two short lines for the wrist panel: what is on screen */
   status(): [string, string];
 }
@@ -31,6 +34,8 @@ export interface XrOptions {
   metresPerUnit: number;
   /** look at this part on entry (the selected one); falls back to the biggest equipment */
   focus?: () => PartMeta | undefined;
+  /** parts 1..upto are built (pointable); defaults to all */
+  upto?: () => number;
 }
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -40,6 +45,7 @@ const DEADZONE = 0.18;
 const HEAD_CLEARANCE_M = 2.0; // anything lower than this over the floor is an obstacle for the spawn point
 const CYAN = 0x00e5ff;
 const RED = 0xff2d55;
+const RAY_IDLE_M = 1.5; // pointer length when it hits nothing
 
 interface Pad {
   source: XRInputSource;
@@ -80,6 +86,12 @@ export class XrWalk {
   private panelTex: THREE.CanvasTexture;
   private panelText = "";
   private eyeHeightPx = 0;
+  private controllers: { space: THREE.XRTargetRaySpace; source: XRInputSource | null; hover: PartMeta | null }[] = [];
+  private hoverBox: THREE.Box3Helper;
+  private label: THREE.Mesh;
+  private labelCtx: CanvasRenderingContext2D;
+  private labelTex: THREE.CanvasTexture;
+  private labelText = "";
 
   constructor(
     renderer: THREE.WebGLRenderer,
@@ -131,19 +143,44 @@ export class XrWalk {
     this.panel.position.set(0, 0.07, 0.03);
     this.panel.rotation.x = -0.75;
 
+    // pointed-at part: highlight box + floating label (world units, scaled per frame by distance)
+    this.hoverBox = new THREE.Box3Helper(new THREE.Box3(), new THREE.Color(CYAN));
+    this.hoverBox.visible = false;
+    this.hoverBox.renderOrder = 25;
+    scene.add(this.hoverBox);
+    const lc = document.createElement("canvas");
+    lc.width = 768;
+    lc.height = 240;
+    this.labelCtx = lc.getContext("2d")!;
+    this.labelTex = new THREE.CanvasTexture(lc);
+    this.labelTex.colorSpace = THREE.SRGBColorSpace;
+    this.label = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 240 / 768),
+      new THREE.MeshBasicMaterial({ map: this.labelTex, transparent: true, depthTest: false }),
+    );
+    this.label.renderOrder = 31;
+    this.label.visible = false;
+    scene.add(this.label);
+
     const hands = new XRHandModelFactory();
     for (let i = 0; i < 2; i++) {
       const c = renderer.xr.getController(i);
+      const slot = { space: c, source: null as XRInputSource | null, hover: null as PartMeta | null };
+      this.controllers.push(slot);
       c.add(this.makePointer());
       c.addEventListener("connected", (e) => {
         const src = (e as unknown as { data: XRInputSource }).data;
+        slot.source = src;
         c.children[0].visible = !src.hand; // hands show the sphere model instead of a stick
         if (src.handedness === "left") c.add(this.panel);
       });
       c.addEventListener("disconnected", () => {
+        slot.source = null;
+        slot.hover = null;
         if (this.panel.parent === c) c.remove(this.panel);
         if (this.aiming === c) this.endAim(false);
       });
+      c.addEventListener("squeezestart", () => slot.hover && this.hooks.select(slot.hover.seq));
       c.addEventListener("selectstart", () => (this.aiming = c));
       c.addEventListener("selectend", () => this.aiming === c && this.endAim(true));
       this.rig.add(c);
@@ -191,6 +228,7 @@ export class XrWalk {
     this.presenting = false;
     this.endAim(false);
     this.pads.clear();
+    this.hoverBox.visible = this.label.visible = false;
     this.rig.position.set(0, 0, 0);
     this.rig.rotation.set(0, 0, 0);
     this.rig.scale.setScalar(1);
@@ -295,6 +333,7 @@ export class XrWalk {
     }
     for (const s of [...this.pads.keys()]) if (!seen.has(s)) this.pads.delete(s);
     this.updateAim();
+    this.updateHover();
     this.drawPanel();
   }
 
@@ -375,6 +414,85 @@ export class XrWalk {
     this.marker.visible = true;
   }
 
+  /** Each controller ray picks the nearest built part; the right hand's pick wins for the highlight and label. */
+  private updateHover(): void {
+    const upto = this.opts.upto?.() ?? this.meta.parts.length;
+    const ray = new THREE.Ray();
+    let shown: { part: PartMeta; point: THREE.Vector3; distance: number } | null = null;
+    let shownRight = false;
+    for (const slot of this.controllers) {
+      const c = slot.space;
+      const pointer = c.children[0];
+      slot.hover = null;
+      if (!slot.source || this.aiming === c) {
+        this.setPointer(pointer, RAY_IDLE_M, false);
+        continue;
+      }
+      ray.origin.setFromMatrixPosition(c.matrixWorld);
+      ray.direction.set(0, 0, -1).transformDirection(c.matrixWorld);
+      const hit = pickPart(ray, this.meta, upto);
+      const maxU = 12 / this.mpu; // only within a dozen metres
+      if (hit && hit.distance < maxU) {
+        slot.hover = hit.part;
+        this.setPointer(pointer, hit.distance * this.mpu, true);
+        const right = slot.source.handedness === "right";
+        if (!shown || (right && !shownRight)) {
+          shown = hit;
+          shownRight = right;
+        }
+      } else this.setPointer(pointer, RAY_IDLE_M, false);
+    }
+    this.hoverBox.visible = this.label.visible = !!shown;
+    if (!shown) return;
+    const p = shown.part;
+    this.hoverBox.box.min.set(...p.bbox.min);
+    this.hoverBox.box.max.set(...p.bbox.max);
+    (this.hoverBox.material as THREE.LineBasicMaterial).color.setHex(this.opts.focus?.()?.seq === p.seq ? RED : CYAN);
+    // label just above the pointed-at spot, turned to face you, sized to stay readable with distance
+    const head = this.headWorld(new THREE.Vector3());
+    const metres = shown.distance * this.mpu;
+    const width = THREE.MathUtils.clamp(metres * 0.3, 0.3, 1.8) / this.mpu; // ~17° wide at any distance
+    this.label.scale.setScalar(width);
+    this.label.position.copy(shown.point).addScaledVector(UP, 0.09 / this.mpu + width * 0.2);
+    this.label.lookAt(head.x, this.label.position.y, head.z);
+    this.drawLabel(p);
+  }
+
+  private setPointer(pointer: THREE.Object3D, metres: number, hit: boolean): void {
+    const [ray, tip] = pointer.children;
+    ray.scale.z = metres / 0.12;
+    tip.position.z = -metres;
+    tip.visible = hit;
+    ((ray as THREE.Line).material as THREE.LineBasicMaterial).opacity = hit ? 1 : 0.35;
+  }
+
+  private drawLabel(p: PartMeta): void {
+    const selected = this.opts.focus?.()?.seq === p.seq;
+    const text = `${p.seq}|${selected}`;
+    if (text === this.labelText) return;
+    this.labelText = text;
+    const ctx = this.labelCtx;
+    const { width: W, height: H } = ctx.canvas;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(14, 18, 32, 0.9)";
+    ctx.strokeStyle = selected ? "#ff2d55" : "rgba(0, 229, 255, 0.8)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.roundRect(4, 4, W - 8, H - 8, 32);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#e6e8f0";
+    ctx.font = "600 64px system-ui, sans-serif";
+    ctx.fillText(p.label, 40, 92);
+    ctx.fillStyle = "#9aa0b4";
+    ctx.font = "34px ui-monospace, monospace";
+    ctx.fillText(`${p.kind} · ${p.count.toLocaleString("en-US")} pts`, 40, 148);
+    ctx.fillStyle = selected ? "#ff2d55" : "#00e5ff";
+    ctx.font = "600 30px system-ui, sans-serif";
+    ctx.fillText(selected ? "SELECTED · squeeze to clear" : "squeeze to select", 40, 202);
+    this.labelTex.needsUpdate = true;
+  }
+
   private endAim(go: boolean): void {
     if (go && this.targetOk) {
       const head = this.headWorld(new THREE.Vector3());
@@ -411,7 +529,7 @@ export class XrWalk {
     ctx.fillStyle = "#9aa0b4";
     ctx.font = "30px system-ui, sans-serif";
     ctx.fillText(b, 36, 192);
-    ctx.fillText("stick walk · trigger teleport · A/X view · B/Y boxes", 36, 246);
+    ctx.fillText("stick walk · trigger teleport · grip select · A/X view", 36, 246);
     this.panelTex.needsUpdate = true;
   }
 
@@ -419,7 +537,7 @@ export class XrWalk {
     const g = new THREE.Group();
     const ray = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -0.12)]),
-      new THREE.LineBasicMaterial({ color: CYAN }),
+      new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.35 }),
     );
     const tip = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), new THREE.MeshBasicMaterial({ color: CYAN }));
     tip.position.z = -0.12;
