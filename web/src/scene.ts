@@ -83,7 +83,10 @@ export interface ViewState {
   cut: boolean;
   /** draw a wire box around every built part (always on in wireframe) */
   boxes: boolean;
+  /** build "both": which builds to draw (a hidden manual build falls back to plain scan, a hidden automatic one vanishes) */
+  show: Show;
 }
+export type Show = "both" | "manual" | "auto";
 
 const RED = new THREE.Color(0xff2d55);
 const GREY = new THREE.Color(0x9aa0a6);
@@ -137,10 +140,20 @@ uniform float uSizeScale;
 uniform vec3 uTint;
 uniform vec3 uTintAuto;
 uniform float uSplit;
+uniform float uHideManual;
+uniform float uHideAuto;
 uniform float uTintMix;
 varying vec3 vColor;
 void main() {
-  float role = (part < 0.5 || part > uUpto + 0.5) ? 0.0 : (abs(part - uSelected) < 0.5 ? 2.0 : 1.0);
+  bool isAuto = part > uSplit + 0.5;
+  // a hidden automatic build vanishes (its rows repeat scan points); a hidden manual build is plain scan again
+  if (isAuto && uHideAuto > 0.5) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    gl_PointSize = 0.0;
+    return;
+  }
+  bool hidden = !isAuto && part > 0.5 && uHideManual > 0.5;
+  float role = (part < 0.5 || part > uUpto + 0.5 || hidden) ? 0.0 : (abs(part - uSelected) < 0.5 ? 2.0 : 1.0);
   // the dollhouse cut never hides the selected part (a lamp or a pipe up by the ceiling stays visible)
   if (abs(role - uRole) > 0.5 || (uCutOn > 0.5 && role < 1.5 && position.y > uCutY)) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
@@ -152,7 +165,7 @@ void main() {
   bool ortho = projectionMatrix[3][3] > 0.5;
   float pxPerUnit = projectionMatrix[1][1] * uHalfH / (ortho ? 1.0 : max(-mv.z, 0.001));
   gl_PointSize = clamp(psize * 0.001 * uSizeScale * pxPerUnit, 1.0, 48.0);
-  vColor = mix(rgb, part > uSplit + 0.5 ? uTintAuto : uTint, uTintMix);
+  vColor = mix(rgb, isAuto ? uTintAuto : uTint, uTintMix);
 }`;
 
 const fragmentShader = /* glsl */ `
@@ -323,6 +336,8 @@ export class BuildCloud {
   private passes: { points: THREE.Points; mat: THREE.ShaderMaterial; geo: THREE.BufferGeometry }[] = [];
   private boxes: THREE.Box3Helper[] = [];
   private stride = 1;
+  /** part seqs whose wire boxes are drawn amber (e.g. the automatic pieces of the selected manual part) */
+  private highlight = new Set<number>();
   private strideIndex: THREE.BufferAttribute | null = null;
   sizeScale = 1;
   /** false while the splat layer draws the scan instead (the part boxes stay) */
@@ -348,6 +363,8 @@ export class BuildCloud {
           uTint: { value: new THREE.Color() },
           uTintAuto: { value: new THREE.Color() },
           uSplit: { value: manualCount(meta) },
+          uHideManual: { value: 0 },
+          uHideAuto: { value: 0 },
           uTintMix: { value: 0 },
           uAlpha: { value: 1 },
         },
@@ -379,6 +396,17 @@ export class BuildCloud {
 
   partByName(name: string): PartMeta | undefined {
     return this.meta.parts.find((p) => p.name === name);
+  }
+
+  setHighlight(seqs: Iterable<number>): void {
+    this.highlight = new Set(seqs);
+  }
+
+  /** whether a part is drawn as a built part under `show` (build "both") */
+  visibleIn(seq: number, show: Show): boolean {
+    if (show === "both") return true;
+    const auto = seq > manualCount(this.meta);
+    return show === "auto" ? auto : !auto;
   }
 
   /** drawing-buffer height in pixels; call on every resize */
@@ -423,6 +451,8 @@ export class BuildCloud {
       const u = mat.uniforms;
       u.uUpto.value = upto;
       u.uSelected.value = selected;
+      u.uHideManual.value = s.show === "auto" ? 1 : 0;
+      u.uHideAuto.value = s.show === "manual" ? 1 : 0;
       u.uCutOn.value = s.cut ? 1 : 0;
       u.uSizeScale.value = this.sizeScale * (k > 1 ? Math.sqrt(k) * 0.85 : 1); // fill most of the gaps a stride leaves
       u.uAlpha.value = look.alpha;
@@ -444,8 +474,9 @@ export class BuildCloud {
     this.boxes.forEach((box, i) => {
       const seq = i + 1;
       const isSel = seq === selected;
-      box.visible = seq <= upto && (showAll || isSel);
-      (box.material as THREE.LineBasicMaterial).color.copy(isSel ? RED : WIRE);
+      const lit = this.highlight.has(seq);
+      box.visible = seq <= upto && (isSel || lit || (showAll && this.visibleIn(seq, s.show)));
+      (box.material as THREE.LineBasicMaterial).color.copy(isSel ? RED : lit ? AUTO_TINT : WIRE);
     });
   }
 }
@@ -460,12 +491,13 @@ export function pickPart(
   meta: SceneMeta,
   upto: number,
   cutY?: number,
+  keep?: (p: PartMeta) => boolean,
 ): { part: PartMeta; point: THREE.Vector3; distance: number } | null {
   let best: { part: PartMeta; point: THREE.Vector3; distance: number } | null = null;
   const box = new THREE.Box3();
   const hit = new THREE.Vector3();
   for (const p of meta.parts.slice(0, upto)) {
-    if (p.kind === "structure") continue;
+    if (p.kind === "structure" || (keep && !keep(p))) continue;
     if (cutY !== undefined && p.bbox.min[1] > cutY) continue;
     box.min.set(...p.bbox.min);
     box.max.set(...p.bbox.max);
@@ -517,6 +549,7 @@ export function readState(params: URLSearchParams, meta: SceneMeta, fallback: Pa
     upto,
     cut: params.has("dollhouse") ? params.get("dollhouse") !== "0" : (fallback.cut ?? false),
     boxes: params.has("boxes") ? params.get("boxes") !== "0" : (fallback.boxes ?? false),
+    show: meta.build === "both" && (params.get("show") === "manual" || params.get("show") === "auto") ? (params.get("show") as Show) : "both",
   };
 }
 
@@ -536,4 +569,52 @@ export function writeState(params: URLSearchParams, s: ViewState, meta: SceneMet
   else params.delete("upto");
   if (s.boxes) params.set("boxes", "1");
   else params.delete("boxes");
+  if (s.show !== "both") params.set("show", s.show);
+  else params.delete("show");
+}
+
+/** scripts/compare_builds.py: manual vs automatic build (GET /api/compare.json). */
+export type MatchStatus = "matched" | "split" | "partial" | "missed";
+export interface CompareManual {
+  name: string;
+  label: string;
+  kind: string;
+  status: MatchStatus;
+  best: { name: string; label: string; iou: number } | null;
+  /** automatic objects lying at least half inside this part, largest first */
+  fragments: string[];
+  fragment_labels: Record<string, number>;
+  /** share of the part's box covered by its fragments */
+  coverage: number;
+  nearest: { name: string; label: string; gap: number; dy: number } | null;
+}
+export interface CompareAuto {
+  name: string;
+  label: string;
+  source: string;
+  /** the manual part it lies inside, or null: only the automatic build has it */
+  in: string | null;
+}
+export interface Compare {
+  summary: {
+    status: Record<MatchStatus, number>;
+    found: number;
+    found_share: number;
+    mean_best_iou: number;
+    auto_inside_manual: number;
+    auto_only: number;
+    auto_only_by_label: Record<string, number>;
+  };
+  manual: CompareManual[];
+  auto: CompareAuto[];
+}
+
+/** The comparison, or null when it has not been generated (the viewer then falls back to box IoU on the fly). */
+export async function loadCompare(): Promise<Compare | null> {
+  try {
+    const res = await fetch("/api/compare.json");
+    return res.ok ? ((await res.json()) as Compare) : null;
+  } catch {
+    return null;
+  }
 }

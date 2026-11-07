@@ -131,10 +131,14 @@ export class SplatLayer {
     const sel = s.selected > 0 && s.selected <= upto ? s.selected : -1;
     const split = manualCount(this.meta);
     this.meshes.forEach((mesh, i) => {
-      const role = i === 0 || i > upto ? 0 : i === sel ? 2 : 1;
+      const auto = i > split;
+      // same rule as the point shader: a hidden automatic build vanishes, a hidden manual build is plain scan again
+      const gone = auto && s.show === "manual";
+      const asScan = !auto && i > 0 && s.show === "auto";
+      const role = i === 0 || i > upto || asScan ? 0 : i === sel ? 2 : 1;
       const look = looks[role];
       mesh.opacity = look.alpha;
-      mesh.visible = look.alpha > 0;
+      mesh.visible = look.alpha > 0 && !gone;
       // multiplies: red / grey for the snapshot style, cyan / amber by origin
       mesh.recolor.copy((i > split && look.autoTint) || look.tint || WHITE);
       const cut = this.cuts[i];
