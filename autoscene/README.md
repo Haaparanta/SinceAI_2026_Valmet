@@ -50,7 +50,7 @@ corners}, aabb, scores (label → summed detector score), views, detections, ply
 
 `make viewer-auto` (from the repo root) writes `data/derived/viewer_auto/scene.{bin,json}` in the same layout the
 manual build uses, and the three.js viewer shows it at `http://localhost:5173/?scene=auto`: the build slider replays
-the 425 objects in order, Boxes draws every frame, the snapshot page takes the same parameter.
+the 530 objects in order, Boxes draws every frame, the snapshot page takes the same parameter. Live: [twinbuild.click/?scene=auto](https://twinbuild.click/?scene=auto).
 
 ## Known limits (honest list)
 

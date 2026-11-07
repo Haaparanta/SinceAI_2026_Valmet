@@ -38,6 +38,7 @@ See [links/](links/README.md) for the one-page overview of what each link means 
 | Doc | Covers |
 |---|---|
 | [build_comparison.md](build_comparison.md) | Manual (human-approved) vs automatic build, part by part: which manual parts the automatic build matched, split into pieces, partly found or missed, and what it found that the manual build lacks. Regenerate with `make compare` |
+| [media/](media/) | The two build videos and their GIF previews for the main README: `manual_build.{mp4,gif}` (the step-by-step build from its step images) and `auto_build.{mp4,gif}` (the automatic build from its sample pictures). Regenerate with `make media` |
 
 ## Start here
 

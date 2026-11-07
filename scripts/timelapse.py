@@ -9,7 +9,7 @@ the newest step images; without that worktree it falls back to this checkout's i
 
 Timing: every image is shown the same time; the total is N / --rate seconds, clamped to [--min, --max].
 More images than fit at --fps frames per second are thinned out evenly (first and last always kept).
-Images of another size are letterboxed onto the first image's size. ffmpeg comes from PATH, else from the
+Images of another size are letterboxed onto the first image's size (--width scales the video down). ffmpeg comes from PATH, else from the
 imageio-ffmpeg wheel (the `video` dependency group), so no Homebrew install is needed.
 """
 
@@ -125,9 +125,11 @@ def fit(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     return canvas
 
 
-def render(p: Plan, out: Path, *, crf: int = 26) -> None:
+def render(p: Plan, out: Path, *, crf: int = 26, width: int | None = None) -> None:
     with Image.open(p.images[0]) as first:
         w, h = first.size
+    if width and width < w:  # smaller video, same aspect ratio as the first image
+        w, h = width, round(h * width / w)
     size = (w - w % 2, h - h % 2)  # yuv420p needs even dimensions
     out.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
@@ -168,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--first", type=int, help="first image index to include (NNNN prefix)")
     ap.add_argument("--last", type=int, help="last image index to include (NNNN prefix)")
     ap.add_argument("--crf", type=int, default=26, help="x264 quality, lower is better (default 26)")
+    ap.add_argument("--width", type=int, help="scale the video down to this width (default: the first image's size)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
     args = ap.parse_args(argv)
 
@@ -190,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.dry_run:
         return 0
-    render(p, args.out, crf=args.crf)
+    render(p, args.out, crf=args.crf, width=args.width)
     print(f"wrote {args.out} ({args.out.stat().st_size / 1e6:.1f} MB)", file=sys.stderr)
     return 0
 
