@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "issue_id": {
+      "title": "Issue Id",
+      "type": "string"
+    },
+    "issue_type": {
+      "title": "Issue Type",
+      "type": "string"
+    },
+    "recommended_handling": {
+      "title": "Recommended Handling",
+      "type": "string"
+    },
+    "severity": {
+      "title": "Severity",
+      "type": "string"
+    },
+    "source_sheet": {
+      "title": "Source Sheet",
+      "type": "string"
+    }
+  },
+  "required": [
+    "issue_id",
+    "issue_type",
+    "severity",
+    "source_sheet",
+    "recommended_handling"
+  ],
+  "title": "DataQualityRow",
+  "type": "object"
+}

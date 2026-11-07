@@ -1,0 +1,301 @@
+# Self-score against the Valmet brief rubric (brief section 06). Update at every roadmap gate.
+#
+# Every item is scored 0..5 and earns points * score / 5.
+#   Metric items: set `value` (or pass --metrics metrics.json). The score is the number of
+#                 thresholds met (value >= t, or value <= t when direction = "down").
+#   Judged items: set `score` using the anchors (2 and 4 sit between the written anchors).
+# A missing value or score counts as 0 and is reported as "not assessed yet".
+# Thresholds are [HYPOTHESIS]: recalibrate after the first clustering run, then freeze them.
+
+updated = "2026-11-07 02:30"
+stage = "SP2, past Gate 1: step-by-step build, 16 framed objects, no navigation or copilot yet"
+# Evidence for this self-score: build/manifest.json at step image 0964 (19 accepted parts: 3 structure + 16 objects).
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[criteria]]
+id = "J1"
+name = "Semantic asset extraction density & 3D framing"
+weight = 30
+
+[[criteria.items]]
+id = "J1.1"
+name = "Framed asset count (density)"
+points = 12
+metric = "framed_assets"
+thresholds = [5, 15, 30, 60, 100]
+how = "Distinct 3D frames in the final scene. Duplicates and frames on floaters do not count. 30 = one per Excel asset; 100 is our guess at 'every object, its own asset' for this room."
+# 2 lamps, pump 1, pallet jack 1, pipes 1-12: each an accepted part with its own bbox (the viewer draws them with boxes=1 / Wireframe). Floor, ceiling and back wall are structure, not counted.
+value = 16
+
+[[criteria.items]]
+id = "J1.2"
+name = "Frame precision (spot check)"
+points = 8
+metric = "spot_check_precision"
+thresholds = [0.3, 0.5, 0.65, 0.8, 0.9]
+how = "A person opens 20 random frames in the viewer: the share that hug exactly one real object (not floaters, not two machines in one box, not empty air). Oriented boxes help."
+# PROXY, not the 20-frame spot check: a person accepted every one of the 16 from its close-up and outside images (5 proposals rejected, 3 replaced on the way). Frames are axis-aligned, not oriented. Run the real spot check and replace this.
+value = 1.0
+
+[[criteria.items]]
+id = "J1.3"
+name = "Semantic labels"
+points = 5
+metric = "labeled_pct"
+thresholds = [0.2, 0.4, 0.6, 0.8, 0.95]
+how = "Share of frames with a class (pump, valve, pipe run, tank, panel ...) other than 'unknown'. Labels found wrong in the spot check count as unlabeled."
+# 16 / 16 objects carry a class (lamp, process pump, pallet jack, pipe).
+value = 1.0
+
+[[criteria.items]]
+id = "J1.4"
+name = "Excel metadata mapping"
+points = 5
+metric = "mapped_pct"
+thresholds = [0.2, 0.4, 0.6, 0.8, 1.0]
+how = "Share of frames carrying Excel-derived metadata. All 30 Asset_Master rows on type-plausible frames, procedural records for the rest, ASSET-017 / P-005 as the faulty target, written back in the Scene_Anchors schema."
+# No part is bound to an Excel asset yet: 05_bind_metadata.py --dump merges 30 AssetRecords, but object_id / anchor stay null.
+value = 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[criteria]]
+id = "J2"
+name = "Realistic obstacle-aware navigation & proximity"
+weight = 25
+
+[[criteria.items]]
+id = "J2.1"
+name = "Walkable floor & obstacle map from the PLY"
+points = 5
+anchors = [
+  "1: hand-drawn or guessed map",
+  "3: occupancy grid computed from the floor-height band of the cleaned splats",
+  "5: computed automatically, obstacles inflated by the agent radius, grid overlay visibly matches walls, boiler and piping",
+]
+score = 0
+evidence = "No occupancy grid yet; only the floor plane is found (floor part)."
+
+[[criteria.items]]
+id = "J2.2"
+name = "Collision-free path"
+points = 8
+metric = "min_clearance_ratio"
+thresholds = [0.25, 0.5, 0.75, 1.0, 1.5]
+how = "Smallest distance from the path to an occupied cell of the un-inflated grid, divided by the agent radius. Below 1.0 the avatar's body clips something; 0 means the path goes through an obstacle."
+# No grid and no path yet.
+value = 0
+
+[[criteria.items]]
+id = "J2.3"
+name = "Logical real-world route"
+points = 4
+anchors = [
+  "1: zig-zag grid path with an arbitrary start",
+  "3: smoothed path that follows the aisles",
+  "5: starts at an entrance, follows aisles without hugging walls, stops at service distance facing ASSET-017; length and walk time shown",
+]
+score = 0
+evidence = "No route yet."
+
+[[criteria.items]]
+id = "J2.4"
+name = "Automatic avatar/robot walk to the target"
+points = 3
+anchors = [
+  "1: the camera flies along a line",
+  "3: a visible avatar or robot moves along the computed path",
+  "5: starts by itself, walks at a believable speed, arrives and triggers the diagnosis without a click",
+]
+score = 0
+evidence = "No avatar or robot yet."
+
+[[criteria.items]]
+id = "J2.5"
+name = "Proximity display along the route"
+points = 5
+metric = "proximity_assets_surfaced"
+thresholds = [1, 3, 5, 10, 20]
+how = "Distinct assets highlighted (frame plus metadata panel) inside the proximity radius during one walk, logged by the frontend. The radius is visible on screen."
+# No walk yet.
+value = 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[criteria]]
+id = "J3"
+name = "AI diagnostics, grounding & explainability"
+weight = 20
+
+[[criteria.items]]
+id = "J3.1"
+name = "Status explained along the path"
+points = 4
+anchors = [
+  "1: status colours only",
+  "3: each nearby asset shows its status and key telemetry from Current_State",
+  "5: a one-line explanation per nearby asset with values and source IDs",
+]
+score = 0
+evidence = "No status shown along a path yet."
+
+[[criteria.items]]
+id = "J3.2"
+name = "Grounded diagnosis at the target"
+points = 6
+metric = "citation_valid_pct"
+thresholds = [0.2, 0.4, 0.6, 0.8, 1.0]
+how = "Share of factual claims in the ASSET-017 diagnosis that cite an ID which resolves to an Excel row (alarm, work order, service case, doc) with matching values. Check by script, not by eye."
+# No diagnosis yet.
+value = 0
+
+[[criteria.items]]
+id = "J3.3"
+name = "Safe, actionable next steps"
+points = 5
+anchors = [
+  "1: generic advice",
+  "3: ordered inspection steps taken from Knowledge_Docs and service cases",
+  "5: isolation and safety first, ordered steps, parts and history ('same fault on ... fixed by ...'), work-order draft only, never a control action",
+]
+score = 0
+evidence = "No diagnosis or next steps yet."
+
+[[criteria.items]]
+id = "J3.4"
+name = "Confidence, data quality & trend evidence"
+points = 5
+anchors = [
+  "1: always confident, no confidence shown",
+  "3: confidence and the evidence list shown; Data_Quality flags lower the confidence (Builder Q-06)",
+  "5: also confirms the fault from the telemetry trend (Builder Q-02), shows mapping_confidence, answers 'insufficient evidence' when data is missing",
+]
+score = 0
+evidence = "No confidence or evidence display yet."
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[criteria]]
+id = "J4"
+name = "Backend architecture & technical implementation"
+weight = 15
+
+[[criteria.items]]
+id = "J4.1"
+name = "One-command automated pipeline"
+points = 6
+metric = "pipeline_manual_steps"
+direction = "down"
+thresholds = [4, 3, 2, 1, 0]
+how = "Manual steps between the raw PLY + XLSX and a demo-ready scene. Approval is the designed human step: it counts as 0 only if --auto-approve also runs the pipeline unattended."
+# init + 4 hand-typed cleaning proposals + 19 hand-typed part proposals (equipment needs a typed seed x/y/z) + make viewer + make web. Accept/reject not counted; there is no --auto-approve.
+value = 26
+
+[[criteria.items]]
+id = "J4.2"
+name = "Modular stages with data contracts"
+points = 5
+anchors = [
+  "1: one notebook or one script",
+  "3: separate stages (clean, segment, frame, label, map, navgrid, path, diagnose) with files between them",
+  "5: each stage reruns on its own, typed JSON contracts, backend serves the pack's API_Contract routes",
+]
+score = 2
+evidence = "Separate stages with files between them (clean / build cleaning + parts / viewer export / xlsx dump), typed pydantic + TS + JSON Schema contracts with a drift check. No navgrid, path or diagnose stage; the API serves none of the API_Contract routes."
+
+[[criteria.items]]
+id = "J4.3"
+name = "Reproducible and tested"
+points = 4
+anchors = [
+  "1: works on one laptop",
+  "3: README setup works on a clean checkout, pinned dependencies",
+  "5: also fixed seeds, logged stage runtimes, tests for the collision check and mapping coverage",
+]
+score = 3
+evidence = "uv.lock + package-lock pin dependencies; make setup worked on a fresh worktree venv; 41 tests. No collision or mapping-coverage tests yet."
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[criteria]]
+id = "J5"
+name = "Demo clarity & innovation"
+weight = 10
+
+[[criteria.items]]
+id = "J5.1"
+name = "Reliable, clear demo"
+points = 6
+anchors = [
+  "1: crashes, or needs a long explanation",
+  "3: runs end to end offline without errors",
+  "5: a stranger gets it in 30 s, three runs in a row without a failure, the video shows all six required beats",
+]
+score = 1
+evidence = "The viewer and build replay run, but there is no end-to-end demo (no route, no diagnosis) to run offline."
+
+[[criteria.items]]
+id = "J5.2"
+name = "Innovation"
+points = 4
+anchors = [
+  "1: a standard viewer",
+  "3: approve-to-build loop with the red/grey snapshot trail",
+  "5: also a walkable three.js scene and a working Quest 3 WebXR session",
+]
+score = 3
+evidence = "The approve-to-build loop is real: every step human-approved, with numbered images (0001-0964) and a timelapse. True colour at the user's request instead of red/grey. Not walkable yet, no Quest 3."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pass/fail. Not points, but a missing item puts the whole submission at risk (brief section 07).
+
+[[checklist]]
+id = "SUB-1"
+name = "Working demo, runnable locally or clearly recorded"
+done = false
+
+[[checklist]]
+id = "SUB-2"
+name = "Source repo with a concise README and setup instructions"
+done = true  # README Quick start + make setup (PR #21)
+
+[[checklist]]
+id = "SUB-3"
+name = "5-8 slides: extraction pipeline, pathfinding, Excel mapping, AI approach"
+done = false
+
+[[checklist]]
+id = "SUB-4"
+name = "Demo video of at most 5 minutes"
+done = false
+
+[[checklist]]
+id = "SUB-5"
+name = "Brief technical note: models, libraries, software components"
+done = false
+
+[[checklist]]
+id = "DEM-1"
+name = "Extracts and 3D-frames assets from Industrial Boiler Room.ply"
+done = false
+
+[[checklist]]
+id = "DEM-2"
+name = "Maps Excel statuses and metadata to frames; faulty target designated"
+done = false
+
+[[checklist]]
+id = "DEM-3"
+name = "Avatar/robot walks an automatic, collision-free path to the faulty device"
+done = false
+
+[[checklist]]
+id = "DEM-4"
+name = "Nearby frames and their Excel metadata highlighted along the path"
+done = false
+
+[[checklist]]
+id = "DEM-5"
+name = "AI diagnosis and service guidance trigger on arrival"
+done = false
+
+[[checklist]]
+id = "DEM-6"
+name = "Simulation shown in a UI (ours: three.js web)"
+done = false

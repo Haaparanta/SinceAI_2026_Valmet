@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "bounds_max": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Bounds Max",
+      "type": "array"
+    },
+    "bounds_min": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Bounds Min",
+      "type": "array"
+    },
+    "floor_y": {
+      "title": "Floor Y",
+      "type": "number"
+    },
+    "grid_resolution": {
+      "default": 0.05,
+      "title": "Grid Resolution",
+      "type": "number"
+    },
+    "is_synthetic_metadata": {
+      "default": true,
+      "title": "Is Synthetic Metadata",
+      "type": "boolean"
+    },
+    "source_file": {
+      "title": "Source File",
+      "type": "string"
+    },
+    "units": {
+      "default": "scene_units",
+      "enum": [
+        "scene_units",
+        "metres"
+      ],
+      "title": "Units",
+      "type": "string"
+    },
+    "up_axis": {
+      "const": "y",
+      "default": "y",
+      "title": "Up Axis",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_file",
+    "bounds_min",
+    "bounds_max",
+    "floor_y"
+  ],
+  "title": "SceneInfo",
+  "type": "object"
+}

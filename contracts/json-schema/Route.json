@@ -1,0 +1,93 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "agent_radius": {
+      "title": "Agent Radius",
+      "type": "number"
+    },
+    "computed_at": {
+      "format": "date-time",
+      "title": "Computed At",
+      "type": "string"
+    },
+    "grid_resolution": {
+      "title": "Grid Resolution",
+      "type": "number"
+    },
+    "length": {
+      "title": "Length",
+      "type": "number"
+    },
+    "min_clearance": {
+      "title": "Min Clearance",
+      "type": "number"
+    },
+    "planner": {
+      "enum": [
+        "astar",
+        "manual_verified"
+      ],
+      "title": "Planner",
+      "type": "string"
+    },
+    "start": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Start",
+      "type": "array"
+    },
+    "target_asset_id": {
+      "title": "Target Asset Id",
+      "type": "string"
+    },
+    "target_object_id": {
+      "title": "Target Object Id",
+      "type": "string"
+    },
+    "waypoints": {
+      "items": {
+        "maxItems": 3,
+        "minItems": 3,
+        "prefixItems": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Waypoints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "target_asset_id",
+    "target_object_id",
+    "start",
+    "waypoints",
+    "length",
+    "min_clearance",
+    "grid_resolution",
+    "agent_radius",
+    "planner",
+    "computed_at"
+  ],
+  "title": "Route",
+  "type": "object"
+}
