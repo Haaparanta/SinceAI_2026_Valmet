@@ -17,7 +17,9 @@ RUN cd web && npm run build
 
 # ---- 2. runtime ----------------------------------------------------------------------------------------------------
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+# pip installs system-wide as root on purpose: this image runs one app, as the unprivileged user below
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_ROOT_USER_ACTION=ignore
 # same versions as uv.lock; only what api/main.py imports
 RUN pip install "fastapi==0.162.0" "starlette==1.10.0" "uvicorn[standard]==0.54.0"
 WORKDIR /app
@@ -26,7 +28,7 @@ COPY --from=web /src/web/dist web/dist
 COPY data/derived/viewer/scene.bin data/derived/viewer/scene.json data/derived/viewer/
 # served as Content-Encoding: gzip to browsers that accept it (29 MB -> 23 MB on the wire)
 RUN gzip -9 -k data/derived/viewer/scene.bin \
- && useradd --system --uid 10001 app
+ && useradd --uid 10001 --user-group --no-create-home --shell /usr/sbin/nologin app
 USER app
 ENV PORT=8080
 EXPOSE 8080
