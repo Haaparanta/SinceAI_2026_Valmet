@@ -27,3 +27,35 @@ body {
 }
 .mono { font-family: var(--font-mono, ui-monospace, monospace); color: var(--muted-foreground, #9aa0b4); }
 #help { position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 14px; font-size: 11px; }
+
+/* --- source / style toggles and the build panel (after the 3D Model Anything viewer HUD) --- */
+.seg { display: inline-flex; border: 1px solid var(--border, #2a3350); border-radius: 6px; overflow: hidden; }
+.seg button {
+  background: transparent; color: var(--muted-foreground, #9aa0b4); border: 0; padding: 4px 10px;
+  font: inherit; font-size: 12px; cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--border, #2a3350); }
+.seg button:hover { color: var(--foreground, #e6e8f0); }
+.seg button[aria-pressed="true"] { background: var(--primary, #00e5ff); color: var(--primary-foreground, #0b0d14); }
+.seg button:focus-visible, #parts li:focus-visible { outline: 2px solid var(--ring, #00e5ff); outline-offset: -2px; }
+#panel {
+  position: absolute; top: 56px; right: 10px; bottom: 40px; width: 260px;
+  display: flex; flex-direction: column; gap: 6px; padding: 10px;
+  background: color-mix(in oklab, var(--card, #141826) 88%, transparent);
+  border: 1px solid var(--border, #2a3350); border-radius: 8px; font-size: 12px;
+}
+.panel-head { display: flex; justify-content: space-between; gap: 8px; letter-spacing: 0.06em; }
+#upto { width: 100%; accent-color: var(--primary, #00e5ff); }
+#parts { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+#parts li {
+  display: grid; grid-template-columns: 22px 1fr auto; grid-template-rows: auto auto; column-gap: 6px;
+  padding: 5px 6px; border-radius: 4px; cursor: pointer;
+}
+#parts li:hover { background: color-mix(in oklab, var(--primary, #00e5ff) 10%, transparent); }
+#parts li.selected { background: color-mix(in oklab, #ff2d55 28%, transparent); }
+#parts li.future { opacity: 0.4; }
+#parts .seq { grid-row: span 2; }
+#parts .kind, #parts .count { font-size: 10px; }
+#parts .count { grid-column: 3; grid-row: 1; }
+#parts .kind { grid-column: 2; }
+@media (max-width: 720px) { #panel { top: auto; height: 34vh; left: 10px; width: auto; } }

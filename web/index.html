@@ -11,9 +11,32 @@
       <header id="hud">
         <span class="brand">a2b · APPROVE-TO-BUILD TWIN</span>
         <span class="badge">SYNTHETIC DATA</span>
-        <span id="stats" class="mono">loading scene_points.bin …</span>
+        <div class="seg" role="group" aria-label="Source" id="source">
+          <button data-source="scan" title="every kept scan point (1)">Scan</button>
+          <button data-source="model" title="accepted parts only: the twin (2)">Model</button>
+          <button data-source="overlay" title="twin over a faint scan (3)">Overlay</button>
+          <button data-source="wireframe" title="part boxes over a faint scan (4)">Wireframe</button>
+        </div>
+        <div class="seg" role="group" aria-label="Snapshot style" id="style">
+          <button data-style="true" title="real colours">True colour</button>
+          <button data-style="redgrey" title="AGENTS.md M5: selected red, built grey, scan hidden">Red / grey</button>
+        </div>
+        <div class="seg" role="group" aria-label="Options">
+          <button id="cut" aria-pressed="false" title="hide everything above the dollhouse cut (D); automatic from above">Cutaway</button>
+          <button id="boxes" aria-pressed="false" title="wire box around every built part (B)">Boxes</button>
+          <button id="snap" title="open this exact view as a snapshot page (P)">Snapshot</button>
+        </div>
+        <span id="stats" class="mono">loading scene.bin …</span>
       </header>
-      <footer id="help" class="mono">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; y-up · scene units (u) until G1 is answered</footer>
+      <aside id="panel">
+        <div class="panel-head">
+          <span>BUILD</span>
+          <span id="upto-label" class="mono"></span>
+        </div>
+        <input id="upto" type="range" min="0" max="0" value="0" aria-label="Built up to part" />
+        <ol id="parts"></ol>
+      </aside>
+      <footer id="help" class="mono">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select + frame, Esc · clear &nbsp;|&nbsp; ←/→ · replay build &nbsp;|&nbsp; scene units (u)</footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
