@@ -87,6 +87,12 @@ so far and detector proof for each sampled object, then the finished room). All 
   choosable: in *Both* they narrow the list, the room and the click picking to one build (press again for both, the
   URL remembers it as `show=`); in a single build they switch to the other build and show its part count. There are
   530 automatic objects and 28 manual parts, so one press finds the manual parts again.
+- **Walk** (F): first-person mode, the browser version of the VR walk-through. You stand on the floor at eye height
+  (1.65 m), walk with W A S D (a thumb stick on a phone), look with the mouse (a drag on a phone), and stop at the walls
+  and at the built parts: what blocks you are their *points*, so a pipe run overhead or the open floor inside a sprawling
+  cluster box does not. Whatever is in front of you is highlighted with its name, kind, point count and distance; click,
+  tap or Enter selects it and opens its card. `?walk=1` opens the viewer straight in it
+  ([details](#walking-the-room-first-person)).
 - **Scan / Model / Overlay / Wireframe** views, **True colour / Red-grey / By origin** styles (manual cyan, automatic
   amber), **Cutaway** (dollhouse), **Boxes**, **Nearby** (distance lines to the nearest parts), **Measure** (M) between
   two scan points, **Snapshot** (a reproducible `capture.html` page of the same view) and **Reset**.
@@ -99,8 +105,9 @@ so far and detector proof for each sampled object, then the finished room). All 
   links to the manual part it lies in.
 - **Both builds compared**: the panel shows how many manual parts the automatic build matched, split, partly found or
   missed, with filters, and every part carries its badge.
-- **Phones** (compact bar, build list as a bottom sheet, touch orbit and pinch) and **Meta Quest 3**: *Enter VR* puts
-  you on the floor of the room at real-world scale, walking in your room walks you through the scan ([how](#vr-on-meta-quest-3)).
+- **Phones** (compact bar, build list as a bottom sheet, touch orbit and pinch, a thumb stick on foot) and
+  **Meta Quest 3**: *Enter VR* puts you on the floor of the room at real-world scale, walking in your room walks you
+  through the scan ([how](#vr-on-meta-quest-3)).
 
 ## Where we are
 
@@ -112,7 +119,7 @@ so far and detector proof for each sampled object, then the finished room). All 
 - **Web viewer** ([`web/`](web/)): [above](#the-web-viewer), live at [twinbuild.click](https://twinbuild.click/).
 - **API** ([`api/main.py`](api/main.py)): scaffold only. It serves health, demo mode, scene points/stats, both viewer exports with their detail levels, the step images and the comparison.
 - **Also done:** M1 clean loader (`pipeline/01_clean.py`), the xlsx → JSON dump with 30 merged `AssetRecord`s (`pipeline/05_bind_metadata.py --dump`), frozen contracts with a drift check, the timelapse and README media tools.
-- **Not started yet** (planned in [`AGENTS.md`](AGENTS.md)): the browser curator with approve buttons, `data/scene_graph.json`, binding xlsx assets to parts, the occupancy grid and route, and the copilot / `Diagnosis`.
+- **Not started yet** (planned in [`AGENTS.md`](AGENTS.md)): the browser curator with approve buttons, `data/scene_graph.json`, binding xlsx assets to parts, the route planner (the viewer's walk already builds an occupancy grid of the built parts' points, [`web/src/occupancy.ts`](web/src/occupancy.ts), but only to stop you), and the copilot / `Diagnosis`.
 
 ## Quick start
 
@@ -127,7 +134,7 @@ The `.ply` / `.mp4` files are not in git; put them in `Source-Data-Do-Not_change
 |---|---|
 | Show the build so far | `uv run python pipeline/build.py status` |
 | Propose the next part / decide it | `uv run python pipeline/build.py part …` then `… accept` or `… reject --note TEXT` (all subcommands are listed in the [`build.py`](pipeline/build.py) docstring) |
-| Look at the build in the browser | `make viewer && make web`, then open http://localhost:5173 (`?scene=auto` for the automatic build after `make viewer-auto`, `?scene=both` for both) |
+| Look at the build in the browser | `make viewer && make web`, then open http://localhost:5173 (`?scene=auto` for the automatic build after `make viewer-auto`, `?scene=both` for both, `?walk=1` to start on foot inside the room) |
 | Walk the build in VR (Quest 3) | `make viewer && make web-vr`, then open `https://<laptop-ip>:5173` in Quest Browser ([details](#vr-on-meta-quest-3)) |
 | Scripted screenshots | `make snap Q="src=overlay&part=pipe_3"` (needs `make web` running) |
 | Timelapse of the step images | `make timelapse` → `docs/timelapse.mp4` (no Homebrew ffmpeg needed) |
@@ -180,6 +187,48 @@ tint of its role. Scan / Model / Overlay / Wireframe, Red / grey, the build repl
   switch when you stand still. In VR, splats are cut at √5 standard deviations instead of 3 (about 40 % fewer pixels).
 - Not on the snapshot page: `capture.html` stays point-based, so snapshots are reproducible.
 
+## Walking the room (first person)
+
+Press **Walk** in the top bar (or **F**): the orbit view becomes a first-person view inside the room, on desktop and on
+phones alike ([`web/src/walk.ts`](web/src/walk.ts)). You start on open floor near the middle of the room (the same
+search as VR, [`web/src/spawn.ts`](web/src/spawn.ts)), facing the selected part, else the biggest piece of equipment,
+else the room centre, at an eye height of 1.65 m over the floor, with the same 1 u ≈ 1.15 m guess as VR (`?mpu=`
+overrides it). Press Walk again, F or Esc to return to the orbit view exactly where you left it; Enter VR leaves the
+walk first.
+
+What stops you: the walker is a 30 cm-radius cylinder reaching from 10 cm over the floor to 15 cm over your eyes
+(1.80 m). It stays 25 cm away from the room walls, and it stops at the **points** of every part that is built (the build
+slider) and shown (the Manual | Auto buttons), everything but the structure. An occupancy grid over the floor
+([`web/src/occupancy.ts`](web/src/occupancy.ts), 0.05 u ≈ 6 cm cells) marks the cells where those points fall inside
+the walker's height band, grown by its radius; it is rebuilt from the loaded detail levels whenever a level arrives or
+the built set changes (about 15 ms even for the whole scan), and until the first level is in, the part boxes stand in.
+So a pipe run under the ceiling never blocks, a pump blocks where the pump is, and you can cross an automatic cluster
+box where its floor is empty. A part that the build slider puts around you never traps you: standing inside something,
+every step is allowed until you are clear.
+
+Whatever the screen centre points at (within 12 m) gets a cyan box and a label with its name, kind, point count and
+distance (and the detector with its confidence for automatic objects). Selecting it turns the box red and opens the same
+part card as in the orbit view; selecting it again clears it. While walking, the Overlay and Wireframe views switch to
+Scan (as in VR) and back on exit, the cutaway stays off, and the URL carries `walk=1`, so a reload or a shared link
+reopens the room on foot; `?walk=1` enters as soon as the first detail level is on screen. Snapshot (P) uses your eye
+as the camera.
+
+| Input | Action |
+|---|---|
+| W A S D, arrow keys | Walk forward / left / back / right at 1.4 m/s (Shift: 2.8 m/s) |
+| Mouse | Look around: the first click captures the mouse (Esc releases it); without the capture, dragging looks |
+| Q / E | Turn 30° left / right |
+| Click (mouse captured), Enter | Select the highlighted part; again to clear |
+| F, the Walk button, or Esc with the mouse released | Back to the orbit view |
+| Phone: thumb stick (bottom left, above the build sheet) | Walk; how far you push is how fast you go |
+| Phone: one-finger drag on the room | Look around |
+| Phone: tap on the room | Select the highlighted part; again to clear |
+
+The keys are the walk's whenever you are not typing in the filter box: while walking, the arrows walk instead of
+stepping the build, and the orbit view's shortcuts (1–4, D, B, M, Space) are off; N (nearby lines), G (splats), P
+(snapshot) and / (jump to the filter box) still work. On a phone the build sheet stays folded under the stick; its
+slider still changes what blocks you.
+
 ## VR on Meta Quest 3
 
 Browsers only offer WebXR on `https://` or `localhost`, so pick one of these:
@@ -215,7 +264,7 @@ The left controller carries a small panel showing the current view. Metric scale
 | [`autoscene/`](autoscene/README.md) | The automatic build: its own `uv` project (torch, ultralytics, numba), the pipeline stages, and `out/` with `scene.json` (530 objects) and the sample pictures |
 | [`build/`](build/) | Build state: `manifest.json`, `parts/*.idx.npy` and `removed/*.idx.npy` (splat indices into the master scan), earlier runs in `archive/`. The `.ply` files are rebuilt from the indices and stay local |
 | [`images/`](images/) | One numbered image per build step: `NNNN_YYYYMMDD-HHMMSS.png`, numbering never restarts |
-| [`web/`](web/) | three.js viewer of both builds (`index.html`: Build switch and Manual / Auto buttons, Scan / Model / Overlay / Wireframe, parts list, build replay, part cards; responsive for phones; click or tap a part in the room to select it; `src/xr.ts` = WebXR walk-through for Quest 3) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `make snap` writes numbered PNGs to `images/` |
+| [`web/`](web/) | three.js viewer of both builds (`index.html`: Build switch and Manual / Auto buttons, Scan / Model / Overlay / Wireframe, parts list, build replay, part cards; responsive for phones; click or tap a part in the room to select it; `src/walk.ts` + `src/occupancy.ts` + `src/spawn.ts` = first-person walk on desktop and phones, stopped by the built parts' points, starting where VR starts; `src/xr.ts` = WebXR walk-through for Quest 3) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `make snap` writes numbered PNGs to `images/` |
 | [`api/`](api/) | FastAPI scaffold (`make api`, port 8000); also serves the step images to the viewer (`/api/images/{name}`) |
 | [`contracts/`](contracts/) | Frozen shared types: pydantic (`py/`), TypeScript (`ts/`), exported JSON Schema (`json-schema/`). `make contracts` re-exports; `make check` fails on drift |
 | [`scripts/`](scripts/) | `export_viewer_scene.py` and `export_autoscene_viewer.py` (builds → web), `lod.py` (detail levels), `compare_builds.py`, `make_viewer_fixture.py` (synthetic exports for tests), `timelapse.py`, `readme_media.py`, `check_contracts.py`, `run_tests.py` (pick which tests to run) |

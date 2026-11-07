@@ -40,6 +40,7 @@ import {
   type Style,
   type ViewState,
 } from "./scene";
+import { WalkMode } from "./walk";
 import type { XrWalk } from "./xr"; // the VR module loads last, and only where WebXR VR is supported
 
 const fmt = (n: number): string => n.toLocaleString("en-US");
@@ -56,6 +57,11 @@ const snapBtn = document.querySelector<HTMLButtonElement>("#snap")!;
 const homeBtn = document.querySelector<HTMLButtonElement>("#home")!;
 const vrBtn = document.querySelector<HTMLButtonElement>("#vr")!;
 const vrLabel = document.querySelector<HTMLElement>("#vr-label")!;
+const walkBtn = document.querySelector<HTMLButtonElement>("#walk")!;
+const walkLabel = document.querySelector<HTMLElement>("#walk-label")!;
+const crosshairEl = document.querySelector<HTMLElement>("#crosshair")!;
+const aimEl = document.querySelector<HTMLElement>("#aim")!;
+const joystickEl = document.querySelector<HTMLElement>("#joystick")!;
 const panelEl = document.querySelector<HTMLElement>("#panel")!;
 const panelToggle = document.querySelector<HTMLButtonElement>("#panel-toggle")!;
 const loadingEl = document.querySelector<HTMLElement>("#loading")!;
@@ -144,6 +150,8 @@ controls.screenSpacePanning = true;
 
 let cloud: BuildCloud | undefined;
 let xr: XrWalk | undefined;
+/** first-person walk mode (walk.ts); created once the scene meta is in */
+let walk: WalkMode | undefined;
 let state: ViewState;
 let cutManual = false;
 let nearOn = true;
@@ -190,10 +198,17 @@ window.addEventListener("resize", resize);
 /** Dollhouse: hide everything above the cut while the camera is above the room (or when forced on). */
 function autoCut(meta: SceneMeta): boolean {
   if (xr?.presenting) return false; // standing in the room: keep the ceiling and the pipe band
+  if (walk?.active) return false;
   return cutManual || camera.position.y > meta.room_bounds.max[1];
 }
 
 function flyTo(box: THREE.Box3, dir = new THREE.Vector3(0.9, 0.8, 1.1), fill = 0.6): void {
+  if (walk?.active) {
+    // inside the room the camera stays on its feet: turn towards the part instead
+    const c = box.getCenter(new THREE.Vector3());
+    walk.lookAt(c.x, c.y, c.z);
+    return;
+  }
   const { position, target } = frameBox(box, dir, FOV, camera.aspect, fill);
   camera.position.copy(position);
   controls.target.copy(target);
@@ -206,6 +221,8 @@ function syncUrl(meta: SceneMeta): void {
   writeState(url.searchParams, state, meta);
   if (renderMode === "splats") url.searchParams.set("render", "splats");
   else url.searchParams.delete("render");
+  if (walk?.active) url.searchParams.set("walk", "1");
+  else url.searchParams.delete("walk");
   history.replaceState(null, "", url);
 }
 
@@ -284,6 +301,9 @@ function setRender(meta: SceneMeta, mode: RenderMode): void {
 function render(meta: SceneMeta): void {
   if (!cloud) return;
   applyLayers(meta);
+  // the built parts (upto) or the shown build may have changed, and with them what the walker bumps into: only while
+  // someone walks (walk.ts skips a same rebuild; a grid that went stale in the orbit view is rebuilt by walk.enter())
+  if (walk?.active) walk.rebuildOccupancy();
   for (const b of document.querySelectorAll<HTMLButtonElement>("#render button")) {
     b.setAttribute("aria-pressed", String(b.dataset.render === renderMode));
   }
@@ -304,6 +324,7 @@ function render(meta: SceneMeta): void {
   playBtn.setAttribute("aria-pressed", String(playTimer !== 0));
   canvas.classList.toggle("measuring", measuring);
   updateCard(meta);
+  updateWalkHud();
   uptoEl.value = String(state.upto);
   const last = meta.parts[state.upto - 1];
   uptoLabel.textContent = `${state.upto} / ${meta.parts.length}${last ? ` · ${last.label}` : ""}`;
@@ -489,7 +510,7 @@ function updateCard(meta: SceneMeta): void {
       li.querySelector(".d")!.textContent = `#${part.seq} · ${part.source ?? part.kind}`;
       const go = () => select(meta, part.seq);
       li.addEventListener("click", go);
-      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
+      activateOn(li, go);
       return li;
     }),
   );
@@ -504,10 +525,23 @@ function updateCard(meta: SceneMeta): void {
       li.querySelector(".d")!.textContent = fmtGap(n.gap, MPU);
       const go = () => select(meta, n.part.seq);
       li.addEventListener("click", go);
-      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
+      activateOn(li, go);
       return li;
     }),
   );
+}
+
+/**
+ * Enter / Space on a focusable row is the row's click and nobody else's: the window's bindings must not also act on
+ * it (Space would start the replay, Enter would select the walk's aimed part on top of the row's).
+ */
+function activateOn(li: HTMLElement, go: () => void): void {
+  li.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    e.stopPropagation();
+    go();
+  });
 }
 
 let lb: { images: string[]; i: number } | null = null;
@@ -695,7 +729,7 @@ function wirePicking(meta: SceneMeta): void {
     controls.autoRotate = false; // grabbing the view stops the replay's orbit (the replay itself keeps going)
   });
   canvas.addEventListener("pointerup", (e) => {
-    if (!down || !e.isPrimary || e.button !== 0) return;
+    if (!down || !e.isPrimary || e.button !== 0 || walk?.active) return; // walking: walk.ts owns the canvas
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
     const quick = performance.now() - down.t < 500;
     down = null;
@@ -718,7 +752,7 @@ function wirePicking(meta: SceneMeta): void {
     if (hit) select(meta, hit.part.seq);
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse" || e.buttons || measuring) {
+    if (e.pointerType !== "mouse" || e.buttons || measuring || walk?.active) {
       tipEl.hidden = true;
       return;
     }
@@ -738,9 +772,11 @@ function snapshotUrl(meta: SceneMeta): string {
   writeState(url.searchParams, state, meta);
   if (BUILD !== "manual") url.searchParams.set("scene", BUILD);
   const f = (v: THREE.Vector3) => [v.x, v.y, v.z].map((c) => c.toFixed(3)).join(",");
+  // walking: the view is where you look, not the orbit target
+  const look = walk?.active ? camera.position.clone().add(walk.forward(new THREE.Vector3())) : controls.target;
   url.searchParams.set("cam", f(camera.position));
-  url.searchParams.set("look", f(controls.target));
-  url.searchParams.set("fov", String(FOV));
+  url.searchParams.set("look", f(look));
+  url.searchParams.set("fov", String(walk?.active ? camera.fov : FOV));
   url.searchParams.set("size", "1400x900");
   if (autoCut(meta)) url.searchParams.set("dollhouse", "1");
   return url.toString();
@@ -765,9 +801,7 @@ function buildPanel(meta: SceneMeta): void {
         stopPlay(meta);
         select(meta, p.seq);
       });
-      li.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") select(meta, p.seq);
-      });
+      activateOn(li, () => select(meta, p.seq));
       return li;
     }),
   );
@@ -875,13 +909,41 @@ function wireControls(meta: SceneMeta): void {
   $("#card-close").addEventListener("click", () => set(meta, { selected: 0 }));
   window.addEventListener("keydown", (e) => {
     if (!lightboxEl.hidden) {
+      e.stopImmediatePropagation(); // the dialog has the keys: walk.ts listens on window too and must not strafe on the arrows
       if (e.key === "Escape") closeLightbox();
       else if (e.key === "ArrowRight" && lb) openLightbox(lb.images, lb.i + 1);
       else if (e.key === "ArrowLeft" && lb) openLightbox(lb.images, lb.i - 1);
       return;
     }
-    if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (walk?.active && walk.handlesKey(e)) return; // W A S D, arrows, Q E, Enter: walk.ts, nothing else
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target instanceof HTMLInputElement) {
+      // the build slider keeps the focus after a drag and takes no letters: F still toggles the walk from there; nothing
+      // else does (the arrows would step the slider twice, the filter box is for typing)
+      if (e.target.type === "range" && (e.key === "f" || e.key === "F")) toggleWalk();
+      return;
+    }
     if (e.target instanceof HTMLButtonElement && (e.key === " " || e.key === "Enter")) return;
+    if (e.key === "f" || e.key === "F") {
+      toggleWalk();
+      return;
+    }
+    if (walk?.active) {
+      // Esc leaves the walk (the first Esc only drops the pointer lock, the browser keeps that one); the orbit view's
+      // shortcuts (sources, cutaway, boxes, stepping, replay, measure) are not for standing in the room
+      if (e.key === "Escape" && !document.pointerLockElement) walk.exit();
+      else if (e.key === "n" || e.key === "N") {
+        nearOn = !nearOn;
+        render(meta);
+      } else if (e.key === "g" || e.key === "G") setRender(meta, renderMode === "splats" ? "points" : "splats");
+      else if (e.key === "p" || e.key === "P") window.open(snapshotUrl(meta), "_blank");
+      else if (e.key === "/") {
+        e.preventDefault();
+        setPanelOpen(true);
+        filterEl.focus();
+      }
+      return;
+    }
     const n = Number(e.key);
     if (n >= 1 && n <= SOURCES.length) set(meta, { source: SOURCES[n - 1] });
     else if (e.key === "Escape") {
@@ -940,6 +1002,7 @@ async function loadPoints(build: Build, meta: SceneMeta, firstShown: () => void)
   if (!levels.length) {
     const buf = await fetchBytes(`${buildBase(build)}/scene.bin`, exportHint(build), (f) => showProgress(f, "points"));
     cloud!.addChunk(fullChunk(meta, parseScene(buf, meta)));
+    if (walk?.active) walk.rebuildOccupancy(); // the points are in: a walker collides with them, not with the boxes
     render(meta);
     firstShown();
     return;
@@ -953,6 +1016,7 @@ async function loadPoints(build: Build, meta: SceneMeta, firstShown: () => void)
     (k, chunk) => {
       done += levels[k].count;
       cloud!.addChunk(chunk);
+      if (walk?.active) walk.rebuildOccupancy(); // another level's points: a walker's grid grows with them (else on entry)
       showProgress(done / total, `detail ${k + 1}/${levels.length}`);
       render(meta);
       if (k === 0) firstShown();
@@ -988,6 +1052,7 @@ async function main(): Promise<void> {
   wireFilter(meta);
   wireLightbox();
   wirePicking(meta);
+  setupWalk(meta);
   // small screens start with the build list folded away so the room is visible
   if (matchMedia("(max-width: 640px), (max-height: 500px)").matches) setPanelOpen(false);
   resize();
@@ -1004,6 +1069,9 @@ async function main(): Promise<void> {
         get xr() {
           return xr;
         },
+        get walk() {
+          return walk;
+        },
       },
     });
   }
@@ -1013,7 +1081,8 @@ async function main(): Promise<void> {
   await loadPoints(build, meta, () => {
     loadingEl.classList.add("done");
     setTimeout(() => (loadingEl.hidden = true), 450);
-    if (matchMedia("(pointer: coarse)").matches) toast("drag to orbit · pinch to zoom · tap a part to fly to it");
+    if (params.get("walk") === "1") enterWalk(); // ?walk=1: in the room as soon as there is a picture to stand in
+    else if (matchMedia("(pointer: coarse)").matches) toast("drag to orbit · pinch to zoom · tap a part to fly to it");
   });
   showProgress(null);
   pointsDone();
@@ -1039,7 +1108,9 @@ function startLoop(meta: SceneMeta): void {
       return;
     }
     eyeH = 0;
-    controls.update();
+    // walking: the keys and the stick move the camera; OrbitControls.update() would re-aim it at the orbit target
+    if (walk?.active) walk.update(dt);
+    else controls.update();
     if (renderMode === "splats" && splats?.drawing && cloud!.pointsVisible) render(meta); // splats took over
     const cut = autoCut(meta);
     if (cut !== wasCut) {
@@ -1103,7 +1174,7 @@ async function setupXr(meta: SceneMeta): Promise<void> {
   const { XrWalk } = await import("./xr");
   let before: Source | null = null;
   const order: Source[] = ["scan", "model", "overlay"];
-  const walk = new XrWalk(
+  const vr = new XrWalk(
     renderer,
     scene,
     camera,
@@ -1161,11 +1232,117 @@ async function setupXr(meta: SceneMeta): Promise<void> {
     },
     { metresPerUnit: MPU, focus: () => meta.parts[state.selected - 1], upto: () => state.upto },
   );
-  xr = walk;
+  xr = vr;
   vrBtn.addEventListener("click", () => {
-    walk.toggle().catch((err: unknown) => toast(`VR: ${err instanceof Error ? err.message : String(err)}`, 6000));
+    // the headset takes over from the screen walk, and before the session starts: XrWalk saves the camera it finds at
+    // sessionstart and puts it back at the end, so that must be the orbit view, not the walker's eye-height one
+    walk?.exit();
+    vr.toggle().catch((err: unknown) => toast(`VR: ${err instanceof Error ? err.message : String(err)}`, 6000));
   });
   vrBtn.hidden = false;
+}
+
+/**
+ * The Walk button and the aim card under the crosshair (what the walker looks at). Called from render() and on every
+ * walk change (each mouse move, each moving frame), so the DOM is only touched when something would read differently:
+ * #aim is aria-live, and a same-text rewrite is still a mutation a screen reader may announce again.
+ */
+let aimKey = "";
+function updateWalkHud(): void {
+  if (!walk) return;
+  const on = walk.active;
+  if (walkBtn.getAttribute("aria-pressed") !== String(on)) {
+    walkBtn.setAttribute("aria-pressed", String(on));
+    walkLabel.textContent = on ? "Exit walk" : "Walk";
+  }
+  const a = on ? walk.aimed : null;
+  const lines = a ? walk.aimText() : [];
+  const selected = !!a && state.selected === a.part.seq;
+  const key = a ? `${a.part.seq}|${selected}|${lines.join("\n")}` : "";
+  if (key === aimKey) return;
+  aimKey = key;
+  aimEl.hidden = !a;
+  if (!a) return;
+  const [title, info, hint] = lines;
+  $("#aim-title").textContent = title;
+  $("#aim-info").textContent = info;
+  $("#aim-hint").textContent = hint;
+  if (selected) aimEl.dataset.selected = "1";
+  else delete aimEl.dataset.selected;
+}
+
+/**
+ * Into the room, unless the headset has the camera (a VR session owns it). walk.enter() rebuilds the grid from what is
+ * loaded and built right now before it looks for a spawn, so the first steps collide with the points, not the boxes.
+ */
+function enterWalk(): void {
+  if (!walk || walk.active || xr?.presenting) return;
+  walk.enter();
+}
+
+function toggleWalk(): void {
+  if (!walk) return;
+  if (walk.active) walk.exit();
+  else enterWalk();
+}
+
+/** First-person walk mode (walk.ts): the Walk button, and what changes on screen while you stand in the room. */
+function setupWalk(meta: SceneMeta): void {
+  let target: THREE.Vector3 | null = null;
+  let before: Source | null = null;
+  walk = new WalkMode(
+    camera,
+    canvas,
+    meta,
+    {
+      onEnter() {
+        controls.enabled = false;
+        target = controls.target.clone();
+        // inside the room the real scan reads best; overlay/wireframe haze is for looking from outside (as in VR)
+        before = state.source;
+        if (state.source === "overlay" || state.source === "wireframe") state = { ...state, source: "scan" };
+        if (matchMedia("(max-width: 640px), (max-height: 500px)").matches) setPanelOpen(false);
+        document.body.dataset.walk = "1";
+        crosshairEl.hidden = false;
+        joystickEl.hidden = false; // style.css shows it on coarse pointers only
+        tipEl.hidden = true;
+        canvas.style.cursor = "";
+        render(meta);
+        if (matchMedia("(pointer: coarse)").matches) toast("stick · walk · drag · look · tap a part · select");
+      },
+      onExit() {
+        controls.enabled = true;
+        if (before) state = { ...state, source: before };
+        before = null;
+        delete document.body.dataset.walk;
+        crosshairEl.hidden = true;
+        aimEl.hidden = true;
+        joystickEl.hidden = true;
+        if (target) controls.target.copy(target);
+        target = null;
+        controls.update();
+        render(meta);
+      },
+      select(seq) {
+        select(meta, seq, false); // no camera fly: we are inside the room
+      },
+      onChange() {
+        invalidate();
+        updateWalkHud();
+      },
+    },
+    {
+      metresPerUnit: MPU,
+      upto: () => state.upto,
+      selected: () => state.selected,
+      visible: (p) => cloud?.visibleIn(p.seq, state.show) ?? true,
+      focus: () => meta.parts[state.selected - 1],
+      chunks: () => cloud!.chunks, // the loaded detail levels: their points are what the walker bumps into
+    },
+  );
+  scene.add(walk.group);
+  walkBtn.addEventListener("click", toggleWalk);
+  walkBtn.hidden = false;
 }
 
 main().catch((err: unknown) => {
