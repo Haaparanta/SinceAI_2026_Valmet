@@ -18,6 +18,7 @@ import {
   parseScene,
   streamInOrder,
   buildBase,
+  loadCompare,
   METRES_PER_UNIT_GUESS,
   partBox,
   pickPart,
@@ -26,6 +27,10 @@ import {
   SOURCES,
   writeState,
   type Build,
+  type Compare,
+  type CompareAuto,
+  type CompareManual,
+  type MatchStatus,
   type Origin,
   type PartMeta,
   type SceneMeta,
@@ -82,6 +87,24 @@ const BUILD: Build = buildFromUrl(params);
 const ORIGIN_LABEL: Record<Origin, string> = { manual: "MANUAL", auto: "AUTO" };
 /** In "both", tag each part with its build; a single build needs no tag. */
 const showOrigin = BUILD === "both";
+/** scripts/compare_builds.py output (build "both" only), indexed by part name */
+let compare: Compare | null = null;
+const cmpManual = new Map<string, CompareManual>();
+const cmpAuto = new Map<string, CompareAuto>();
+const seqByName = new Map<string, number>();
+const STATUS_TEXT: Record<MatchStatus, string> = {
+  matched: "matched",
+  split: "split into pieces",
+  partial: "partly found",
+  missed: "missed",
+};
+/** automatic pieces of a manual part, as part seqs (empty for anything else) */
+function piecesOf(meta: SceneMeta, seq: number): number[] {
+  const p = meta.parts[seq - 1];
+  const row = p?.origin === "manual" ? cmpManual.get(p.name) : undefined;
+  return (row?.fragments ?? []).map((n) => seqByName.get(n) ?? 0).filter((k) => k > 0);
+}
+
 /** A part's tag element ("MANUAL" / "AUTO"), coloured by style.css. */
 function originTag(origin: Origin | undefined): HTMLElement {
   const el = document.createElement("span");
@@ -175,6 +198,7 @@ function syncUrl(meta: SceneMeta): void {
 
 /** Push the view state into the point passes and, in splat mode, into the splat meshes. */
 function applyLayers(meta: SceneMeta, cut = autoCut(meta)): void {
+  cloud?.setHighlight(state.selected > 0 && state.selected <= state.upto ? piecesOf(meta, state.selected) : []);
   const wantSplats = renderMode === "splats" && !!splats?.ready;
   // hand-over without a blank frame: the points stay until Spark has sorted and actually draws the splats
   const useSplats = wantSplats && splats!.drawing;
@@ -325,6 +349,17 @@ function matchLink(meta: SceneMeta, part: PartMeta, overlap: number): HTMLElemen
   return span;
 }
 
+/** "inside Pipe 1": the manual part an automatic object belongs to. */
+function hostLink(meta: SceneMeta, part: PartMeta): HTMLElement {
+  const btn = document.createElement("button");
+  btn.className = "link";
+  btn.dataset.origin = "manual";
+  btn.textContent = `inside ${part.label}`;
+  btn.title = `select #${part.seq} ${part.name}`;
+  btn.addEventListener("click", () => select(meta, part.seq));
+  return btn;
+}
+
 /** "Pump 1" card: facts, approval images and nearest parts; also drives the 3D proximity lines. */
 let cardKey = "";
 function updateCard(meta: SceneMeta): void {
@@ -339,7 +374,10 @@ function updateCard(meta: SceneMeta): void {
   }
   // in "both", a part's nearest neighbour would often be its own copy from the other build: list those apart
   const near = neighbours(meta, sel, state.upto, 5, showOrigin ? (p) => p.origin === sel.origin : undefined);
-  const twin = counterpart(meta, sel, state.upto);
+  // with compare.json the card says how the other build saw this part; without it, the best box overlap on the fly
+  const row = sel.origin === "manual" ? cmpManual.get(sel.name) : undefined;
+  const autoRow = sel.origin === "auto" ? cmpAuto.get(sel.name) : undefined;
+  const twin = compare ? null : counterpart(meta, sel, state.upto);
   if (nearOn) proximity.show(near, MPU);
   else proximity.clear();
 
@@ -368,7 +406,22 @@ function updateCard(meta: SceneMeta): void {
     const t = Number.isNaN(when.getTime()) ? sel.accepted_at : when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
     facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")} · ${t}`]);
   } else facts.push(["Accepted", `step ${String(sel.step).padStart(4, "0")}`]);
-  if (showOrigin) facts.push(["Match", twin ? "" : `no ${sel.origin === "auto" ? "manual part" : "automatic object"} overlaps it`]);
+  if (showOrigin && row) {
+    const pct = (v: number) => `${Math.round(v * 100)} %`;
+    const n = row.fragments.length;
+    const sub =
+      row.status === "missed"
+        ? row.nearest
+          ? `closest: ${row.nearest.label}, ${row.nearest.gap.toFixed(2)} u away, ${Math.abs(row.nearest.dy).toFixed(2)} u ${row.nearest.dy > 0 ? "higher" : "lower"}`
+          : undefined
+        : `${n} piece${n === 1 ? "" : "s"} inside · cover ${pct(row.coverage)}${row.best ? ` · best box IoU ${row.best.iou.toFixed(2)}` : ""}`;
+    facts.push(["Automatic", STATUS_TEXT[row.status], sub]);
+    if (row.best) facts.push(["Best match", ""]);
+  } else if (showOrigin && autoRow) {
+    facts.push(["Manual", autoRow.in ? "" : "only in the automatic build"]);
+  } else if (showOrigin && !compare) {
+    facts.push(["Match", twin ? "" : `no ${sel.origin === "auto" ? "manual part" : "automatic object"} overlaps it`]);
+  }
   $("#card-facts").replaceChildren(
     ...facts.flatMap(([k, v, sub]) => {
       const dt = document.createElement("dt");
@@ -376,6 +429,14 @@ function updateCard(meta: SceneMeta): void {
       const dd = document.createElement("dd");
       dd.textContent = v;
       if (k === "Match" && twin) dd.append(matchLink(meta, twin.part, twin.iou));
+      const link = (name: string | null | undefined) => {
+        const seq = name ? seqByName.get(name) : undefined;
+        return seq ? meta.parts[seq - 1] : undefined;
+      };
+      const best = k === "Best match" ? link(row?.best?.name) : undefined;
+      if (best && row?.best) dd.append(matchLink(meta, best, row.best.iou));
+      const host = k === "Manual" ? link(autoRow?.in) : undefined;
+      if (host) dd.append(hostLink(meta, host));
       if (sub) {
         const small = document.createElement("small");
         small.textContent = ` ${sub}`;
@@ -399,6 +460,23 @@ function updateCard(meta: SceneMeta): void {
       btn.querySelector(".no")!.textContent = name.slice(0, 4);
       btn.addEventListener("click", () => openLightbox(images, i));
       return btn;
+    }),
+  );
+
+  const pieces = row ? piecesOf(meta, sel.seq).map((k) => meta.parts[k - 1]) : [];
+  $("#card-pieces-wrap").hidden = pieces.length === 0;
+  $("#card-pieces-title").textContent = `Automatic pieces (${pieces.length}) · amber boxes`;
+  $("#card-pieces").replaceChildren(
+    ...pieces.map((part) => {
+      const li = document.createElement("li");
+      li.tabIndex = 0;
+      li.innerHTML = `<span class="n"></span><span class="d"></span>`;
+      li.querySelector(".n")!.textContent = part.label;
+      li.querySelector(".d")!.textContent = `#${part.seq} · ${part.source ?? part.kind}`;
+      const go = () => select(meta, part.seq);
+      li.addEventListener("click", go);
+      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
+      return li;
     }),
   );
 
@@ -442,7 +520,8 @@ function wireLightbox(): void {
 function wireFilter(meta: SceneMeta): void {
   const kinds = [...new Set(meta.parts.map((p) => p.kind))];
   let kind = "";
-  let origin = "";
+  let origin: "" | Origin = state.show === "both" ? "" : state.show;
+  let status = "";
   const chip = (label: string, n: number, onClick: () => void) => {
     const b = document.createElement("button");
     b.innerHTML = `<span></span><span class="n"></span>`;
@@ -463,11 +542,60 @@ function wireFilter(meta: SceneMeta): void {
   const originChip = (o: Origin) => {
     const b = chip(o === "manual" ? "manual" : "automatic", meta.parts.filter((p) => p.origin === o).length, () => {
       origin = origin === o ? "" : o;
+      // the chip also hides the other build in the room; a selection there would be invisible, so drop it
+      const show = origin || "both";
+      const sel = meta.parts[state.selected - 1];
+      set(meta, { show, ...(sel && cloud && !cloud.visibleIn(sel.seq, show) ? { selected: 0 } : {}) });
     });
     b.dataset.origin = o;
-    b.title = `only the ${o === "manual" ? "manual" : "automatic"} build (click again for both)`;
+    b.title = `only the ${o === "manual" ? "manual" : "automatic"} build, in the list and in the room (click again for both)`;
     return b;
   };
+  // build "both" with compare.json: how the automatic build saw each manual part
+  const statusOf = (p: PartMeta): string => {
+    if (p.origin === "manual") return cmpManual.get(p.name)?.status ?? "";
+    const a = cmpAuto.get(p.name);
+    return a ? (a.in ? "inside" : "new") : "";
+  };
+  if (showOrigin && compare) {
+    const sum = compare.summary;
+    const nManual = meta.parts.filter((p) => p.origin === "manual").length;
+    $("#compare-summary").innerHTML =
+      `Automatic build finds <b>${sum.found} of ${nManual}</b> manual parts · ` +
+      `mean best IoU ${sum.mean_best_iou.toFixed(2)} · <b>${sum.auto_only}</b> automatic objects are new`;
+    const statusChip = (st: string, label: string, n: number, title: string) => {
+      const b = chip(label, n, () => (status = status === st ? "" : st));
+      b.dataset.status = st;
+      b.title = title;
+      return b;
+    };
+    $("#compare-chips").replaceChildren(
+      ...(["matched", "split", "partial", "missed"] as MatchStatus[]).map((st) =>
+        statusChip(st, st, sum.status[st], `manual parts the automatic build ${STATUS_TEXT[st]}`),
+      ),
+      statusChip("new", "auto-only", sum.auto_only, "automatic objects inside no manual part"),
+    );
+    $("#compare").hidden = false;
+  }
+  for (const li of partsEl.querySelectorAll<HTMLLIElement>("li[data-seq]")) {
+    const p = meta.parts[Number(li.dataset.seq) - 1];
+    const st = statusOf(p);
+    if (!st || st === "inside") {
+      const host = cmpAuto.get(p.name)?.in;
+      if (!host) continue;
+      const tag = document.createElement("span");
+      tag.className = "status mono";
+      tag.dataset.status = "inside";
+      tag.textContent = `in ${meta.parts[(seqByName.get(host) ?? 1) - 1]?.label ?? host}`;
+      li.append(tag);
+      continue;
+    }
+    const tag = document.createElement("span");
+    tag.className = "status mono";
+    tag.dataset.status = st;
+    tag.textContent = st === "new" ? "auto-only" : st;
+    li.append(tag);
+  }
   kindsEl.replaceChildren(
     ...(showOrigin ? [originChip("manual"), originChip("auto")] : []),
     kindChip("", "all", meta.parts.length),
@@ -484,12 +612,16 @@ function wireFilter(meta: SceneMeta): void {
       const ok =
         (!kind || p.kind === kind) &&
         (!origin || p.origin === origin) &&
+        (!status || statusOf(p) === status) &&
         (!q || `${p.label} ${p.name} ${p.kind} ${p.origin ?? ""}`.toLowerCase().includes(q));
       li.classList.toggle("filtered", !ok);
       if (ok) shown++;
     }
     for (const b of kindsEl.querySelectorAll<HTMLButtonElement>("button")) {
       b.setAttribute("aria-pressed", String(b.dataset.origin ? b.dataset.origin === origin : b.dataset.kind === kind));
+    }
+    for (const b of document.querySelectorAll<HTMLButtonElement>("#compare-chips button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.status === status));
     }
     if (shown) empty.remove();
     else partsEl.append(empty);
@@ -551,7 +683,7 @@ function partAt(meta: SceneMeta, x: number, y: number) {
   const ray = new THREE.Raycaster();
   ray.setFromCamera(ndc, camera);
   const cutY = autoCut(meta) ? (meta.dollhouse_cut_y ?? meta.room_bounds.max[1]) : undefined;
-  return pickPart(ray.ray, meta, state.upto, cutY);
+  return pickPart(ray.ray, meta, state.upto, cutY, (p) => cloud?.visibleIn(p.seq, state.show) ?? true);
 }
 
 /** Click or tap a part in the room to select it (a drag still orbits); hover shows its name with a mouse. */
@@ -777,7 +909,14 @@ async function loadPoints(build: Build, meta: SceneMeta, firstShown: () => void)
 async function main(): Promise<void> {
   loadingText.textContent = BUILD === "both" ? "loading both builds …" : loadingText.textContent;
   const build = BUILD;
-  const meta = await loadMeta(build);
+  const [meta, cmp] = await Promise.all([loadMeta(build), BUILD === "both" ? loadCompare() : null]);
+  for (const p of meta.parts) seqByName.set(p.name, p.seq);
+  // only trust a comparison made from these very builds: every name in it must be a part here
+  if (cmp && [...cmp.manual, ...cmp.auto].every((r) => seqByName.has(r.name))) {
+    compare = cmp;
+    for (const r of cmp.manual) cmpManual.set(r.name, r);
+    for (const r of cmp.auto) cmpAuto.set(r.name, r);
+  }
   cloud = new BuildCloud(meta);
   scene.add(cloud.group);
   const room = roomBox(meta);

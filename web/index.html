@@ -75,6 +75,10 @@
         </div>
         <div id="panel-body">
           <div class="filter">
+            <section id="compare" aria-label="Manual vs automatic build" hidden>
+              <p id="compare-summary" class="mono"></p>
+              <div id="compare-chips" class="chips" role="group" aria-label="Match status"></div>
+            </section>
             <input id="filter" type="search" placeholder="Filter parts" aria-label="Filter parts" autocomplete="off" />
             <div id="kinds" class="chips" role="group" aria-label="Kind"></div>
           </div>
@@ -96,6 +100,10 @@
         <div id="card-images-wrap">
           <h3>Approval images</h3>
           <div id="card-images" class="thumbs"></div>
+        </div>
+        <div id="card-pieces-wrap" hidden>
+          <h3 id="card-pieces-title">Automatic pieces</h3>
+          <ol id="card-pieces"></ol>
         </div>
         <div id="card-near-wrap">
           <h3>Nearest parts</h3>

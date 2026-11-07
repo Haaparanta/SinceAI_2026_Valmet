@@ -170,6 +170,26 @@ button:focus-visible, #parts li:focus-visible, #upto:focus-visible { outline: 2p
   text-underline-offset: 2px;
 }
 #card-facts dd button.link[data-origin="auto"] { color: #ffb020; }
+/* manual vs automatic comparison (compare.json) */
+#compare { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--hud-border); }
+#compare[hidden] { display: none; }
+#compare-summary { margin: 0; font-size: 11px; line-height: 1.45; color: var(--muted-foreground, #9aa0b4); }
+#compare-summary b { color: var(--foreground, #e6e8f0); font-weight: 600; }
+#parts .status { grid-column: 3; grid-row: 2; justify-self: end; font-size: 9px; letter-spacing: 0.04em; max-width: 110px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-foreground, #9aa0b4); }
+.status[data-status="matched"] { color: #2ee59d; }
+.status[data-status="split"] { color: #9de2f0; }
+.status[data-status="partial"] { color: #ffc94d; }
+.status[data-status="missed"] { color: #ff2d55; }
+.status[data-status="new"] { color: #ffb020; }
+.chips button[data-status="matched"][aria-pressed="true"] { border-color: #2ee59d; background: color-mix(in oklab, #2ee59d 14%, transparent); }
+.chips button[data-status="missed"][aria-pressed="true"] { border-color: #ff2d55; background: color-mix(in oklab, #ff2d55 14%, transparent); }
+#card-pieces-wrap[hidden] { display: none; }
+#card-pieces { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+#card-pieces li { display: flex; justify-content: space-between; gap: 8px; padding: 3px 6px; border-radius: 4px; cursor: pointer;
+  border-left: 2px solid #ffb020; }
+#card-pieces li:hover { background: color-mix(in oklab, #ffb020 12%, transparent); }
+#card-pieces .d { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px; color: var(--muted-foreground, #9aa0b4); }
 #stats { margin: 0; padding-top: 8px; border-top: 1px solid var(--hud-border); font-size: 10px; line-height: 1.5; }
 
 /* --- replay row, filter, chips --- */

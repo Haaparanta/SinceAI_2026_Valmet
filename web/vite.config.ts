@@ -23,6 +23,8 @@ function derivedFiles(): Plugin {
     // scripts/export_autoscene_viewer.py (the automatic build; the viewer picks it with ?scene=auto)
     "/api/viewer-auto/scene.bin": resolve(derived, "viewer_auto/scene.bin"),
     "/api/viewer-auto/scene.json": resolve(derived, "viewer_auto/scene.json"),
+    // scripts/compare_builds.py (manual vs automatic build; the viewer's comparison in ?scene=both)
+    "/api/compare.json": resolve(derived, "compare.json"),
     "/api/viewer-auto/scene.splat": resolve(derived, "viewer_auto/scene.splat"),
   };
   return {

@@ -33,6 +33,12 @@ The builder pack's `Public_Research` sheet cites nine public pages. Each has its
 
 See [links/](links/README.md) for the one-page overview of what each link means for our build.
 
+## Our results
+
+| Doc | Covers |
+|---|---|
+| [build_comparison.md](build_comparison.md) | Manual (human-approved) vs automatic build, part by part: which manual parts the automatic build matched, split into pieces, partly found or missed, and what it found that the manual build lacks. Regenerate with `make compare` |
+
 ## Start here
 
 New to the challenge? Read in this order:
