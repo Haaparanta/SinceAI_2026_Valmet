@@ -1,1 +1,1 @@
-Sample of the autoscene pictures: 63 of 425 objects (the first 30 and every 12th after that), as JPEG. The full PNG set (3 per object) is produced by `uv run python -m autoscene.run pictures` into out/images/ (gitignored).
+Sample of the autoscene pictures: 72 of 530 objects (the first 30 and every 12th after that), as JPEG. The full PNG set (3 per object) is produced by `uv run python -m autoscene.run pictures` into out/images/ (gitignored).

@@ -94,3 +94,21 @@ def test_slug_and_detection_roundtrip(tmp_path):
     back = load_detections(tmp_path / "d.npz")
     assert [d.label for d in back] == ["pipe", "valve"]
     assert back[0].box == (1, 2, 3, 4) and back[1].splat_ids.tolist() == [8] and back[0].n_pixels == 12
+
+
+def test_split_oversized_separates_two_touching_blocks():
+    """Two 1 u wide blocks 1.2 u apart under one label are wider than a roll cage can be: the splitter returns two."""
+    from autoscene.lift import Instance, split_oversized
+    from autoscene.scene import Scene
+
+    g = np.mgrid[0:1.0:0.02, 0:1.0:0.02, 0:0.6:0.02].reshape(3, -1).T       # a dense 2 cm grid, like real splats
+    a = g - g.mean(0)
+    b = a + np.array([2.2, 0.0, 0.0])
+    xyz = np.concatenate([a, b]).astype(np.float32)
+    s = _splats(xyz)
+    sc = Scene(s, "synthetic")
+    ins = [Instance(0, np.arange(len(xyz), dtype=np.int32), "roll cage", 0.5, {"roll cage": 1.0}, [0, 1], [0, 1])]
+    out = split_oversized(sc, ins)
+    assert len(out) == 2 and all(o.label == "roll cage" for o in out)
+    assert sorted(o.n for o in out) == [len(a), len(a)]
+    assert all(o.info["split_from"]["id"] == 0 for o in out)

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -30,7 +31,9 @@ def main() -> None:
     ap.add_argument("--every", type=int, default=12)
     args = ap.parse_args()
     samples = OUT / "samples"
-    samples.mkdir(exist_ok=True)
+    if samples.exists():
+        shutil.rmtree(samples)                      # pictures of an older run never linger
+    samples.mkdir()
     manifest = orjson.loads((OUT / "images_manifest.json").read_bytes())
     chosen = manifest[: args.objects] + manifest[args.objects::args.every]
     n = 0

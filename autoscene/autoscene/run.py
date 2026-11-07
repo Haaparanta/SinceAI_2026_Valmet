@@ -1,7 +1,7 @@
 """autoscene command line: run the stages, each cached under out/.
 
     uv run python -m autoscene.run all [--ply FILE] [--force]
-    uv run python -m autoscene.run clean|views|detect|lift|cluster|rebuild|pictures
+    uv run python -m autoscene.run clean|views|detect|lift|cluster|relabel|rebuild|pictures
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from autoscene import DATA, OUT
 
 log = logging.getLogger("autoscene")
 DEFAULT_PLY = DATA / "raw" / "Equipment Room.ply"
-STAGES = ("clean", "views", "detect", "lift", "cluster", "rebuild", "pictures")
+STAGES = ("clean", "views", "detect", "lift", "cluster", "relabel", "rebuild", "pictures")
 
 
 def stage_clean(sc, args):
@@ -85,10 +85,21 @@ def stage_cluster(sc, args):
     L.save_instances(instances, OUT / "instances_all.npz")
 
 
+def stage_relabel(sc, args):
+    from autoscene import lift as L
+    from autoscene import relabel as RL
+    instances = L.load_instances(OUT / "instances_all.npz")
+    instances = RL.relabel(sc, instances)
+    L.save_instances(instances, OUT / "instances_named.npz")
+
+
 def stage_rebuild(sc, args):
     from autoscene import lift as L
     from autoscene import rebuild as B
-    instances = L.load_instances(OUT / "instances_all.npz")
+    src = OUT / "instances_named.npz"
+    if not src.exists():
+        src = OUT / "instances_all.npz"
+    instances = L.load_instances(src)
     B.rebuild(sc, instances, OUT)
 
 
