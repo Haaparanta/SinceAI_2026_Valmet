@@ -1,8 +1,12 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | compare
-.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer snap help
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | viewer-auto | compare | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | docker-build | docker-run | publish-scene | deploy | deploy-trigger (docs/DEPLOY.md)
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer viewer-auto snap help docker-build docker-run gcp-setup publish-scene deploy deploy-trigger
 UV ?= uv
 PY := $(UV) run python
+# Google Cloud (docs/DEPLOY.md): the project, the Cloud Build account and the private bucket that holds the exports
+PROJECT ?= twinbuild-a2b
+BUILD_SA = projects/$(PROJECT)/serviceAccounts/a2b-build@$(PROJECT).iam.gserviceaccount.com
+SCENE_BUCKET = gs://$(PROJECT)-scene
 
 help:            ## list targets
 	@grep -E '^[a-zA-Z_/.-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | sort
@@ -88,3 +92,26 @@ demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 
 viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,splat,json} + lod/; open the viewer with ?scene=auto
 	$(PY) scripts/export_autoscene_viewer.py
+
+# ---- the website: one container on Cloud Run, https://twinbuild.click (docs/DEPLOY.md) ----
+docker-build:    ## image with API + built viewer + both exports (run `make viewer viewer-auto compare` first)
+	docker build -t a2b:local .
+
+docker-run:      ## run the local image on http://localhost:8080
+	docker run --rm -p 8080:8080 a2b:local
+
+gcp-setup:       ## one-time Google Cloud setup: PROJECT=twinbuild-a2b BILLING=<billing account id>
+	PROJECT=$(PROJECT) scripts/gcp_setup.sh
+
+publish-scene: viewer viewer-auto compare  ## export both builds + the comparison and upload them to the private scene bucket
+	gcloud storage rsync -r --exclude='scene\.splat$$' data/derived/viewer $(SCENE_BUCKET)/viewer --project $(PROJECT)
+	gcloud storage rsync -r --exclude='scene\.splat$$' data/derived/viewer_auto $(SCENE_BUCKET)/viewer_auto --project $(PROJECT)
+	gcloud storage cp data/derived/compare.json $(SCENE_BUCKET)/compare.json --project $(PROJECT)
+
+deploy:          ## Cloud Build: exports from the bucket -> image -> Cloud Run europe-north1 (what the main trigger does on push)
+	gcloud beta builds submit --project $(PROJECT) --config cloudbuild.yaml --service-account $(BUILD_SA) .
+
+deploy-trigger:  ## one-time: deploy on every push to main (connect the GitHub repo in Cloud Build > Triggers first)
+	gcloud builds triggers create github --project $(PROJECT) --region global --name deploy-main \
+	  --repo-owner Haaparanta --repo-name SinceAI_2026_Valmet --branch-pattern '^main$$' \
+	  --build-config cloudbuild.yaml --service-account $(BUILD_SA)
