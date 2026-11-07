@@ -33,18 +33,30 @@ is the checkout you run `make deploy` in (uploaded as the build source), so run 
 Local check of the exact image: `make viewer viewer-auto compare && make docker-build && make docker-run` →
 http://localhost:8080. `make test T=api` runs the API tests (temp folders, no export needed).
 
-## Deploy on every push to main (recommended)
+## Deploy on every merge to main (GitHub Actions -> Cloud Build -> Cloud Run)
 
-The pipeline in `cloudbuild.yaml` is the same; only the trigger is missing. GitHub must be connected once in the
-console (OAuth, needs your browser): Cloud Build → *Triggers* → *Connect repository* → GitHub →
-`Haaparanta/SinceAI_2026_Valmet`. Then:
+`.github/workflows/deploy.yml` runs the same `make deploy` on every push to `main` that changes something in the image
+(`api/`, `web/`, `design/`, `Dockerfile`, `cloudbuild.yaml`, `Makefile`; README and docs changes don't deploy), and
+on *Run workflow* in the Actions tab. The job signs in to Google Cloud as `a2b-build` with **Workload Identity
+Federation**: GitHub's OIDC token for this repository is exchanged for the service account, so no key is stored in
+GitHub or anywhere else, and only `Haaparanta/SinceAI_2026_Valmet` can use the pool. Cloud Build then builds the image
+from the bucket's exports and deploys it, exactly as from the laptop. `make publish-scene` stays the way to update
+the exports.
+
+One-time cloud setup (idempotent, needs a logged-in `gcloud` with owner rights on the project):
 
 ```bash
-make deploy-trigger    # gcloud builds triggers create github ... --branch-pattern '^main$' --build-config cloudbuild.yaml
+make deploy-github     # scripts/gcp_github_deploy.sh: WIF pool `github` + provider, IAM for a2b-build, staging bucket
 ```
 
-From then on every merge to `main` rebuilds the image from the bucket's exports and deploys it; `make publish-scene`
-stays the way to update the exports. No keys are stored anywhere: the build runs as `a2b-build`, inside Google.
+What it grants: the repo's workflows get `workloadIdentityUser` on `a2b-build`; `a2b-build` gets
+`cloudbuild.builds.editor` + `logging.viewer` on the project, `serviceAccountUser` on itself (to submit builds that run
+as itself) and `objectAdmin` on the source staging bucket `gs://twinbuild-a2b_cloudbuild` (sources are deleted after
+a day). The provider path in the workflow is `projects/566541224410/locations/global/workloadIdentityPools/github/providers/github`
+(566541224410 is the project number). Watch a run: `gh run list --workflow deploy` / `gh run watch`.
+
+Alternative without GitHub Actions: a Cloud Build trigger (`make deploy-trigger`) after connecting the repository once
+in the console (Cloud Build → *Triggers* → *Connect repository* → GitHub, needs your browser).
 
 ## Site files (web/public)
 
