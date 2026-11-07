@@ -4,6 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import { MeasureView, pickPoint } from "./measure";
 import { fmtGap, neighbours, ProximityView } from "./proximity";
+import type { SplatLayer } from "./splats"; // the module (and Spark, ~1 MB gzipped) loads on first use
 import {
   BuildCloud,
   buildFromUrl,
@@ -81,6 +82,12 @@ let xr: XrWalk | undefined;
 let state: ViewState;
 let cutManual = false;
 let nearOn = true;
+/** Points (the dot cloud) or Splats (Gaussian splats via Spark, downloaded on first use) */
+type RenderMode = "points" | "splats";
+let renderMode: RenderMode = params.get("render") === "splats" ? "splats" : "points";
+let splats: SplatLayer | undefined;
+let splatsLoading: Promise<void> | null = null;
+let grid: THREE.GridHelper | undefined;
 let measuring = false;
 let dirty = true;
 const proximity = new ProximityView();
@@ -132,12 +139,65 @@ function flyTo(box: THREE.Box3, dir = new THREE.Vector3(0.9, 0.8, 1.1), fill = 0
 function syncUrl(meta: SceneMeta): void {
   const url = new URL(location.href);
   writeState(url.searchParams, state, meta);
+  if (renderMode === "splats") url.searchParams.set("render", "splats");
+  else url.searchParams.delete("render");
   history.replaceState(null, "", url);
+}
+
+/** Push the view state into the point passes and, in splat mode, into the splat meshes. */
+function applyLayers(meta: SceneMeta, cut = autoCut(meta)): void {
+  const useSplats = renderMode === "splats" && !!splats?.ready;
+  cloud!.pointsVisible = !useSplats;
+  cloud!.apply({ ...state, cut });
+  splats?.show(useSplats);
+  if (grid) grid.visible = !useSplats; // splats write no depth, so the grid would show through the floor
+  if (useSplats) splats!.apply({ ...state, cut });
+}
+
+function setRender(meta: SceneMeta, mode: RenderMode): void {
+  renderMode = mode;
+  render(meta);
+  if (mode !== "splats" || splats?.ready || splatsLoading) return;
+  const btn = document.querySelector<HTMLButtonElement>('#render button[data-render="splats"]')!;
+  btn.textContent = "Splats …";
+  let shown = -1;
+  let layer: SplatLayer | undefined;
+  splatsLoading = import("./splats")
+    .then(({ SplatLayer }) => {
+      layer = new SplatLayer(meta, buildFromUrl(params));
+      scene.add(layer.group);
+      return layer.load(renderer, scene, invalidate, (f) => {
+        const pct = Math.floor(f * 100);
+        if (pct === shown) return;
+        shown = pct;
+        btn.textContent = `Splats ${pct}%`;
+      });
+    })
+    .then(() => {
+      if (!layer) return;
+      splats = layer;
+      layer.setXr(!!xr?.presenting);
+      btn.textContent = "Splats";
+      toast(`${fmt(meta.count)} Gaussian splats loaded`, 2500);
+      render(meta);
+    })
+    .catch((err: unknown) => {
+      if (layer) scene.remove(layer.group);
+      btn.textContent = "Splats";
+      renderMode = "points";
+      render(meta);
+      toast(`Splats: ${err instanceof Error ? err.message : String(err)}`, 7000);
+      console.error(err);
+    })
+    .finally(() => (splatsLoading = null));
 }
 
 function render(meta: SceneMeta): void {
   if (!cloud) return;
-  cloud.apply({ ...state, cut: autoCut(meta) });
+  applyLayers(meta);
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#render button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.render === renderMode));
+  }
   for (const b of document.querySelectorAll<HTMLButtonElement>("#source button")) {
     b.setAttribute("aria-pressed", String(b.dataset.source === state.source));
   }
@@ -470,6 +530,9 @@ function wireControls(meta: SceneMeta): void {
   for (const b of document.querySelectorAll<HTMLButtonElement>("#style button")) {
     b.addEventListener("click", () => set(meta, { style: b.dataset.style === "redgrey" ? "redgrey" : "true" }));
   }
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#render button")) {
+    b.addEventListener("click", () => setRender(meta, b.dataset.render === "splats" ? "splats" : "points"));
+  }
   cutBtn.addEventListener("click", () => {
     cutManual = !cutManual;
     render(meta);
@@ -509,6 +572,7 @@ function wireControls(meta: SceneMeta): void {
       e.preventDefault();
       togglePlay(meta);
     } else if (e.key === "m" || e.key === "M") setMeasuring(meta, !measuring);
+    else if (e.key === "g" || e.key === "G") setRender(meta, renderMode === "splats" ? "points" : "splats");
     else if (e.key === "n" || e.key === "N") {
       nearOn = !nearOn;
       render(meta);
@@ -537,7 +601,7 @@ async function main(): Promise<void> {
   cloud = new BuildCloud(meta, geometry);
   scene.add(cloud.group);
   const room = roomBox(meta);
-  const grid = new THREE.GridHelper(Math.ceil(room.getSize(new THREE.Vector3()).x + 2), 20, 0x2a3350, 0x1a2036);
+  grid = new THREE.GridHelper(Math.ceil(room.getSize(new THREE.Vector3()).x + 2), 20, 0x2a3350, 0x1a2036);
   grid.position.set((room.min.x + room.max.x) / 2, meta.floor_y - 0.005, (room.min.z + room.max.z) / 2);
   scene.add(grid);
 
@@ -555,8 +619,11 @@ async function main(): Promise<void> {
   if (sel) flyTo(partBox(sel), undefined, 0.45);
   else flyTo(room);
   render(meta);
+  if (renderMode === "splats") setRender(meta, "splats"); // ?render=splats: start the download right away
 
-  if (import.meta.env.DEV) Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta, xr } });
+  if (import.meta.env.DEV) {
+    Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta, xr, splats: () => splats } });
+  }
   let wasCut = autoCut(meta);
   let lastT = 0;
   let eyeH = 0;
@@ -580,7 +647,7 @@ async function main(): Promise<void> {
     const cut = autoCut(meta);
     if (cut !== wasCut) {
       wasCut = cut;
-      cloud!.apply({ ...state, cut });
+      applyLayers(meta, cut);
       dirty = true;
     }
     if (!dirty) return; // idle rendering: 1.6 M points only redraw when something changed
@@ -629,6 +696,7 @@ function setupXr(meta: SceneMeta): void {
         slowFor = frameAvg = 0;
         cloud!.setStride(xrStride);
         cloud!.sizeScale = MPU; // view space is metres in XR, point sizes are in scene units
+        splats?.setXr(true);
         render(meta);
         vrLabel.textContent = "Exit VR";
       },
@@ -636,6 +704,7 @@ function setupXr(meta: SceneMeta): void {
         controls.enabled = true;
         cloud!.setStride(1);
         cloud!.sizeScale = 1;
+        splats?.setXr(false);
         if (before) state = { ...state, source: before };
         before = null;
         resize();
@@ -650,6 +719,9 @@ function setupXr(meta: SceneMeta): void {
       toggleBoxes() {
         set(meta, { boxes: !state.boxes });
       },
+      toggleRender() {
+        setRender(meta, renderMode === "splats" ? "points" : "splats");
+      },
       select(seq) {
         select(meta, seq, false);
       },
@@ -657,8 +729,9 @@ function setupXr(meta: SceneMeta): void {
         const last = meta.parts[state.upto - 1];
         const sel = meta.parts[state.selected - 1];
         const density = xrStride > 1 ? ` · 1/${xrStride} pts` : "";
+        const as = renderMode === "splats" && splats?.ready ? " splats" : "";
         return [
-          `${SOURCE_LABEL[state.source]} · ${state.upto}/${meta.parts.length} parts${density}`,
+          `${SOURCE_LABEL[state.source]}${as} · ${state.upto}/${meta.parts.length} parts${as ? "" : density}`,
           sel ? `selected: ${sel.label}` : last ? `latest: ${last.label} · 1 u ≈ ${MPU} m` : `1 u ≈ ${MPU} m`,
         ];
       },

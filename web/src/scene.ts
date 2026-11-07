@@ -161,8 +161,13 @@ export function buildFromUrl(params: URLSearchParams): Build {
   return params.get("scene") === "auto" ? "auto" : "manual";
 }
 
+/** API folder of a build's viewer files (scene.json, scene.bin, scene.splat). */
+export function buildBase(build: Build): string {
+  return build === "auto" ? "/api/viewer-auto" : "/api/viewer";
+}
+
 export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
-  const base = build === "auto" ? "/api/viewer-auto" : "/api/viewer";
+  const base = buildBase(build);
   const script = build === "auto" ? "export_autoscene_viewer.py" : "export_viewer_scene.py";
   const hint = `run \`uv run python scripts/${script}\` first`;
   const metaRes = await fetch(`${base}/scene.json`);
@@ -189,6 +194,8 @@ export class BuildCloud {
   private stride = 1;
   private strideIndex: THREE.BufferAttribute | null = null;
   sizeScale = 1;
+  /** false while the splat layer draws the scan instead (the part boxes stay) */
+  pointsVisible = true;
   readonly meta: SceneMeta;
   readonly geometry: THREE.BufferGeometry;
 
@@ -295,7 +302,7 @@ export class BuildCloud {
       const [a, b] = this.rangeFor(role, upto, selected);
       const start = Math.ceil(a / k);
       geo.setDrawRange(start, Math.max(0, Math.ceil(b / k) - start));
-      points.visible = look.alpha > 0 && b > a;
+      points.visible = this.pointsVisible && look.alpha > 0 && b > a;
       // opaque passes first, then the faint ones, selection last so it reads on top of the haze
       points.renderOrder = (opaque ? 0 : 10) + role;
     });
