@@ -16,6 +16,7 @@
 import * as THREE from "three";
 import { XRHandModelFactory } from "three/addons/webxr/XRHandModelFactory.js";
 import { pickPart, type PartMeta, type SceneMeta } from "./scene";
+import { chooseSpawn } from "./spawn";
 
 export interface XrHooks {
   /** called when the session starts / ends (after the rig is placed / restored) */
@@ -45,7 +46,6 @@ const UP = new THREE.Vector3(0, 1, 0);
 const WALK_MPS = 1.4; // comfortable walking speed, metres per second
 const TURN = Math.PI / 6; // snap-turn step
 const DEADZONE = 0.18;
-const HEAD_CLEARANCE_M = 2.0; // anything lower than this over the floor is an obstacle for the spawn point
 const CYAN = 0x00e5ff;
 const RED = 0xff2d55;
 const RAY_IDLE_M = 1.5; // pointer length when it hits nothing
@@ -249,44 +249,16 @@ export class XrWalk {
     this.hooks.onEnd();
   }
 
-  /** Open floor, away from anything below head height, not hugging a wall; prefers the middle of the room. */
+  /**
+   * Open floor away from equipment, facing the selected part, else the biggest equipment, else the room centre
+   * (spawn.ts, shared with the screen walk mode). One intentional change from the inline search this replaced: with
+   * nothing to face it looked at the middle of the -z wall, now it looks into the room, the same rule as the walk mode.
+   */
   private chooseSpawn(): void {
-    const b = this.meta.room_bounds;
-    const head = this.floorY + HEAD_CLEARANCE_M / this.mpu;
-    const obstacles = this.meta.parts.filter((p) => p.kind !== "structure" && p.bbox.min[1] < head);
-    const cx = (b.min[0] + b.max[0]) / 2;
-    const cz = (b.min[2] + b.max[2]) / 2;
-    const margin = 0.6 / this.mpu;
-    let best = { x: cx, z: cz, score: -Infinity };
-    const steps = 24;
-    for (let i = 0; i <= steps; i++) {
-      for (let j = 0; j <= steps; j++) {
-        const x = b.min[0] + margin + ((b.max[0] - b.min[0] - 2 * margin) * i) / steps;
-        const z = b.min[2] + margin + ((b.max[2] - b.min[2] - 2 * margin) * j) / steps;
-        let clear = Infinity;
-        for (const p of obstacles) {
-          const dx = Math.max(p.bbox.min[0] - x, 0, x - p.bbox.max[0]);
-          const dz = Math.max(p.bbox.min[2] - z, 0, z - p.bbox.max[2]);
-          clear = Math.min(clear, Math.hypot(dx, dz));
-        }
-        const score = Math.min(clear, 1.5 / this.mpu) - 0.2 * Math.hypot(x - cx, z - cz);
-        if (score > best.score) best = { x, z, score };
-      }
-    }
-    const focus = this.opts.focus?.() ?? this.biggestEquipment();
-    const fx = focus ? (focus.bbox.min[0] + focus.bbox.max[0]) / 2 : cx;
-    const fz = focus ? (focus.bbox.min[2] + focus.bbox.max[2]) / 2 : b.min[2];
-    const dx = fx - best.x;
-    const dz = fz - best.z;
-    this.spawn.pos.set(best.x, this.floorY, best.z);
+    const s = chooseSpawn(this.meta, this.mpu, this.opts.focus?.());
+    this.spawn.pos.copy(s.pos);
     // rig yaw so that the headset's initial forward (-z) looks at the focus
-    this.spawn.yaw = Math.hypot(dx, dz) > 1e-3 ? Math.atan2(-dx, -dz) : 0;
-  }
-
-  private biggestEquipment(): PartMeta | undefined {
-    let best: PartMeta | undefined;
-    for (const p of this.meta.parts) if (p.kind === "equipment" && (!best || p.count > best.count)) best = p;
-    return best;
+    this.spawn.yaw = s.yaw;
   }
 
   private goToSpawn(): void {

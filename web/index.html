@@ -73,6 +73,10 @@
           </div>
         </div>
         <div class="hud-actions">
+          <button id="walk" class="cta walk-cta" aria-pressed="false" title="walk the room in first person: W A S D / arrows walk, mouse looks, click selects (F)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="4" r="2" fill="currentColor"/><path d="M12.5 7.5 11.5 13l3 3 .5 5M11.5 13l-2.5 3.5L7.5 21M12.5 8l3 2.5 2-1.5M12.5 8 9.5 10.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="walk-label">Walk</span>
+          </button>
           <button id="vr" class="cta" hidden title="walk the room in VR (Meta Quest 3)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v6a2.5 2.5 0 0 1-2.5 2.5h-3.2a2 2 0 0 1-1.7-.95l-.9-1.45a.8.8 0 0 0-1.4 0l-.9 1.45a2 2 0 0 1-1.7.95H5.5A2.5 2.5 0 0 1 3 14.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11.5" r="1.6" fill="currentColor"/><circle cx="16" cy="11.5" r="1.6" fill="currentColor"/></svg>
             <span id="vr-label">Enter VR</span>
@@ -154,11 +158,17 @@
         </div>
       </div>
       <footer id="help" class="mono">
-        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby &nbsp;|&nbsp; G · splats</span>
+        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; F · walk &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby &nbsp;|&nbsp; G · splats</span>
         <span class="pointer-coarse">drag · orbit &nbsp;·&nbsp; pinch · zoom &nbsp;·&nbsp; tap a part · select</span>
+        <span class="walk-help">W A S D · walk &nbsp;|&nbsp; mouse · look &nbsp;|&nbsp; click · select &nbsp;|&nbsp; Q / E · turn &nbsp;|&nbsp; Shift · run &nbsp;|&nbsp; F / Esc · exit</span>
       </footer>
       <div id="toast" class="mono" role="status" aria-live="polite" hidden></div>
       <div id="tip" class="mono" aria-hidden="true" hidden></div>
+      <!-- walk mode (walk.ts): the screen centre is where you look (crosshair + the aimed part's card); the stick walks on
+           touch screens. All three are shown by main.ts while walking; style.css keeps the stick to coarse pointers. -->
+      <div id="crosshair" aria-hidden="true" hidden></div>
+      <div id="aim" class="mono" role="status" aria-live="polite" hidden><b id="aim-title"></b><span id="aim-info"></span><span id="aim-hint"></span></div>
+      <div id="joystick" hidden><div class="knob"></div></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
