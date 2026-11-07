@@ -5,8 +5,9 @@
 Reads only: the manifest, build/parts/*.idx.npy, build/removed/*.idx.npy and the SH-0 world-frame cache of the master
 scan (pipeline/build.py writes it on its first run). Writes nothing outside data/derived/viewer/.
 
-Point order: the pool (kept, not yet claimed by a part) first, then every accepted part in acceptance order, so each
-part is one contiguous range [start, end) and "the twin after k parts" is a prefix of the parts block.
+Point order: the pool (kept, not yet claimed by a part) first, in a seeded random order so any prefix of it is a uniform
+subsample (the Quest draws only the first N), then every accepted part in acceptance order, so each part is one
+contiguous range [start, end) and "the twin after k parts" is a prefix of the parts block.
 
 scene.bin, little-endian, n = total points:
     float32 xyz[n*3] | uint16 part[n] (0 = pool, k = parts[k-1]) | uint8 rgb[n*3] | uint8 size_mm[n]
@@ -75,8 +76,10 @@ def main() -> int:
     pool = m.pool_mask()
     pool_idx = np.flatnonzero(pool).astype(np.int64)
     pool_total = len(pool_idx)
+    # Shuffled (seed 0): any prefix of the pool block is a uniform subsample, so the Quest can draw the first N only.
+    pool_idx = np.random.default_rng(0).permutation(pool_idx)
     if args.pool_max and pool_total > args.pool_max:
-        pool_idx = np.sort(np.random.default_rng(0).choice(pool_idx, args.pool_max, replace=False))
+        pool_idx = pool_idx[: args.pool_max]
 
     parts_meta, order, part_ids = [], [pool_idx], [np.zeros(len(pool_idx), np.uint16)]
     start = len(pool_idx)
@@ -118,6 +121,7 @@ def main() -> int:
         "room_bounds": bounds, "floor_y": round(floor_y, 4),
         "dollhouse_cut_y": m.data.get("dollhouse_cut_y"),
         "layout": "float32 xyz[n*3] | uint16 part[n] | uint8 rgb[n*3] | uint8 size_mm[n]",
+        "pool_order": "shuffled, seed 0: any prefix of [0, pool_count) is a uniform subsample",
         "parts": parts_meta,
     }
     (args.out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")

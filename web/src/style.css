@@ -59,3 +59,5 @@ body {
 #parts .count { grid-column: 3; grid-row: 1; }
 #parts .kind { grid-column: 2; }
 @media (max-width: 720px) { #panel { top: auto; height: 34vh; left: 10px; width: auto; } }
+.seg button:disabled { opacity: 0.45; cursor: not-allowed; }
+#vr[data-status="ok"] { color: var(--primary, #00e5ff); }

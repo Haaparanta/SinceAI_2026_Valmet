@@ -8,9 +8,12 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "snap": "node tools/snap.mjs"
+    "snap": "node tools/snap.mjs",
+    "dev:quest": "A2B_HTTPS=1 vite --host 0.0.0.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "iwer": "^2.8.0",
     "playwright-core": "^1.65.0",
     "typescript": "~7.0.2",
     "vite": "^8.3.6"

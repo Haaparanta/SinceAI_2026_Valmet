@@ -14,6 +14,7 @@ import {
   type Source,
   type ViewState,
 } from "./scene";
+import { XRWalk, xrStatus } from "./xr";
 
 const fmt = (n: number): string => n.toLocaleString("en-US");
 const FOV = 50;
@@ -26,12 +27,17 @@ const uptoLabel = document.querySelector<HTMLElement>("#upto-label")!;
 const cutBtn = document.querySelector<HTMLButtonElement>("#cut")!;
 const boxesBtn = document.querySelector<HTMLButtonElement>("#boxes")!;
 const snapBtn = document.querySelector<HTMLButtonElement>("#snap")!;
+const vrBtn = document.querySelector<HTMLButtonElement>("#vr")!;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0d14);
 const camera = new THREE.PerspectiveCamera(FOV, 1, 0.02, 200);
+// The camera lives in a rig: identity on the desktop, moved by the XR locomotion (never move the XR camera itself).
+const rig = new THREE.Group();
+rig.add(camera);
+scene.add(rig);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.35; // a little smoothing without a long glide (as in the 3D Model Anything viewer)
@@ -39,6 +45,7 @@ controls.zoomToCursor = true;
 controls.screenSpacePanning = true;
 
 let cloud: BuildCloud | undefined;
+let xr: XRWalk | undefined;
 let state: ViewState;
 let cutManual = false;
 let dirty = true;
@@ -48,6 +55,7 @@ const invalidate = (): void => {
 controls.addEventListener("change", invalidate);
 
 function resize(): void {
+  if (renderer.xr.isPresenting) return; // the XR layer owns the size while in VR
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -58,6 +66,7 @@ window.addEventListener("resize", resize);
 
 /** Dollhouse: hide everything above the cut while the camera is above the room (or when forced on). */
 function autoCut(meta: SceneMeta): boolean {
+  if (renderer.xr.isPresenting) return cutManual; // inside the room in VR: only on request
   return cutManual || camera.position.y > meta.room_bounds.max[1];
 }
 
@@ -99,6 +108,7 @@ function render(meta: SceneMeta): void {
     `${fmt(meta.count)} points · ${fmt(built)} in ${state.upto} accepted parts · ` +
     `${fmt(meta.removed_count)} removed by cleaning · ${meta.source.file}`;
   syncUrl(meta);
+  xr?.refreshPanel();
   invalidate();
 }
 
@@ -179,6 +189,21 @@ function wireControls(meta: SceneMeta): void {
   });
 }
 
+async function setupVrButton(): Promise<void> {
+  const status = await xrStatus();
+  vrBtn.disabled = !status.ok;
+  vrBtn.title = status.ok ? "walk the room in a Quest 3 (WebXR)" : status.reason;
+  vrBtn.dataset.status = status.ok ? "ok" : "unavailable";
+  vrBtn.addEventListener("click", async () => {
+    if (!xr || xr.presenting) return;
+    try {
+      await xr.enter();
+    } catch (err) {
+      statsEl.textContent = `VR failed: ${err instanceof Error ? err.message : String(err)}`;
+    }
+  });
+}
+
 async function main(): Promise<void> {
   const { meta, geometry } = await loadScene();
   cloud = new BuildCloud(meta, geometry);
@@ -197,9 +222,44 @@ async function main(): Promise<void> {
   else flyTo(room);
   render(meta);
 
-  if (import.meta.env.DEV) Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta } });
+  xr = new XRWalk({
+    renderer,
+    camera,
+    rig,
+    cloud,
+    meta,
+    getState: () => state,
+    setState: (patch) => set(meta, patch),
+    startPose: () => ({ target: controls.target.clone(), forward: camera.getWorldDirection(new THREE.Vector3()) }),
+    toggleCut: () => {
+      cutManual = !cutManual;
+      render(meta);
+    },
+    onStart: () => {
+      controls.enabled = false;
+      document.body.classList.add("in-xr");
+      render(meta);
+    },
+    onEnd: () => {
+      controls.enabled = true;
+      document.body.classList.remove("in-xr");
+      resize();
+      controls.update();
+      render(meta);
+    },
+  });
+  void setupVrButton();
+
+  if (import.meta.env.DEV) Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta, rig, xr } });
   let wasCut = autoCut(meta);
+  const clock = new THREE.Clock();
   renderer.setAnimationLoop(() => {
+    const dt = Math.min(clock.getDelta(), 0.1);
+    if (renderer.xr.isPresenting) {
+      xr!.update(dt); // VR renders every frame
+      renderer.render(scene, camera);
+      return;
+    }
     controls.update();
     const cut = autoCut(meta);
     if (cut !== wasCut) {

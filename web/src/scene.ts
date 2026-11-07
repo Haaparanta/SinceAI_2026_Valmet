@@ -104,6 +104,9 @@ uniform float uSizeScale;
 uniform vec3 uTint;
 uniform float uTintMix;
 varying vec3 vColor;
+vec3 srgbToLinear(vec3 c) {
+  return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
+}
 void main() {
   float role = (part < 0.5 || part > uUpto + 0.5) ? 0.0 : (abs(part - uSelected) < 0.5 ? 2.0 : 1.0);
   if (abs(role - uRole) > 0.5 || (uCutOn > 0.5 && position.y > uCutY)) {
@@ -116,7 +119,9 @@ void main() {
   bool ortho = projectionMatrix[3][3] > 0.5;
   float pxPerUnit = projectionMatrix[1][1] * uHalfH / (ortho ? 1.0 : max(-mv.z, 0.001));
   gl_PointSize = clamp(psize * 0.001 * uSizeScale * pxPerUnit, 1.0, 48.0);
-  vColor = mix(rgb, uTint, uTintMix);
+  // Work in linear colour (uTint is a linear THREE.Color) and let three convert to the output colour space: the default
+  // framebuffer and the WebXR layer both expect that, so the headset shows the same colours as the laptop.
+  vColor = mix(srgbToLinear(rgb), uTint, uTintMix);
 }`;
 
 const fragmentShader = /* glsl */ `
@@ -126,6 +131,7 @@ void main() {
   vec2 c = gl_PointCoord * 2.0 - 1.0;
   if (dot(c, c) > 1.0) discard;
   gl_FragColor = vec4(vColor, uAlpha);
+  #include <colorspace_fragment>
 }`;
 
 export function parseScene(buf: ArrayBuffer, meta: SceneMeta): THREE.BufferGeometry {
@@ -155,12 +161,21 @@ export async function loadScene(): Promise<{ meta: SceneMeta; geometry: THREE.Bu
   return { meta, geometry: parseScene(await binRes.arrayBuffer(), meta) };
 }
 
-/** The point cloud in three passes plus the part wire boxes, driven by a ViewState. */
+/**
+ * The point cloud in three role passes plus the part wire boxes, driven by a ViewState.
+ * Each pass is drawn only over the ranges where its role can occur: pool = the (shuffled) pool block, capped by
+ * `poolBudget`, plus the parts block (parts after `upto` count as pool); built = the parts block up to `upto`;
+ * selected = that part's own range.
+ */
 export class BuildCloud {
   readonly group = new THREE.Group();
-  private passes: { points: THREE.Points; mat: THREE.ShaderMaterial }[] = [];
+  private passes: { objects: THREE.Points[]; mat: THREE.ShaderMaterial; role: number }[] = [];
   private boxes: THREE.Box3Helper[] = [];
+  /** world-space boxes of the parts, index = seq - 1 (for controller ray picking) */
+  readonly partBoxes: THREE.Box3[] = [];
   sizeScale = 1;
+  /** draw at most this many pool points (the pool block is shuffled, so a prefix is a fair sample) */
+  poolBudget = Infinity;
   readonly meta: SceneMeta;
   readonly geometry: THREE.BufferGeometry;
 
@@ -184,14 +199,23 @@ export class BuildCloud {
           uAlpha: { value: 1 },
         },
       });
-      const points = new THREE.Points(geometry, mat);
-      points.frustumCulled = false;
-      points.renderOrder = role;
-      this.passes.push({ points, mat });
-      this.group.add(points);
+      // Points objects share the geometry but each keeps its own draw range (THREE.Points uses geometry.drawRange,
+      // so every object gets a lightweight geometry clone that shares the attribute buffers).
+      const objects = (role === 0 ? [0, 1] : [0]).map(() => {
+        const g = new THREE.BufferGeometry();
+        for (const [name, attr] of Object.entries(geometry.attributes)) g.setAttribute(name, attr);
+        g.boundingBox = geometry.boundingBox;
+        g.boundingSphere = geometry.boundingSphere;
+        const points = new THREE.Points(g, mat);
+        points.frustumCulled = false;
+        this.group.add(points);
+        return points;
+      });
+      this.passes.push({ objects, mat, role });
     }
     for (const p of meta.parts) {
       const box = new THREE.Box3(new THREE.Vector3(...p.bbox.min), new THREE.Vector3(...p.bbox.max));
+      this.partBoxes.push(box);
       const helper = new THREE.Box3Helper(box, WIRE);
       helper.renderOrder = 5;
       this.boxes.push(helper);
@@ -212,12 +236,34 @@ export class BuildCloud {
     for (const { mat } of this.passes) mat.uniforms.uHalfH.value = px / 2;
   }
 
+  /** points drawn per pass for a state (for the HUD and the XR budget) */
+  drawnCount(): number {
+    let n = 0;
+    for (const { objects } of this.passes) for (const o of objects) if (o.visible) n += o.geometry.drawRange.count;
+    return n;
+  }
+
   apply(s: ViewState): void {
     const looks = looksFor(s);
     const upto = Math.max(0, Math.min(s.upto, this.meta.parts.length));
     const selected = s.selected > 0 && s.selected <= upto ? s.selected : -1;
-    this.passes.forEach(({ points, mat }, role) => {
+    const { pool_count: poolEnd, count } = this.meta;
+    const builtEnd = upto > 0 ? this.meta.parts[upto - 1].end : poolEnd;
+    const selPart = selected > 0 ? this.meta.parts[selected - 1] : undefined;
+    const ranges: [number, number][][] = [
+      [
+        [0, Math.min(poolEnd, this.poolBudget)],
+        [builtEnd, count], // parts after `upto` are still scan
+      ],
+      [[poolEnd, builtEnd]],
+      [selPart ? [selPart.start, selPart.end] : [0, 0]],
+    ];
+    this.passes.forEach(({ objects, mat, role }) => {
       const look = looks[role];
+      objects.forEach((o, i) => {
+        const [a, b] = ranges[role][i];
+        o.geometry.setDrawRange(a, Math.max(0, b - a));
+      });
       const u = mat.uniforms;
       u.uUpto.value = upto;
       u.uSelected.value = selected;
@@ -230,9 +276,11 @@ export class BuildCloud {
       mat.transparent = !opaque;
       mat.depthWrite = opaque;
       mat.needsUpdate = true;
-      points.visible = look.alpha > 0;
-      // opaque passes first, then the faint ones, selection last so it reads on top of the haze
-      points.renderOrder = (opaque ? 0 : 10) + role;
+      for (const o of objects) {
+        o.visible = look.alpha > 0 && o.geometry.drawRange.count > 0;
+        // opaque passes first, then the faint ones, selection last so it reads on top of the haze
+        o.renderOrder = (opaque ? 0 : 10) + role;
+      }
     });
     const showAll = s.source === "wireframe" || s.boxes;
     this.boxes.forEach((box, i) => {

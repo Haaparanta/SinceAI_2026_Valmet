@@ -25,6 +25,31 @@ This is a chance to make AI understand not just words and numbers, but physical 
 | [`design/`](design/) | **Cyberpunk v2** theme: [`cyberpunk-tokens.css`](design/cyberpunk-tokens.css) and the [guide](design/CYBERPUNK_THEME.md) |
 | [`web/`](web/) | three.js viewer of the step-by-step build (`index.html`: Scan / Model / Overlay / Wireframe, parts list, build replay) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `cd web && npm run snap -- "<query>"` writes numbered PNGs to `images/` |
 
+## Walk the room in a Meta Quest 3 (WebXR)
+
+`make viewer` first, then pick one way to give the headset a secure page (WebXR is off on plain `http://` over the LAN):
+
+- **USB cable (no certificate):** Quest in developer mode, `cd web && npm run dev -- --host`, then
+  `adb reverse tcp:5173 tcp:5173` and open `http://localhost:5173` in Meta Quest Browser.
+- **Same Wi-Fi / hotspot:** `cd web && npm run dev:quest`, open `https://<laptop-LAN-IP>:5173` on the Quest and accept
+  the self-signed certificate once.
+
+Press **Enter VR** in the top bar. You start on the scan floor where the laptop view was looking.
+
+| Control | Action |
+|---|---|
+| Left stick | walk (head-relative, kept inside the room; no wall collision yet) |
+| Right stick ← → | 30° snap turn |
+| Trigger | select the part the ray points at (again = clear) |
+| A / B | next mode (Scan → Model → Overlay → Wireframe) / clear selection |
+| X / Y | replay the build one part back / forward |
+| Left stick press | cutaway on/off |
+
+The wrist panel on the left controller shows the mode, build step and selection. Budget: at most 300 k scan points
+plus every part point (~700 k now), point size × 0.8; tune with `?xrpool=200000&xrsize=0.7`. Scene units are taken as
+metres (unconfirmed); `?xrscale=<units per metre>` rescales. Laptop test without a headset: `http://localhost:5173/?xremu=1`
+(dev server only) installs Meta's emulated Quest 3 ([iwer](https://github.com/meta-quest/immersive-web-emulation-runtime)).
+
 ## Credits
 
 The viewer's source modes (Scan / Model / Overlay / Wireframe) and the snapshot page (`web/capture.html`: orthographic plan/elevation views, section cut, 0.25 u grid, readiness flag for scripted screenshots) are adapted from [wesbos/3d-model-anything](https://github.com/wesbos/3d-model-anything) (MIT, © 2026 Wes Bos). Only code ideas were reused; none of its `data/` assets are included.

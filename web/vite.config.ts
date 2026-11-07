@@ -1,6 +1,7 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 import { defineConfig, type Plugin } from "vite";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,8 +35,12 @@ function derivedFiles(): Plugin {
   };
 }
 
+// Quest 3 over the LAN (`npm run dev:quest`): WebXR needs a secure origin, so serve a self-signed https://<laptop-ip>.
+// With a USB cable, `adb reverse tcp:5173 tcp:5173` + http://localhost:5173 on the Quest works without a certificate.
+const https = process.env.A2B_HTTPS === "1";
+
 export default defineConfig({
-  plugins: [derivedFiles()],
+  plugins: [derivedFiles(), ...(https ? [basicSsl({ name: "a2b-quest" })] : [])],
   build: {
     rollupOptions: {
       input: { main: resolve(here, "index.html"), capture: resolve(here, "capture.html") },
