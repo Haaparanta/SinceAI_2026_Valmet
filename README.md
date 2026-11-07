@@ -93,3 +93,15 @@ The left controller carries a small panel showing the current view. Metric scale
 ## Credits
 
 The viewer's source modes (Scan / Model / Overlay / Wireframe) and the snapshot page (`web/capture.html`: orthographic plan/elevation views, section cut, 0.25 u grid, readiness flag for scripted screenshots) are adapted from [wesbos/3d-model-anything](https://github.com/wesbos/3d-model-anything) (MIT, © 2026 Wes Bos). Only code ideas were reused; none of its `data/` assets are included.
+
+## autoscene: automatic object detection and room rebuild
+
+[`autoscene/`](autoscene/README.md) turns the splat scan into a room of named, framed objects with no human in
+the loop: a numba Gaussian-splat rasteriser renders 197 views with an ID buffer, YOLOE-26 finds objects in them,
+the masks are lifted to 3D by view-consensus merging, the ceiling pipe network is split into runs by local
+direction, and every object gets its own PLY, an oriented box, a row in `out/scene.json` and three pictures
+(textured close-up, room-so-far from outside, detector proof). Plan and research: [`autoscene/PLAN.md`](autoscene/PLAN.md).
+
+```bash
+cd autoscene && uv sync && uv run python -m autoscene.run all
+```

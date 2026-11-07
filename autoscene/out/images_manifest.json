@@ -1,0 +1,3941 @@
+[
+  {
+    "index": 1,
+    "name": "001_floor_1",
+    "label": "floor",
+    "images": {
+      "closeup": "images/0001_20261107-031921_001_floor_1_a.png",
+      "outside": "images/0002_20261107-031921_001_floor_1_b.png"
+    }
+  },
+  {
+    "index": 2,
+    "name": "002_ceiling_1",
+    "label": "ceiling",
+    "images": {
+      "closeup": "images/0004_20261107-031921_002_ceiling_1_a.png",
+      "outside": "images/0005_20261107-031921_002_ceiling_1_b.png"
+    }
+  },
+  {
+    "index": 3,
+    "name": "003_wall_back_1",
+    "label": "wall back",
+    "images": {
+      "closeup": "images/0007_20261107-031931_003_wall_back_1_a.png",
+      "outside": "images/0008_20261107-031931_003_wall_back_1_b.png"
+    }
+  },
+  {
+    "index": 4,
+    "name": "004_wall_front_1",
+    "label": "wall front",
+    "images": {
+      "closeup": "images/0010_20261107-031931_004_wall_front_1_a.png",
+      "outside": "images/0011_20261107-031931_004_wall_front_1_b.png"
+    }
+  },
+  {
+    "index": 5,
+    "name": "005_wall_left_1",
+    "label": "wall left",
+    "images": {
+      "closeup": "images/0013_20261107-031937_005_wall_left_1_a.png",
+      "outside": "images/0014_20261107-031937_005_wall_left_1_b.png"
+    }
+  },
+  {
+    "index": 6,
+    "name": "006_wall_right_1",
+    "label": "wall right",
+    "images": {
+      "closeup": "images/0016_20261107-031938_006_wall_right_1_a.png",
+      "outside": "images/0017_20261107-031938_006_wall_right_1_b.png"
+    }
+  },
+  {
+    "index": 7,
+    "name": "007_chair_1",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0019_20261107-031941_007_chair_1_a.png",
+      "outside": "images/0020_20261107-031941_007_chair_1_b.png",
+      "proof": "images/0021_20261107-031941_007_chair_1_c.png"
+    }
+  },
+  {
+    "index": 8,
+    "name": "008_step_ladder_1",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0022_20261107-031942_008_step_ladder_1_a.png",
+      "outside": "images/0023_20261107-031942_008_step_ladder_1_b.png",
+      "proof": "images/0024_20261107-031942_008_step_ladder_1_c.png"
+    }
+  },
+  {
+    "index": 9,
+    "name": "009_step_ladder_2",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0025_20261107-031946_009_step_ladder_2_a.png",
+      "outside": "images/0026_20261107-031946_009_step_ladder_2_b.png",
+      "proof": "images/0027_20261107-031946_009_step_ladder_2_c.png"
+    }
+  },
+  {
+    "index": 10,
+    "name": "010_insulated_pipe_1",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0028_20261107-031947_010_insulated_pipe_1_a.png",
+      "outside": "images/0029_20261107-031947_010_insulated_pipe_1_b.png",
+      "proof": "images/0030_20261107-031947_010_insulated_pipe_1_c.png"
+    }
+  },
+  {
+    "index": 11,
+    "name": "011_step_ladder_3",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0031_20261107-031949_011_step_ladder_3_a.png",
+      "outside": "images/0032_20261107-031949_011_step_ladder_3_b.png",
+      "proof": "images/0033_20261107-031949_011_step_ladder_3_c.png"
+    }
+  },
+  {
+    "index": 12,
+    "name": "012_tool_box_1",
+    "label": "tool box",
+    "images": {
+      "closeup": "images/0034_20261107-031949_012_tool_box_1_a.png",
+      "outside": "images/0035_20261107-031949_012_tool_box_1_b.png",
+      "proof": "images/0036_20261107-031949_012_tool_box_1_c.png"
+    }
+  },
+  {
+    "index": 13,
+    "name": "013_step_ladder_4",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0037_20261107-031953_013_step_ladder_4_a.png",
+      "outside": "images/0038_20261107-031953_013_step_ladder_4_b.png",
+      "proof": "images/0039_20261107-031953_013_step_ladder_4_c.png"
+    }
+  },
+  {
+    "index": 14,
+    "name": "014_chair_2",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0040_20261107-031952_014_chair_2_a.png",
+      "outside": "images/0041_20261107-031952_014_chair_2_b.png",
+      "proof": "images/0042_20261107-031952_014_chair_2_c.png"
+    }
+  },
+  {
+    "index": 15,
+    "name": "015_heat_exchanger_1",
+    "label": "heat exchanger",
+    "images": {
+      "closeup": "images/0043_20261107-031956_015_heat_exchanger_1_a.png",
+      "outside": "images/0044_20261107-031956_015_heat_exchanger_1_b.png",
+      "proof": "images/0045_20261107-031956_015_heat_exchanger_1_c.png"
+    }
+  },
+  {
+    "index": 16,
+    "name": "016_roll_cage_1",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0046_20261107-031957_016_roll_cage_1_a.png",
+      "outside": "images/0047_20261107-031957_016_roll_cage_1_b.png",
+      "proof": "images/0048_20261107-031957_016_roll_cage_1_c.png"
+    }
+  },
+  {
+    "index": 17,
+    "name": "017_insulated_pipe_2",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0049_20261107-032003_017_insulated_pipe_2_a.png",
+      "outside": "images/0050_20261107-032003_017_insulated_pipe_2_b.png",
+      "proof": "images/0051_20261107-032003_017_insulated_pipe_2_c.png"
+    }
+  },
+  {
+    "index": 18,
+    "name": "018_insulated_pipe_3",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0052_20261107-032002_018_insulated_pipe_3_a.png",
+      "outside": "images/0053_20261107-032002_018_insulated_pipe_3_b.png",
+      "proof": "images/0054_20261107-032002_018_insulated_pipe_3_c.png"
+    }
+  },
+  {
+    "index": 19,
+    "name": "019_hose_reel_1",
+    "label": "hose reel",
+    "images": {
+      "closeup": "images/0055_20261107-032006_019_hose_reel_1_a.png",
+      "outside": "images/0056_20261107-032006_019_hose_reel_1_b.png",
+      "proof": "images/0057_20261107-032006_019_hose_reel_1_c.png"
+    }
+  },
+  {
+    "index": 20,
+    "name": "020_roll_cage_2",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0058_20261107-032005_020_roll_cage_2_a.png",
+      "outside": "images/0059_20261107-032005_020_roll_cage_2_b.png",
+      "proof": "images/0060_20261107-032005_020_roll_cage_2_c.png"
+    }
+  },
+  {
+    "index": 21,
+    "name": "021_step_ladder_5",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0061_20261107-032008_021_step_ladder_5_a.png",
+      "outside": "images/0062_20261107-032008_021_step_ladder_5_b.png",
+      "proof": "images/0063_20261107-032008_021_step_ladder_5_c.png"
+    }
+  },
+  {
+    "index": 22,
+    "name": "022_trash_can_1",
+    "label": "trash can",
+    "images": {
+      "closeup": "images/0064_20261107-032009_022_trash_can_1_a.png",
+      "outside": "images/0065_20261107-032009_022_trash_can_1_b.png",
+      "proof": "images/0066_20261107-032009_022_trash_can_1_c.png"
+    }
+  },
+  {
+    "index": 23,
+    "name": "023_insulated_pipe_4",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0067_20261107-032011_023_insulated_pipe_4_a.png",
+      "outside": "images/0068_20261107-032011_023_insulated_pipe_4_b.png",
+      "proof": "images/0069_20261107-032011_023_insulated_pipe_4_c.png"
+    }
+  },
+  {
+    "index": 24,
+    "name": "024_roll_cage_3",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0070_20261107-032011_024_roll_cage_3_a.png",
+      "outside": "images/0071_20261107-032011_024_roll_cage_3_b.png",
+      "proof": "images/0072_20261107-032011_024_roll_cage_3_c.png"
+    }
+  },
+  {
+    "index": 25,
+    "name": "025_roll_cage_4",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0073_20261107-032014_025_roll_cage_4_a.png",
+      "outside": "images/0074_20261107-032014_025_roll_cage_4_b.png",
+      "proof": "images/0075_20261107-032014_025_roll_cage_4_c.png"
+    }
+  },
+  {
+    "index": 26,
+    "name": "026_chair_3",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0076_20261107-032013_026_chair_3_a.png",
+      "outside": "images/0077_20261107-032013_026_chair_3_b.png",
+      "proof": "images/0078_20261107-032013_026_chair_3_c.png"
+    }
+  },
+  {
+    "index": 27,
+    "name": "027_chair_4",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0079_20261107-032017_027_chair_4_a.png",
+      "outside": "images/0080_20261107-032017_027_chair_4_b.png",
+      "proof": "images/0081_20261107-032017_027_chair_4_c.png"
+    }
+  },
+  {
+    "index": 28,
+    "name": "028_washing_machine_1",
+    "label": "washing machine",
+    "images": {
+      "closeup": "images/0082_20261107-032016_028_washing_machine_1_a.png",
+      "outside": "images/0083_20261107-032016_028_washing_machine_1_b.png",
+      "proof": "images/0084_20261107-032016_028_washing_machine_1_c.png"
+    }
+  },
+  {
+    "index": 29,
+    "name": "029_cable_tray_1",
+    "label": "cable tray",
+    "images": {
+      "closeup": "images/0085_20261107-032020_029_cable_tray_1_a.png",
+      "outside": "images/0086_20261107-032020_029_cable_tray_1_b.png",
+      "proof": "images/0087_20261107-032020_029_cable_tray_1_c.png"
+    }
+  },
+  {
+    "index": 30,
+    "name": "030_roll_cage_5",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0088_20261107-032019_030_roll_cage_5_a.png",
+      "outside": "images/0089_20261107-032019_030_roll_cage_5_b.png",
+      "proof": "images/0090_20261107-032019_030_roll_cage_5_c.png"
+    }
+  },
+  {
+    "index": 31,
+    "name": "031_step_ladder_6",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0091_20261107-032023_031_step_ladder_6_a.png",
+      "outside": "images/0092_20261107-032023_031_step_ladder_6_b.png",
+      "proof": "images/0093_20261107-032023_031_step_ladder_6_c.png"
+    }
+  },
+  {
+    "index": 32,
+    "name": "032_cable_tray_2",
+    "label": "cable tray",
+    "images": {
+      "closeup": "images/0094_20261107-032022_032_cable_tray_2_a.png",
+      "outside": "images/0095_20261107-032022_032_cable_tray_2_b.png",
+      "proof": "images/0096_20261107-032022_032_cable_tray_2_c.png"
+    }
+  },
+  {
+    "index": 33,
+    "name": "033_roll_cage_6",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0097_20261107-032027_033_roll_cage_6_a.png",
+      "outside": "images/0098_20261107-032027_033_roll_cage_6_b.png",
+      "proof": "images/0099_20261107-032027_033_roll_cage_6_c.png"
+    }
+  },
+  {
+    "index": 34,
+    "name": "034_step_ladder_7",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0100_20261107-032026_034_step_ladder_7_a.png",
+      "outside": "images/0101_20261107-032026_034_step_ladder_7_b.png",
+      "proof": "images/0102_20261107-032026_034_step_ladder_7_c.png"
+    }
+  },
+  {
+    "index": 35,
+    "name": "035_chair_5",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0103_20261107-032029_035_chair_5_a.png",
+      "outside": "images/0104_20261107-032029_035_chair_5_b.png",
+      "proof": "images/0105_20261107-032029_035_chair_5_c.png"
+    }
+  },
+  {
+    "index": 36,
+    "name": "036_tool_box_2",
+    "label": "tool box",
+    "images": {
+      "closeup": "images/0106_20261107-032029_036_tool_box_2_a.png",
+      "outside": "images/0107_20261107-032029_036_tool_box_2_b.png",
+      "proof": "images/0108_20261107-032029_036_tool_box_2_c.png"
+    }
+  },
+  {
+    "index": 37,
+    "name": "037_chair_6",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0109_20261107-032033_037_chair_6_a.png",
+      "outside": "images/0110_20261107-032033_037_chair_6_b.png",
+      "proof": "images/0111_20261107-032033_037_chair_6_c.png"
+    }
+  },
+  {
+    "index": 38,
+    "name": "038_pressure_vessel_1",
+    "label": "pressure vessel",
+    "images": {
+      "closeup": "images/0112_20261107-032033_038_pressure_vessel_1_a.png",
+      "outside": "images/0113_20261107-032033_038_pressure_vessel_1_b.png",
+      "proof": "images/0114_20261107-032033_038_pressure_vessel_1_c.png"
+    }
+  },
+  {
+    "index": 39,
+    "name": "039_insulated_pipe_5",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0115_20261107-032036_039_insulated_pipe_5_a.png",
+      "outside": "images/0116_20261107-032036_039_insulated_pipe_5_b.png",
+      "proof": "images/0117_20261107-032036_039_insulated_pipe_5_c.png"
+    }
+  },
+  {
+    "index": 40,
+    "name": "040_ladder_1",
+    "label": "ladder",
+    "images": {
+      "closeup": "images/0118_20261107-032037_040_ladder_1_a.png",
+      "outside": "images/0119_20261107-032037_040_ladder_1_b.png",
+      "proof": "images/0120_20261107-032037_040_ladder_1_c.png"
+    }
+  },
+  {
+    "index": 41,
+    "name": "041_trolley_1",
+    "label": "trolley",
+    "images": {
+      "closeup": "images/0121_20261107-032039_041_trolley_1_a.png",
+      "outside": "images/0122_20261107-032039_041_trolley_1_b.png",
+      "proof": "images/0123_20261107-032039_041_trolley_1_c.png"
+    }
+  },
+  {
+    "index": 42,
+    "name": "042_roll_cage_7",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0124_20261107-032041_042_roll_cage_7_a.png",
+      "outside": "images/0125_20261107-032041_042_roll_cage_7_b.png",
+      "proof": "images/0126_20261107-032041_042_roll_cage_7_c.png"
+    }
+  },
+  {
+    "index": 43,
+    "name": "043_roll_cage_8",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0127_20261107-032042_043_roll_cage_8_a.png",
+      "outside": "images/0128_20261107-032042_043_roll_cage_8_b.png",
+      "proof": "images/0129_20261107-032042_043_roll_cage_8_c.png"
+    }
+  },
+  {
+    "index": 44,
+    "name": "044_roll_cage_9",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0130_20261107-032044_044_roll_cage_9_a.png",
+      "outside": "images/0131_20261107-032044_044_roll_cage_9_b.png",
+      "proof": "images/0132_20261107-032044_044_roll_cage_9_c.png"
+    }
+  },
+  {
+    "index": 45,
+    "name": "045_fan_1",
+    "label": "fan",
+    "images": {
+      "closeup": "images/0133_20261107-032043_045_fan_1_a.png",
+      "outside": "images/0134_20261107-032043_045_fan_1_b.png",
+      "proof": "images/0135_20261107-032043_045_fan_1_c.png"
+    }
+  },
+  {
+    "index": 46,
+    "name": "046_bin_1",
+    "label": "bin",
+    "images": {
+      "closeup": "images/0136_20261107-032046_046_bin_1_a.png",
+      "outside": "images/0137_20261107-032046_046_bin_1_b.png",
+      "proof": "images/0138_20261107-032046_046_bin_1_c.png"
+    }
+  },
+  {
+    "index": 47,
+    "name": "047_workbench_1",
+    "label": "workbench",
+    "images": {
+      "closeup": "images/0139_20261107-032045_047_workbench_1_a.png",
+      "outside": "images/0140_20261107-032045_047_workbench_1_b.png",
+      "proof": "images/0141_20261107-032045_047_workbench_1_c.png"
+    }
+  },
+  {
+    "index": 48,
+    "name": "048_roll_cage_10",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0142_20261107-032048_048_roll_cage_10_a.png",
+      "outside": "images/0143_20261107-032048_048_roll_cage_10_b.png",
+      "proof": "images/0144_20261107-032048_048_roll_cage_10_c.png"
+    }
+  },
+  {
+    "index": 49,
+    "name": "049_bucket_1",
+    "label": "bucket",
+    "images": {
+      "closeup": "images/0145_20261107-032047_049_bucket_1_a.png",
+      "outside": "images/0146_20261107-032047_049_bucket_1_b.png",
+      "proof": "images/0147_20261107-032047_049_bucket_1_c.png"
+    }
+  },
+  {
+    "index": 50,
+    "name": "050_roll_cage_11",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0148_20261107-032050_050_roll_cage_11_a.png",
+      "outside": "images/0149_20261107-032050_050_roll_cage_11_b.png",
+      "proof": "images/0150_20261107-032050_050_roll_cage_11_c.png"
+    }
+  },
+  {
+    "index": 51,
+    "name": "051_step_ladder_8",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0151_20261107-032049_051_step_ladder_8_a.png",
+      "outside": "images/0152_20261107-032049_051_step_ladder_8_b.png",
+      "proof": "images/0153_20261107-032049_051_step_ladder_8_c.png"
+    }
+  },
+  {
+    "index": 52,
+    "name": "052_step_ladder_9",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0154_20261107-032053_052_step_ladder_9_a.png",
+      "outside": "images/0155_20261107-032053_052_step_ladder_9_b.png",
+      "proof": "images/0156_20261107-032053_052_step_ladder_9_c.png"
+    }
+  },
+  {
+    "index": 53,
+    "name": "053_barrel_1",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0157_20261107-032051_053_barrel_1_a.png",
+      "outside": "images/0158_20261107-032051_053_barrel_1_b.png",
+      "proof": "images/0159_20261107-032051_053_barrel_1_c.png"
+    }
+  },
+  {
+    "index": 54,
+    "name": "054_roll_cage_12",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0160_20261107-032056_054_roll_cage_12_a.png",
+      "outside": "images/0161_20261107-032056_054_roll_cage_12_b.png",
+      "proof": "images/0162_20261107-032056_054_roll_cage_12_c.png"
+    }
+  },
+  {
+    "index": 55,
+    "name": "055_lamp_1",
+    "label": "lamp",
+    "images": {
+      "closeup": "images/0163_20261107-032054_055_lamp_1_a.png",
+      "outside": "images/0164_20261107-032054_055_lamp_1_b.png",
+      "proof": "images/0165_20261107-032054_055_lamp_1_c.png"
+    }
+  },
+  {
+    "index": 56,
+    "name": "056_trolley_2",
+    "label": "trolley",
+    "images": {
+      "closeup": "images/0166_20261107-032058_056_trolley_2_a.png",
+      "outside": "images/0167_20261107-032058_056_trolley_2_b.png",
+      "proof": "images/0168_20261107-032058_056_trolley_2_c.png"
+    }
+  },
+  {
+    "index": 57,
+    "name": "057_roll_cage_13",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0169_20261107-032057_057_roll_cage_13_a.png",
+      "outside": "images/0170_20261107-032057_057_roll_cage_13_b.png",
+      "proof": "images/0171_20261107-032057_057_roll_cage_13_c.png"
+    }
+  },
+  {
+    "index": 58,
+    "name": "058_pressure_vessel_2",
+    "label": "pressure vessel",
+    "images": {
+      "closeup": "images/0172_20261107-032101_058_pressure_vessel_2_a.png",
+      "outside": "images/0173_20261107-032101_058_pressure_vessel_2_b.png",
+      "proof": "images/0174_20261107-032101_058_pressure_vessel_2_c.png"
+    }
+  },
+  {
+    "index": 59,
+    "name": "059_chair_7",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0175_20261107-032059_059_chair_7_a.png",
+      "outside": "images/0176_20261107-032059_059_chair_7_b.png",
+      "proof": "images/0177_20261107-032059_059_chair_7_c.png"
+    }
+  },
+  {
+    "index": 60,
+    "name": "060_pressure_vessel_3",
+    "label": "pressure vessel",
+    "images": {
+      "closeup": "images/0178_20261107-032104_060_pressure_vessel_3_a.png",
+      "outside": "images/0179_20261107-032104_060_pressure_vessel_3_b.png",
+      "proof": "images/0180_20261107-032104_060_pressure_vessel_3_c.png"
+    }
+  },
+  {
+    "index": 61,
+    "name": "061_pressure_vessel_4",
+    "label": "pressure vessel",
+    "images": {
+      "closeup": "images/0181_20261107-032102_061_pressure_vessel_4_a.png",
+      "outside": "images/0182_20261107-032102_061_pressure_vessel_4_b.png",
+      "proof": "images/0183_20261107-032102_061_pressure_vessel_4_c.png"
+    }
+  },
+  {
+    "index": 62,
+    "name": "062_bottle_1",
+    "label": "bottle",
+    "images": {
+      "closeup": "images/0184_20261107-032107_062_bottle_1_a.png",
+      "outside": "images/0185_20261107-032107_062_bottle_1_b.png",
+      "proof": "images/0186_20261107-032107_062_bottle_1_c.png"
+    }
+  },
+  {
+    "index": 63,
+    "name": "063_trolley_3",
+    "label": "trolley",
+    "images": {
+      "closeup": "images/0187_20261107-032106_063_trolley_3_a.png",
+      "outside": "images/0188_20261107-032106_063_trolley_3_b.png",
+      "proof": "images/0189_20261107-032106_063_trolley_3_c.png"
+    }
+  },
+  {
+    "index": 64,
+    "name": "064_barrel_2",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0190_20261107-032110_064_barrel_2_a.png",
+      "outside": "images/0191_20261107-032110_064_barrel_2_b.png",
+      "proof": "images/0192_20261107-032110_064_barrel_2_c.png"
+    }
+  },
+  {
+    "index": 65,
+    "name": "065_bucket_2",
+    "label": "bucket",
+    "images": {
+      "closeup": "images/0193_20261107-032108_065_bucket_2_a.png",
+      "outside": "images/0194_20261107-032108_065_bucket_2_b.png",
+      "proof": "images/0195_20261107-032108_065_bucket_2_c.png"
+    }
+  },
+  {
+    "index": 66,
+    "name": "066_cable_tray_3",
+    "label": "cable tray",
+    "images": {
+      "closeup": "images/0196_20261107-032115_066_cable_tray_3_a.png",
+      "outside": "images/0197_20261107-032115_066_cable_tray_3_b.png",
+      "proof": "images/0198_20261107-032115_066_cable_tray_3_c.png"
+    }
+  },
+  {
+    "index": 67,
+    "name": "067_bucket_3",
+    "label": "bucket",
+    "images": {
+      "closeup": "images/0199_20261107-032111_067_bucket_3_a.png",
+      "outside": "images/0200_20261107-032111_067_bucket_3_b.png",
+      "proof": "images/0201_20261107-032111_067_bucket_3_c.png"
+    }
+  },
+  {
+    "index": 68,
+    "name": "068_barrel_3",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0202_20261107-032118_068_barrel_3_a.png",
+      "outside": "images/0203_20261107-032118_068_barrel_3_b.png",
+      "proof": "images/0204_20261107-032118_068_barrel_3_c.png"
+    }
+  },
+  {
+    "index": 69,
+    "name": "069_tool_box_3",
+    "label": "tool box",
+    "images": {
+      "closeup": "images/0205_20261107-032113_069_tool_box_3_a.png",
+      "outside": "images/0206_20261107-032113_069_tool_box_3_b.png",
+      "proof": "images/0207_20261107-032113_069_tool_box_3_c.png"
+    }
+  },
+  {
+    "index": 70,
+    "name": "070_barrel_4",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0208_20261107-032121_070_barrel_4_a.png",
+      "outside": "images/0209_20261107-032121_070_barrel_4_b.png",
+      "proof": "images/0210_20261107-032121_070_barrel_4_c.png"
+    }
+  },
+  {
+    "index": 71,
+    "name": "071_control_cabinet_1",
+    "label": "control cabinet",
+    "images": {
+      "closeup": "images/0211_20261107-032116_071_control_cabinet_1_a.png",
+      "outside": "images/0212_20261107-032116_071_control_cabinet_1_b.png",
+      "proof": "images/0213_20261107-032116_071_control_cabinet_1_c.png"
+    }
+  },
+  {
+    "index": 72,
+    "name": "072_roll_cage_14",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0214_20261107-032123_072_roll_cage_14_a.png",
+      "outside": "images/0215_20261107-032123_072_roll_cage_14_b.png",
+      "proof": "images/0216_20261107-032123_072_roll_cage_14_c.png"
+    }
+  },
+  {
+    "index": 73,
+    "name": "073_pump_1",
+    "label": "pump",
+    "images": {
+      "closeup": "images/0217_20261107-032118_073_pump_1_a.png",
+      "outside": "images/0218_20261107-032118_073_pump_1_b.png",
+      "proof": "images/0219_20261107-032118_073_pump_1_c.png"
+    }
+  },
+  {
+    "index": 74,
+    "name": "074_pressure_vessel_5",
+    "label": "pressure vessel",
+    "images": {
+      "closeup": "images/0220_20261107-032127_074_pressure_vessel_5_a.png",
+      "outside": "images/0221_20261107-032127_074_pressure_vessel_5_b.png",
+      "proof": "images/0222_20261107-032127_074_pressure_vessel_5_c.png"
+    }
+  },
+  {
+    "index": 75,
+    "name": "075_step_ladder_10",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0223_20261107-032121_075_step_ladder_10_a.png",
+      "outside": "images/0224_20261107-032121_075_step_ladder_10_b.png",
+      "proof": "images/0225_20261107-032121_075_step_ladder_10_c.png"
+    }
+  },
+  {
+    "index": 76,
+    "name": "076_bucket_4",
+    "label": "bucket",
+    "images": {
+      "closeup": "images/0226_20261107-032129_076_bucket_4_a.png",
+      "outside": "images/0227_20261107-032129_076_bucket_4_b.png",
+      "proof": "images/0228_20261107-032129_076_bucket_4_c.png"
+    }
+  },
+  {
+    "index": 77,
+    "name": "077_step_ladder_11",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0229_20261107-032124_077_step_ladder_11_a.png",
+      "outside": "images/0230_20261107-032124_077_step_ladder_11_b.png",
+      "proof": "images/0231_20261107-032124_077_step_ladder_11_c.png"
+    }
+  },
+  {
+    "index": 78,
+    "name": "078_insulated_pipe_6",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0232_20261107-032132_078_insulated_pipe_6_a.png",
+      "outside": "images/0233_20261107-032132_078_insulated_pipe_6_b.png",
+      "proof": "images/0234_20261107-032132_078_insulated_pipe_6_c.png"
+    }
+  },
+  {
+    "index": 79,
+    "name": "079_insulated_pipe_7",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0235_20261107-032128_079_insulated_pipe_7_a.png",
+      "outside": "images/0236_20261107-032128_079_insulated_pipe_7_b.png",
+      "proof": "images/0237_20261107-032128_079_insulated_pipe_7_c.png"
+    }
+  },
+  {
+    "index": 80,
+    "name": "080_insulated_pipe_8",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0238_20261107-032137_080_insulated_pipe_8_a.png",
+      "outside": "images/0239_20261107-032137_080_insulated_pipe_8_b.png",
+      "proof": "images/0240_20261107-032137_080_insulated_pipe_8_c.png"
+    }
+  },
+  {
+    "index": 81,
+    "name": "081_trolley_4",
+    "label": "trolley",
+    "images": {
+      "closeup": "images/0241_20261107-032129_081_trolley_4_a.png",
+      "outside": "images/0242_20261107-032129_081_trolley_4_b.png",
+      "proof": "images/0243_20261107-032129_081_trolley_4_c.png"
+    }
+  },
+  {
+    "index": 82,
+    "name": "082_chair_8",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0244_20261107-032141_082_chair_8_a.png",
+      "outside": "images/0245_20261107-032141_082_chair_8_b.png",
+      "proof": "images/0246_20261107-032141_082_chair_8_c.png"
+    }
+  },
+  {
+    "index": 83,
+    "name": "083_ladder_2",
+    "label": "ladder",
+    "images": {
+      "closeup": "images/0247_20261107-032133_083_ladder_2_a.png",
+      "outside": "images/0248_20261107-032133_083_ladder_2_b.png",
+      "proof": "images/0249_20261107-032133_083_ladder_2_c.png"
+    }
+  },
+  {
+    "index": 84,
+    "name": "084_manifold_1",
+    "label": "manifold",
+    "images": {
+      "closeup": "images/0250_20261107-032147_084_manifold_1_a.png",
+      "outside": "images/0251_20261107-032147_084_manifold_1_b.png",
+      "proof": "images/0252_20261107-032147_084_manifold_1_c.png"
+    }
+  },
+  {
+    "index": 85,
+    "name": "085_step_ladder_12",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0253_20261107-032137_085_step_ladder_12_a.png",
+      "outside": "images/0254_20261107-032137_085_step_ladder_12_b.png",
+      "proof": "images/0255_20261107-032137_085_step_ladder_12_c.png"
+    }
+  },
+  {
+    "index": 86,
+    "name": "086_ladder_3",
+    "label": "ladder",
+    "images": {
+      "closeup": "images/0256_20261107-032152_086_ladder_3_a.png",
+      "outside": "images/0257_20261107-032152_086_ladder_3_b.png",
+      "proof": "images/0258_20261107-032152_086_ladder_3_c.png"
+    }
+  },
+  {
+    "index": 87,
+    "name": "087_roll_cage_15",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0259_20261107-032141_087_roll_cage_15_a.png",
+      "outside": "images/0260_20261107-032141_087_roll_cage_15_b.png",
+      "proof": "images/0261_20261107-032141_087_roll_cage_15_c.png"
+    }
+  },
+  {
+    "index": 88,
+    "name": "088_chair_9",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0262_20261107-032158_088_chair_9_a.png",
+      "outside": "images/0263_20261107-032158_088_chair_9_b.png",
+      "proof": "images/0264_20261107-032158_088_chair_9_c.png"
+    }
+  },
+  {
+    "index": 89,
+    "name": "089_insulated_pipe_9",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0265_20261107-032144_089_insulated_pipe_9_a.png",
+      "outside": "images/0266_20261107-032144_089_insulated_pipe_9_b.png",
+      "proof": "images/0267_20261107-032144_089_insulated_pipe_9_c.png"
+    }
+  },
+  {
+    "index": 90,
+    "name": "090_step_ladder_13",
+    "label": "step ladder",
+    "images": {
+      "closeup": "images/0268_20261107-032201_090_step_ladder_13_a.png",
+      "outside": "images/0269_20261107-032201_090_step_ladder_13_b.png",
+      "proof": "images/0270_20261107-032201_090_step_ladder_13_c.png"
+    }
+  },
+  {
+    "index": 91,
+    "name": "091_bucket_5",
+    "label": "bucket",
+    "images": {
+      "closeup": "images/0271_20261107-032149_091_bucket_5_a.png",
+      "outside": "images/0272_20261107-032149_091_bucket_5_b.png",
+      "proof": "images/0273_20261107-032149_091_bucket_5_c.png"
+    }
+  },
+  {
+    "index": 92,
+    "name": "092_roll_cage_16",
+    "label": "roll cage",
+    "images": {
+      "closeup": "images/0274_20261107-032203_092_roll_cage_16_a.png",
+      "outside": "images/0275_20261107-032203_092_roll_cage_16_b.png",
+      "proof": "images/0276_20261107-032203_092_roll_cage_16_c.png"
+    }
+  },
+  {
+    "index": 93,
+    "name": "093_insulated_pipe_10",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0277_20261107-032152_093_insulated_pipe_10_a.png",
+      "outside": "images/0278_20261107-032152_093_insulated_pipe_10_b.png",
+      "proof": "images/0279_20261107-032152_093_insulated_pipe_10_c.png"
+    }
+  },
+  {
+    "index": 94,
+    "name": "094_insulated_pipe_11",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0280_20261107-032207_094_insulated_pipe_11_a.png",
+      "outside": "images/0281_20261107-032207_094_insulated_pipe_11_b.png",
+      "proof": "images/0282_20261107-032207_094_insulated_pipe_11_c.png"
+    }
+  },
+  {
+    "index": 95,
+    "name": "095_barrel_5",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0283_20261107-032156_095_barrel_5_a.png",
+      "outside": "images/0284_20261107-032156_095_barrel_5_b.png",
+      "proof": "images/0285_20261107-032156_095_barrel_5_c.png"
+    }
+  },
+  {
+    "index": 96,
+    "name": "096_barrel_6",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0286_20261107-032211_096_barrel_6_a.png",
+      "outside": "images/0287_20261107-032211_096_barrel_6_b.png",
+      "proof": "images/0288_20261107-032211_096_barrel_6_c.png"
+    }
+  },
+  {
+    "index": 97,
+    "name": "097_electric_motor_1",
+    "label": "electric motor",
+    "images": {
+      "closeup": "images/0289_20261107-032200_097_electric_motor_1_a.png",
+      "outside": "images/0290_20261107-032200_097_electric_motor_1_b.png",
+      "proof": "images/0291_20261107-032200_097_electric_motor_1_c.png"
+    }
+  },
+  {
+    "index": 98,
+    "name": "098_heat_exchanger_2",
+    "label": "heat exchanger",
+    "images": {
+      "closeup": "images/0292_20261107-032214_098_heat_exchanger_2_a.png",
+      "outside": "images/0293_20261107-032214_098_heat_exchanger_2_b.png",
+      "proof": "images/0294_20261107-032214_098_heat_exchanger_2_c.png"
+    }
+  },
+  {
+    "index": 99,
+    "name": "099_workbench_2",
+    "label": "workbench",
+    "images": {
+      "closeup": "images/0295_20261107-032203_099_workbench_2_a.png",
+      "outside": "images/0296_20261107-032203_099_workbench_2_b.png",
+      "proof": "images/0297_20261107-032203_099_workbench_2_c.png"
+    }
+  },
+  {
+    "index": 100,
+    "name": "100_trolley_5",
+    "label": "trolley",
+    "images": {
+      "closeup": "images/0298_20261107-032218_100_trolley_5_a.png",
+      "outside": "images/0299_20261107-032218_100_trolley_5_b.png",
+      "proof": "images/0300_20261107-032218_100_trolley_5_c.png"
+    }
+  },
+  {
+    "index": 101,
+    "name": "101_insulated_pipe_12",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0301_20261107-032206_101_insulated_pipe_12_a.png",
+      "outside": "images/0302_20261107-032206_101_insulated_pipe_12_b.png",
+      "proof": "images/0303_20261107-032206_101_insulated_pipe_12_c.png"
+    }
+  },
+  {
+    "index": 102,
+    "name": "102_tool_box_4",
+    "label": "tool box",
+    "images": {
+      "closeup": "images/0304_20261107-032221_102_tool_box_4_a.png",
+      "outside": "images/0305_20261107-032221_102_tool_box_4_b.png",
+      "proof": "images/0306_20261107-032221_102_tool_box_4_c.png"
+    }
+  },
+  {
+    "index": 103,
+    "name": "103_bottle_2",
+    "label": "bottle",
+    "images": {
+      "closeup": "images/0307_20261107-032210_103_bottle_2_a.png",
+      "outside": "images/0308_20261107-032210_103_bottle_2_b.png",
+      "proof": "images/0309_20261107-032210_103_bottle_2_c.png"
+    }
+  },
+  {
+    "index": 104,
+    "name": "104_radiator_1",
+    "label": "radiator",
+    "images": {
+      "closeup": "images/0310_20261107-032223_104_radiator_1_a.png",
+      "outside": "images/0311_20261107-032223_104_radiator_1_b.png",
+      "proof": "images/0312_20261107-032223_104_radiator_1_c.png"
+    }
+  },
+  {
+    "index": 105,
+    "name": "105_boiler_burner_1",
+    "label": "boiler burner",
+    "images": {
+      "closeup": "images/0313_20261107-032213_105_boiler_burner_1_a.png",
+      "outside": "images/0314_20261107-032213_105_boiler_burner_1_b.png",
+      "proof": "images/0315_20261107-032213_105_boiler_burner_1_c.png"
+    }
+  },
+  {
+    "index": 106,
+    "name": "106_lamp_2",
+    "label": "lamp",
+    "images": {
+      "closeup": "images/0316_20261107-032226_106_lamp_2_a.png",
+      "outside": "images/0317_20261107-032226_106_lamp_2_b.png",
+      "proof": "images/0318_20261107-032226_106_lamp_2_c.png"
+    }
+  },
+  {
+    "index": 107,
+    "name": "107_barrel_7",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0319_20261107-032215_107_barrel_7_a.png",
+      "outside": "images/0320_20261107-032215_107_barrel_7_b.png",
+      "proof": "images/0321_20261107-032215_107_barrel_7_c.png"
+    }
+  },
+  {
+    "index": 108,
+    "name": "108_barrel_8",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0322_20261107-032227_108_barrel_8_a.png",
+      "outside": "images/0323_20261107-032227_108_barrel_8_b.png",
+      "proof": "images/0324_20261107-032227_108_barrel_8_c.png"
+    }
+  },
+  {
+    "index": 109,
+    "name": "109_exit_sign_1",
+    "label": "exit sign",
+    "images": {
+      "closeup": "images/0325_20261107-032218_109_exit_sign_1_a.png",
+      "outside": "images/0326_20261107-032218_109_exit_sign_1_b.png",
+      "proof": "images/0327_20261107-032218_109_exit_sign_1_c.png"
+    }
+  },
+  {
+    "index": 110,
+    "name": "110_insulated_pipe_13",
+    "label": "insulated pipe",
+    "images": {
+      "closeup": "images/0328_20261107-032229_110_insulated_pipe_13_a.png",
+      "outside": "images/0329_20261107-032229_110_insulated_pipe_13_b.png",
+      "proof": "images/0330_20261107-032229_110_insulated_pipe_13_c.png"
+    }
+  },
+  {
+    "index": 111,
+    "name": "111_filter_1",
+    "label": "filter",
+    "images": {
+      "closeup": "images/0331_20261107-032220_111_filter_1_a.png",
+      "outside": "images/0332_20261107-032220_111_filter_1_b.png",
+      "proof": "images/0333_20261107-032220_111_filter_1_c.png"
+    }
+  },
+  {
+    "index": 112,
+    "name": "112_chair_10",
+    "label": "chair",
+    "images": {
+      "closeup": "images/0334_20261107-032232_112_chair_10_a.png",
+      "outside": "images/0335_20261107-032232_112_chair_10_b.png",
+      "proof": "images/0336_20261107-032232_112_chair_10_c.png"
+    }
+  },
+  {
+    "index": 113,
+    "name": "113_cable_tray_4",
+    "label": "cable tray",
+    "images": {
+      "closeup": "images/0337_20261107-032222_113_cable_tray_4_a.png",
+      "outside": "images/0338_20261107-032222_113_cable_tray_4_b.png",
+      "proof": "images/0339_20261107-032222_113_cable_tray_4_c.png"
+    }
+  },
+  {
+    "index": 114,
+    "name": "114_barrel_9",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0340_20261107-032234_114_barrel_9_a.png",
+      "outside": "images/0341_20261107-032234_114_barrel_9_b.png",
+      "proof": "images/0342_20261107-032234_114_barrel_9_c.png"
+    }
+  },
+  {
+    "index": 115,
+    "name": "115_barrel_10",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0343_20261107-032224_115_barrel_10_a.png",
+      "outside": "images/0344_20261107-032224_115_barrel_10_b.png",
+      "proof": "images/0345_20261107-032224_115_barrel_10_c.png"
+    }
+  },
+  {
+    "index": 116,
+    "name": "116_tool_box_5",
+    "label": "tool box",
+    "images": {
+      "closeup": "images/0346_20261107-032237_116_tool_box_5_a.png",
+      "outside": "images/0347_20261107-032237_116_tool_box_5_b.png",
+      "proof": "images/0348_20261107-032237_116_tool_box_5_c.png"
+    }
+  },
+  {
+    "index": 117,
+    "name": "117_cable_tray_5",
+    "label": "cable tray",
+    "images": {
+      "closeup": "images/0349_20261107-032226_117_cable_tray_5_a.png",
+      "outside": "images/0350_20261107-032226_117_cable_tray_5_b.png",
+      "proof": "images/0351_20261107-032226_117_cable_tray_5_c.png"
+    }
+  },
+  {
+    "index": 118,
+    "name": "118_barrel_11",
+    "label": "barrel",
+    "images": {
+      "closeup": "images/0352_20261107-032239_118_barrel_11_a.png",
+      "outside": "images/0353_20261107-032239_118_barrel_11_b.png",
+      "proof": "images/0354_20261107-032239_118_barrel_11_c.png"
+    }
+  },
+  {
+    "index": 119,
+    "name": "119_hose_reel_2",
+    "label": "hose reel",
+    "images": {
+      "closeup": "images/0355_20261107-032228_119_hose_reel_2_a.png",
+      "outside": "images/0356_20261107-032228_119_hose_reel_2_b.png",
+      "proof": "images/0357_20261107-032228_119_hose_reel_2_c.png"
+    }
+  },
+  {
+    "index": 120,
+    "name": "120_hose_reel_3",
+    "label": "hose reel",
+    "images": {
+      "closeup": "images/0358_20261107-032241_120_hose_reel_3_a.png",
+      "outside": "images/0359_20261107-032241_120_hose_reel_3_b.png",
+      "proof": "images/0360_20261107-032241_120_hose_reel_3_c.png"
+    }
+  },
+  {
+    "index": 121,
+    "name": "121_pipe_network_1",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0361_20261107-032230_121_pipe_network_1_a.png",
+      "outside": "images/0362_20261107-032230_121_pipe_network_1_b.png"
+    }
+  },
+  {
+    "index": 122,
+    "name": "122_pipe_network_2",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0364_20261107-032243_122_pipe_network_2_a.png",
+      "outside": "images/0365_20261107-032243_122_pipe_network_2_b.png"
+    }
+  },
+  {
+    "index": 123,
+    "name": "123_pipe_network_3",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0367_20261107-032234_123_pipe_network_3_a.png",
+      "outside": "images/0368_20261107-032234_123_pipe_network_3_b.png"
+    }
+  },
+  {
+    "index": 124,
+    "name": "124_pipe_network_4",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0370_20261107-032247_124_pipe_network_4_a.png",
+      "outside": "images/0371_20261107-032247_124_pipe_network_4_b.png"
+    }
+  },
+  {
+    "index": 125,
+    "name": "125_pipe_1",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0373_20261107-032237_125_pipe_1_a.png",
+      "outside": "images/0374_20261107-032237_125_pipe_1_b.png"
+    }
+  },
+  {
+    "index": 126,
+    "name": "126_pipe_network_5",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0376_20261107-032250_126_pipe_network_5_a.png",
+      "outside": "images/0377_20261107-032250_126_pipe_network_5_b.png"
+    }
+  },
+  {
+    "index": 127,
+    "name": "127_unidentified_object_1",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0379_20261107-032243_127_unidentified_object_1_a.png",
+      "outside": "images/0380_20261107-032243_127_unidentified_object_1_b.png"
+    }
+  },
+  {
+    "index": 128,
+    "name": "128_pipe_network_6",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0382_20261107-032252_128_pipe_network_6_a.png",
+      "outside": "images/0383_20261107-032252_128_pipe_network_6_b.png"
+    }
+  },
+  {
+    "index": 129,
+    "name": "129_pipe_2",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0385_20261107-032245_129_pipe_2_a.png",
+      "outside": "images/0386_20261107-032245_129_pipe_2_b.png"
+    }
+  },
+  {
+    "index": 130,
+    "name": "130_pipe_network_7",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0388_20261107-032255_130_pipe_network_7_a.png",
+      "outside": "images/0389_20261107-032255_130_pipe_network_7_b.png"
+    }
+  },
+  {
+    "index": 131,
+    "name": "131_pipe_3",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0391_20261107-032249_131_pipe_3_a.png",
+      "outside": "images/0392_20261107-032249_131_pipe_3_b.png"
+    }
+  },
+  {
+    "index": 132,
+    "name": "132_pipe_4",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0394_20261107-032257_132_pipe_4_a.png",
+      "outside": "images/0395_20261107-032257_132_pipe_4_b.png"
+    }
+  },
+  {
+    "index": 133,
+    "name": "133_unidentified_object_2",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0397_20261107-032251_133_unidentified_object_2_a.png",
+      "outside": "images/0398_20261107-032251_133_unidentified_object_2_b.png"
+    }
+  },
+  {
+    "index": 134,
+    "name": "134_pipe_network_8",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0400_20261107-032300_134_pipe_network_8_a.png",
+      "outside": "images/0401_20261107-032300_134_pipe_network_8_b.png"
+    }
+  },
+  {
+    "index": 135,
+    "name": "135_pipe_5",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0403_20261107-032254_135_pipe_5_a.png",
+      "outside": "images/0404_20261107-032254_135_pipe_5_b.png"
+    }
+  },
+  {
+    "index": 136,
+    "name": "136_pipe_network_9",
+    "label": "pipe network",
+    "images": {
+      "closeup": "images/0406_20261107-032305_136_pipe_network_9_a.png",
+      "outside": "images/0407_20261107-032305_136_pipe_network_9_b.png"
+    }
+  },
+  {
+    "index": 137,
+    "name": "137_unidentified_object_3",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0409_20261107-032257_137_unidentified_object_3_a.png",
+      "outside": "images/0410_20261107-032257_137_unidentified_object_3_b.png"
+    }
+  },
+  {
+    "index": 138,
+    "name": "138_pipe_6",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0412_20261107-032309_138_pipe_6_a.png",
+      "outside": "images/0413_20261107-032309_138_pipe_6_b.png"
+    }
+  },
+  {
+    "index": 139,
+    "name": "139_unidentified_object_4",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0415_20261107-032259_139_unidentified_object_4_a.png",
+      "outside": "images/0416_20261107-032259_139_unidentified_object_4_b.png"
+    }
+  },
+  {
+    "index": 140,
+    "name": "140_pipe_7",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0418_20261107-032312_140_pipe_7_a.png",
+      "outside": "images/0419_20261107-032312_140_pipe_7_b.png"
+    }
+  },
+  {
+    "index": 141,
+    "name": "141_pipe_8",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0421_20261107-032303_141_pipe_8_a.png",
+      "outside": "images/0422_20261107-032303_141_pipe_8_b.png"
+    }
+  },
+  {
+    "index": 142,
+    "name": "142_pipe_9",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0424_20261107-032314_142_pipe_9_a.png",
+      "outside": "images/0425_20261107-032314_142_pipe_9_b.png"
+    }
+  },
+  {
+    "index": 143,
+    "name": "143_unidentified_object_5",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0427_20261107-032307_143_unidentified_object_5_a.png",
+      "outside": "images/0428_20261107-032307_143_unidentified_object_5_b.png"
+    }
+  },
+  {
+    "index": 144,
+    "name": "144_vertical_pipe_1",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0430_20261107-032316_144_vertical_pipe_1_a.png",
+      "outside": "images/0431_20261107-032316_144_vertical_pipe_1_b.png"
+    }
+  },
+  {
+    "index": 145,
+    "name": "145_pipe_10",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0433_20261107-032309_145_pipe_10_a.png",
+      "outside": "images/0434_20261107-032309_145_pipe_10_b.png"
+    }
+  },
+  {
+    "index": 146,
+    "name": "146_vertical_pipe_2",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0436_20261107-032319_146_vertical_pipe_2_a.png",
+      "outside": "images/0437_20261107-032319_146_vertical_pipe_2_b.png"
+    }
+  },
+  {
+    "index": 147,
+    "name": "147_vertical_pipe_3",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0439_20261107-032313_147_vertical_pipe_3_a.png",
+      "outside": "images/0440_20261107-032313_147_vertical_pipe_3_b.png"
+    }
+  },
+  {
+    "index": 148,
+    "name": "148_unidentified_object_6",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0442_20261107-032324_148_unidentified_object_6_a.png",
+      "outside": "images/0443_20261107-032324_148_unidentified_object_6_b.png"
+    }
+  },
+  {
+    "index": 149,
+    "name": "149_unidentified_object_7",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0445_20261107-032316_149_unidentified_object_7_a.png",
+      "outside": "images/0446_20261107-032316_149_unidentified_object_7_b.png"
+    }
+  },
+  {
+    "index": 150,
+    "name": "150_unidentified_object_8",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0448_20261107-032326_150_unidentified_object_8_a.png",
+      "outside": "images/0449_20261107-032326_150_unidentified_object_8_b.png"
+    }
+  },
+  {
+    "index": 151,
+    "name": "151_vertical_pipe_4",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0451_20261107-032321_151_vertical_pipe_4_a.png",
+      "outside": "images/0452_20261107-032321_151_vertical_pipe_4_b.png"
+    }
+  },
+  {
+    "index": 152,
+    "name": "152_pipe_11",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0454_20261107-032329_152_pipe_11_a.png",
+      "outside": "images/0455_20261107-032329_152_pipe_11_b.png"
+    }
+  },
+  {
+    "index": 153,
+    "name": "153_vertical_pipe_5",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0457_20261107-032325_153_vertical_pipe_5_a.png",
+      "outside": "images/0458_20261107-032325_153_vertical_pipe_5_b.png"
+    }
+  },
+  {
+    "index": 154,
+    "name": "154_vertical_pipe_6",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0460_20261107-032331_154_vertical_pipe_6_a.png",
+      "outside": "images/0461_20261107-032331_154_vertical_pipe_6_b.png"
+    }
+  },
+  {
+    "index": 155,
+    "name": "155_vertical_pipe_7",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0463_20261107-032328_155_vertical_pipe_7_a.png",
+      "outside": "images/0464_20261107-032328_155_vertical_pipe_7_b.png"
+    }
+  },
+  {
+    "index": 156,
+    "name": "156_pipe_12",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0466_20261107-032333_156_pipe_12_a.png",
+      "outside": "images/0467_20261107-032333_156_pipe_12_b.png"
+    }
+  },
+  {
+    "index": 157,
+    "name": "157_pipe_13",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0469_20261107-032330_157_pipe_13_a.png",
+      "outside": "images/0470_20261107-032330_157_pipe_13_b.png"
+    }
+  },
+  {
+    "index": 158,
+    "name": "158_unidentified_object_9",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0472_20261107-032337_158_unidentified_object_9_a.png",
+      "outside": "images/0473_20261107-032337_158_unidentified_object_9_b.png"
+    }
+  },
+  {
+    "index": 159,
+    "name": "159_vertical_pipe_8",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0475_20261107-032332_159_vertical_pipe_8_a.png",
+      "outside": "images/0476_20261107-032332_159_vertical_pipe_8_b.png"
+    }
+  },
+  {
+    "index": 160,
+    "name": "160_pipe_14",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0478_20261107-032339_160_pipe_14_a.png",
+      "outside": "images/0479_20261107-032339_160_pipe_14_b.png"
+    }
+  },
+  {
+    "index": 161,
+    "name": "161_vertical_pipe_9",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0481_20261107-032336_161_vertical_pipe_9_a.png",
+      "outside": "images/0482_20261107-032336_161_vertical_pipe_9_b.png"
+    }
+  },
+  {
+    "index": 162,
+    "name": "162_pipe_15",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0484_20261107-032341_162_pipe_15_a.png",
+      "outside": "images/0485_20261107-032341_162_pipe_15_b.png"
+    }
+  },
+  {
+    "index": 163,
+    "name": "163_vertical_pipe_10",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0487_20261107-032339_163_vertical_pipe_10_a.png",
+      "outside": "images/0488_20261107-032339_163_vertical_pipe_10_b.png"
+    }
+  },
+  {
+    "index": 164,
+    "name": "164_unidentified_object_10",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0490_20261107-032343_164_unidentified_object_10_a.png",
+      "outside": "images/0491_20261107-032343_164_unidentified_object_10_b.png"
+    }
+  },
+  {
+    "index": 165,
+    "name": "165_vertical_pipe_11",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0493_20261107-032341_165_vertical_pipe_11_a.png",
+      "outside": "images/0494_20261107-032341_165_vertical_pipe_11_b.png"
+    }
+  },
+  {
+    "index": 166,
+    "name": "166_vertical_pipe_12",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0496_20261107-032345_166_vertical_pipe_12_a.png",
+      "outside": "images/0497_20261107-032345_166_vertical_pipe_12_b.png"
+    }
+  },
+  {
+    "index": 167,
+    "name": "167_vertical_pipe_13",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0499_20261107-032344_167_vertical_pipe_13_a.png",
+      "outside": "images/0500_20261107-032344_167_vertical_pipe_13_b.png"
+    }
+  },
+  {
+    "index": 168,
+    "name": "168_vertical_pipe_14",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0502_20261107-032349_168_vertical_pipe_14_a.png",
+      "outside": "images/0503_20261107-032349_168_vertical_pipe_14_b.png"
+    }
+  },
+  {
+    "index": 169,
+    "name": "169_unidentified_object_11",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0505_20261107-032346_169_unidentified_object_11_a.png",
+      "outside": "images/0506_20261107-032346_169_unidentified_object_11_b.png"
+    }
+  },
+  {
+    "index": 170,
+    "name": "170_vertical_pipe_15",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0508_20261107-032354_170_vertical_pipe_15_a.png",
+      "outside": "images/0509_20261107-032354_170_vertical_pipe_15_b.png"
+    }
+  },
+  {
+    "index": 171,
+    "name": "171_pipe_16",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0511_20261107-032349_171_pipe_16_a.png",
+      "outside": "images/0512_20261107-032349_171_pipe_16_b.png"
+    }
+  },
+  {
+    "index": 172,
+    "name": "172_pipe_17",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0514_20261107-032357_172_pipe_17_a.png",
+      "outside": "images/0515_20261107-032357_172_pipe_17_b.png"
+    }
+  },
+  {
+    "index": 173,
+    "name": "173_vertical_pipe_16",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0517_20261107-032354_173_vertical_pipe_16_a.png",
+      "outside": "images/0518_20261107-032354_173_vertical_pipe_16_b.png"
+    }
+  },
+  {
+    "index": 174,
+    "name": "174_pipe_18",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0520_20261107-032359_174_pipe_18_a.png",
+      "outside": "images/0521_20261107-032359_174_pipe_18_b.png"
+    }
+  },
+  {
+    "index": 175,
+    "name": "175_vertical_pipe_17",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0523_20261107-032357_175_vertical_pipe_17_a.png",
+      "outside": "images/0524_20261107-032357_175_vertical_pipe_17_b.png"
+    }
+  },
+  {
+    "index": 176,
+    "name": "176_unidentified_object_12",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0526_20261107-032403_176_unidentified_object_12_a.png",
+      "outside": "images/0527_20261107-032403_176_unidentified_object_12_b.png"
+    }
+  },
+  {
+    "index": 177,
+    "name": "177_unidentified_object_13",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0529_20261107-032401_177_unidentified_object_13_a.png",
+      "outside": "images/0530_20261107-032401_177_unidentified_object_13_b.png"
+    }
+  },
+  {
+    "index": 178,
+    "name": "178_vertical_pipe_18",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0532_20261107-032405_178_vertical_pipe_18_a.png",
+      "outside": "images/0533_20261107-032405_178_vertical_pipe_18_b.png"
+    }
+  },
+  {
+    "index": 179,
+    "name": "179_pipe_19",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0535_20261107-032404_179_pipe_19_a.png",
+      "outside": "images/0536_20261107-032404_179_pipe_19_b.png"
+    }
+  },
+  {
+    "index": 180,
+    "name": "180_pipe_20",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0538_20261107-032408_180_pipe_20_a.png",
+      "outside": "images/0539_20261107-032408_180_pipe_20_b.png"
+    }
+  },
+  {
+    "index": 181,
+    "name": "181_vertical_pipe_19",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0541_20261107-032406_181_vertical_pipe_19_a.png",
+      "outside": "images/0542_20261107-032406_181_vertical_pipe_19_b.png"
+    }
+  },
+  {
+    "index": 182,
+    "name": "182_unidentified_object_14",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0544_20261107-032410_182_unidentified_object_14_a.png",
+      "outside": "images/0545_20261107-032410_182_unidentified_object_14_b.png"
+    }
+  },
+  {
+    "index": 183,
+    "name": "183_vertical_pipe_20",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0547_20261107-032409_183_vertical_pipe_20_a.png",
+      "outside": "images/0548_20261107-032409_183_vertical_pipe_20_b.png"
+    }
+  },
+  {
+    "index": 184,
+    "name": "184_pipe_21",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0550_20261107-032412_184_pipe_21_a.png",
+      "outside": "images/0551_20261107-032412_184_pipe_21_b.png"
+    }
+  },
+  {
+    "index": 185,
+    "name": "185_pipe_22",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0553_20261107-032413_185_pipe_22_a.png",
+      "outside": "images/0554_20261107-032413_185_pipe_22_b.png"
+    }
+  },
+  {
+    "index": 186,
+    "name": "186_unidentified_object_15",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0556_20261107-032414_186_unidentified_object_15_a.png",
+      "outside": "images/0557_20261107-032414_186_unidentified_object_15_b.png"
+    }
+  },
+  {
+    "index": 187,
+    "name": "187_vertical_pipe_21",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0559_20261107-032415_187_vertical_pipe_21_a.png",
+      "outside": "images/0560_20261107-032415_187_vertical_pipe_21_b.png"
+    }
+  },
+  {
+    "index": 188,
+    "name": "188_pipe_23",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0562_20261107-032416_188_pipe_23_a.png",
+      "outside": "images/0563_20261107-032416_188_pipe_23_b.png"
+    }
+  },
+  {
+    "index": 189,
+    "name": "189_vertical_pipe_22",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0565_20261107-032418_189_vertical_pipe_22_a.png",
+      "outside": "images/0566_20261107-032418_189_vertical_pipe_22_b.png"
+    }
+  },
+  {
+    "index": 190,
+    "name": "190_pipe_24",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0568_20261107-032418_190_pipe_24_a.png",
+      "outside": "images/0569_20261107-032418_190_pipe_24_b.png"
+    }
+  },
+  {
+    "index": 191,
+    "name": "191_pipe_25",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0571_20261107-032423_191_pipe_25_a.png",
+      "outside": "images/0572_20261107-032423_191_pipe_25_b.png"
+    }
+  },
+  {
+    "index": 192,
+    "name": "192_vertical_pipe_23",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0574_20261107-032421_192_vertical_pipe_23_a.png",
+      "outside": "images/0575_20261107-032421_192_vertical_pipe_23_b.png"
+    }
+  },
+  {
+    "index": 193,
+    "name": "193_pipe_26",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0577_20261107-032426_193_pipe_26_a.png",
+      "outside": "images/0578_20261107-032426_193_pipe_26_b.png"
+    }
+  },
+  {
+    "index": 194,
+    "name": "194_pipe_27",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0580_20261107-032426_194_pipe_27_a.png",
+      "outside": "images/0581_20261107-032426_194_pipe_27_b.png"
+    }
+  },
+  {
+    "index": 195,
+    "name": "195_pipe_fitting_1",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0583_20261107-032430_195_pipe_fitting_1_a.png",
+      "outside": "images/0584_20261107-032430_195_pipe_fitting_1_b.png"
+    }
+  },
+  {
+    "index": 196,
+    "name": "196_vertical_pipe_24",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0586_20261107-032429_196_vertical_pipe_24_a.png",
+      "outside": "images/0587_20261107-032429_196_vertical_pipe_24_b.png"
+    }
+  },
+  {
+    "index": 197,
+    "name": "197_pipe_28",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0589_20261107-032433_197_pipe_28_a.png",
+      "outside": "images/0590_20261107-032433_197_pipe_28_b.png"
+    }
+  },
+  {
+    "index": 198,
+    "name": "198_pipe_29",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0592_20261107-032435_198_pipe_29_a.png",
+      "outside": "images/0593_20261107-032435_198_pipe_29_b.png"
+    }
+  },
+  {
+    "index": 199,
+    "name": "199_vertical_pipe_25",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0595_20261107-032436_199_vertical_pipe_25_a.png",
+      "outside": "images/0596_20261107-032436_199_vertical_pipe_25_b.png"
+    }
+  },
+  {
+    "index": 200,
+    "name": "200_pipe_30",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0598_20261107-032437_200_pipe_30_a.png",
+      "outside": "images/0599_20261107-032437_200_pipe_30_b.png"
+    }
+  },
+  {
+    "index": 201,
+    "name": "201_unidentified_object_16",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0601_20261107-032439_201_unidentified_object_16_a.png",
+      "outside": "images/0602_20261107-032439_201_unidentified_object_16_b.png"
+    }
+  },
+  {
+    "index": 202,
+    "name": "202_vertical_pipe_26",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0604_20261107-032440_202_vertical_pipe_26_a.png",
+      "outside": "images/0605_20261107-032440_202_vertical_pipe_26_b.png"
+    }
+  },
+  {
+    "index": 203,
+    "name": "203_pipe_fitting_2",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0607_20261107-032444_203_pipe_fitting_2_a.png",
+      "outside": "images/0608_20261107-032444_203_pipe_fitting_2_b.png"
+    }
+  },
+  {
+    "index": 204,
+    "name": "204_pipe_31",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0610_20261107-032446_204_pipe_31_a.png",
+      "outside": "images/0611_20261107-032446_204_pipe_31_b.png"
+    }
+  },
+  {
+    "index": 205,
+    "name": "205_pipe_32",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0613_20261107-032447_205_pipe_32_a.png",
+      "outside": "images/0614_20261107-032447_205_pipe_32_b.png"
+    }
+  },
+  {
+    "index": 206,
+    "name": "206_pipe_33",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0616_20261107-032449_206_pipe_33_a.png",
+      "outside": "images/0617_20261107-032449_206_pipe_33_b.png"
+    }
+  },
+  {
+    "index": 207,
+    "name": "207_pipe_34",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0619_20261107-032449_207_pipe_34_a.png",
+      "outside": "images/0620_20261107-032449_207_pipe_34_b.png"
+    }
+  },
+  {
+    "index": 208,
+    "name": "208_unidentified_object_17",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0622_20261107-032453_208_unidentified_object_17_a.png",
+      "outside": "images/0623_20261107-032453_208_unidentified_object_17_b.png"
+    }
+  },
+  {
+    "index": 209,
+    "name": "209_pipe_35",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0625_20261107-032453_209_pipe_35_a.png",
+      "outside": "images/0626_20261107-032453_209_pipe_35_b.png"
+    }
+  },
+  {
+    "index": 210,
+    "name": "210_pipe_36",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0628_20261107-032455_210_pipe_36_a.png",
+      "outside": "images/0629_20261107-032455_210_pipe_36_b.png"
+    }
+  },
+  {
+    "index": 211,
+    "name": "211_vertical_pipe_27",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0631_20261107-032455_211_vertical_pipe_27_a.png",
+      "outside": "images/0632_20261107-032455_211_vertical_pipe_27_b.png"
+    }
+  },
+  {
+    "index": 212,
+    "name": "212_vertical_pipe_28",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0634_20261107-032458_212_vertical_pipe_28_a.png",
+      "outside": "images/0635_20261107-032458_212_vertical_pipe_28_b.png"
+    }
+  },
+  {
+    "index": 213,
+    "name": "213_unidentified_object_18",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0637_20261107-032500_213_unidentified_object_18_a.png",
+      "outside": "images/0638_20261107-032500_213_unidentified_object_18_b.png"
+    }
+  },
+  {
+    "index": 214,
+    "name": "214_vertical_pipe_29",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0640_20261107-032502_214_vertical_pipe_29_a.png",
+      "outside": "images/0641_20261107-032502_214_vertical_pipe_29_b.png"
+    }
+  },
+  {
+    "index": 215,
+    "name": "215_pipe_37",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0643_20261107-032503_215_pipe_37_a.png",
+      "outside": "images/0644_20261107-032503_215_pipe_37_b.png"
+    }
+  },
+  {
+    "index": 216,
+    "name": "216_unidentified_object_19",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0646_20261107-032507_216_unidentified_object_19_a.png",
+      "outside": "images/0647_20261107-032507_216_unidentified_object_19_b.png"
+    }
+  },
+  {
+    "index": 217,
+    "name": "217_vertical_pipe_30",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0649_20261107-032506_217_vertical_pipe_30_a.png",
+      "outside": "images/0650_20261107-032506_217_vertical_pipe_30_b.png"
+    }
+  },
+  {
+    "index": 218,
+    "name": "218_vertical_pipe_31",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0652_20261107-032511_218_vertical_pipe_31_a.png",
+      "outside": "images/0653_20261107-032511_218_vertical_pipe_31_b.png"
+    }
+  },
+  {
+    "index": 219,
+    "name": "219_column_1",
+    "label": "column",
+    "images": {
+      "closeup": "images/0655_20261107-032510_219_column_1_a.png",
+      "outside": "images/0656_20261107-032510_219_column_1_b.png"
+    }
+  },
+  {
+    "index": 220,
+    "name": "220_unidentified_object_20",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0658_20261107-032514_220_unidentified_object_20_a.png",
+      "outside": "images/0659_20261107-032514_220_unidentified_object_20_b.png"
+    }
+  },
+  {
+    "index": 221,
+    "name": "221_vertical_pipe_32",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0661_20261107-032515_221_vertical_pipe_32_a.png",
+      "outside": "images/0662_20261107-032515_221_vertical_pipe_32_b.png"
+    }
+  },
+  {
+    "index": 222,
+    "name": "222_pipe_38",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0664_20261107-032517_222_pipe_38_a.png",
+      "outside": "images/0665_20261107-032517_222_pipe_38_b.png"
+    }
+  },
+  {
+    "index": 223,
+    "name": "223_unidentified_object_21",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0667_20261107-032520_223_unidentified_object_21_a.png",
+      "outside": "images/0668_20261107-032520_223_unidentified_object_21_b.png"
+    }
+  },
+  {
+    "index": 224,
+    "name": "224_vertical_pipe_33",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0670_20261107-032521_224_vertical_pipe_33_a.png",
+      "outside": "images/0671_20261107-032521_224_vertical_pipe_33_b.png"
+    }
+  },
+  {
+    "index": 225,
+    "name": "225_pipe_fitting_3",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0673_20261107-032523_225_pipe_fitting_3_a.png",
+      "outside": "images/0674_20261107-032523_225_pipe_fitting_3_b.png"
+    }
+  },
+  {
+    "index": 226,
+    "name": "226_unidentified_object_22",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0676_20261107-032525_226_unidentified_object_22_a.png",
+      "outside": "images/0677_20261107-032525_226_unidentified_object_22_b.png"
+    }
+  },
+  {
+    "index": 227,
+    "name": "227_pipe_39",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0679_20261107-032526_227_pipe_39_a.png",
+      "outside": "images/0680_20261107-032526_227_pipe_39_b.png"
+    }
+  },
+  {
+    "index": 228,
+    "name": "228_pipe_40",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0682_20261107-032527_228_pipe_40_a.png",
+      "outside": "images/0683_20261107-032527_228_pipe_40_b.png"
+    }
+  },
+  {
+    "index": 229,
+    "name": "229_pipe_fitting_4",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0685_20261107-032528_229_pipe_fitting_4_a.png",
+      "outside": "images/0686_20261107-032528_229_pipe_fitting_4_b.png"
+    }
+  },
+  {
+    "index": 230,
+    "name": "230_pipe_41",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0688_20261107-032529_230_pipe_41_a.png",
+      "outside": "images/0689_20261107-032529_230_pipe_41_b.png"
+    }
+  },
+  {
+    "index": 231,
+    "name": "231_vertical_pipe_34",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0691_20261107-032531_231_vertical_pipe_34_a.png",
+      "outside": "images/0692_20261107-032531_231_vertical_pipe_34_b.png"
+    }
+  },
+  {
+    "index": 232,
+    "name": "232_pipe_42",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0694_20261107-032532_232_pipe_42_a.png",
+      "outside": "images/0695_20261107-032532_232_pipe_42_b.png"
+    }
+  },
+  {
+    "index": 233,
+    "name": "233_pipe_fitting_5",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0697_20261107-032533_233_pipe_fitting_5_a.png",
+      "outside": "images/0698_20261107-032533_233_pipe_fitting_5_b.png"
+    }
+  },
+  {
+    "index": 234,
+    "name": "234_pipe_43",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0700_20261107-032534_234_pipe_43_a.png",
+      "outside": "images/0701_20261107-032534_234_pipe_43_b.png"
+    }
+  },
+  {
+    "index": 235,
+    "name": "235_pipe_44",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0703_20261107-032536_235_pipe_44_a.png",
+      "outside": "images/0704_20261107-032536_235_pipe_44_b.png"
+    }
+  },
+  {
+    "index": 236,
+    "name": "236_pipe_fitting_6",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0706_20261107-032537_236_pipe_fitting_6_a.png",
+      "outside": "images/0707_20261107-032537_236_pipe_fitting_6_b.png"
+    }
+  },
+  {
+    "index": 237,
+    "name": "237_pipe_fitting_7",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0709_20261107-032538_237_pipe_fitting_7_a.png",
+      "outside": "images/0710_20261107-032538_237_pipe_fitting_7_b.png"
+    }
+  },
+  {
+    "index": 238,
+    "name": "238_pipe_45",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0712_20261107-032539_238_pipe_45_a.png",
+      "outside": "images/0713_20261107-032539_238_pipe_45_b.png"
+    }
+  },
+  {
+    "index": 239,
+    "name": "239_pipe_46",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0715_20261107-032540_239_pipe_46_a.png",
+      "outside": "images/0716_20261107-032540_239_pipe_46_b.png"
+    }
+  },
+  {
+    "index": 240,
+    "name": "240_unidentified_object_23",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0718_20261107-032542_240_unidentified_object_23_a.png",
+      "outside": "images/0719_20261107-032542_240_unidentified_object_23_b.png"
+    }
+  },
+  {
+    "index": 241,
+    "name": "241_pipe_47",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0721_20261107-032543_241_pipe_47_a.png",
+      "outside": "images/0722_20261107-032543_241_pipe_47_b.png"
+    }
+  },
+  {
+    "index": 242,
+    "name": "242_pipe_48",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0724_20261107-032544_242_pipe_48_a.png",
+      "outside": "images/0725_20261107-032544_242_pipe_48_b.png"
+    }
+  },
+  {
+    "index": 243,
+    "name": "243_pipe_49",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0727_20261107-032545_243_pipe_49_a.png",
+      "outside": "images/0728_20261107-032545_243_pipe_49_b.png"
+    }
+  },
+  {
+    "index": 244,
+    "name": "244_unidentified_object_24",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0730_20261107-032547_244_unidentified_object_24_a.png",
+      "outside": "images/0731_20261107-032547_244_unidentified_object_24_b.png"
+    }
+  },
+  {
+    "index": 245,
+    "name": "245_pipe_50",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0733_20261107-032548_245_pipe_50_a.png",
+      "outside": "images/0734_20261107-032548_245_pipe_50_b.png"
+    }
+  },
+  {
+    "index": 246,
+    "name": "246_vertical_pipe_35",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0736_20261107-032549_246_vertical_pipe_35_a.png",
+      "outside": "images/0737_20261107-032549_246_vertical_pipe_35_b.png"
+    }
+  },
+  {
+    "index": 247,
+    "name": "247_vertical_pipe_36",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0739_20261107-032550_247_vertical_pipe_36_a.png",
+      "outside": "images/0740_20261107-032550_247_vertical_pipe_36_b.png"
+    }
+  },
+  {
+    "index": 248,
+    "name": "248_unidentified_object_25",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0742_20261107-032552_248_unidentified_object_25_a.png",
+      "outside": "images/0743_20261107-032552_248_unidentified_object_25_b.png"
+    }
+  },
+  {
+    "index": 249,
+    "name": "249_vertical_pipe_37",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0745_20261107-032554_249_vertical_pipe_37_a.png",
+      "outside": "images/0746_20261107-032554_249_vertical_pipe_37_b.png"
+    }
+  },
+  {
+    "index": 250,
+    "name": "250_vertical_pipe_38",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0748_20261107-032555_250_vertical_pipe_38_a.png",
+      "outside": "images/0749_20261107-032555_250_vertical_pipe_38_b.png"
+    }
+  },
+  {
+    "index": 251,
+    "name": "251_pipe_51",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0751_20261107-032558_251_pipe_51_a.png",
+      "outside": "images/0752_20261107-032558_251_pipe_51_b.png"
+    }
+  },
+  {
+    "index": 252,
+    "name": "252_unidentified_object_26",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0754_20261107-032558_252_unidentified_object_26_a.png",
+      "outside": "images/0755_20261107-032558_252_unidentified_object_26_b.png"
+    }
+  },
+  {
+    "index": 253,
+    "name": "253_vertical_pipe_39",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0757_20261107-032601_253_vertical_pipe_39_a.png",
+      "outside": "images/0758_20261107-032601_253_vertical_pipe_39_b.png"
+    }
+  },
+  {
+    "index": 254,
+    "name": "254_vertical_pipe_40",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0760_20261107-032601_254_vertical_pipe_40_a.png",
+      "outside": "images/0761_20261107-032601_254_vertical_pipe_40_b.png"
+    }
+  },
+  {
+    "index": 255,
+    "name": "255_unidentified_object_27",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0763_20261107-032603_255_unidentified_object_27_a.png",
+      "outside": "images/0764_20261107-032603_255_unidentified_object_27_b.png"
+    }
+  },
+  {
+    "index": 256,
+    "name": "256_pipe_52",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0766_20261107-032603_256_pipe_52_a.png",
+      "outside": "images/0767_20261107-032603_256_pipe_52_b.png"
+    }
+  },
+  {
+    "index": 257,
+    "name": "257_pipe_53",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0769_20261107-032605_257_pipe_53_a.png",
+      "outside": "images/0770_20261107-032605_257_pipe_53_b.png"
+    }
+  },
+  {
+    "index": 258,
+    "name": "258_column_2",
+    "label": "column",
+    "images": {
+      "closeup": "images/0772_20261107-032605_258_column_2_a.png",
+      "outside": "images/0773_20261107-032605_258_column_2_b.png"
+    }
+  },
+  {
+    "index": 259,
+    "name": "259_vertical_pipe_41",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0775_20261107-032608_259_vertical_pipe_41_a.png",
+      "outside": "images/0776_20261107-032608_259_vertical_pipe_41_b.png"
+    }
+  },
+  {
+    "index": 260,
+    "name": "260_pipe_54",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0778_20261107-032608_260_pipe_54_a.png",
+      "outside": "images/0779_20261107-032608_260_pipe_54_b.png"
+    }
+  },
+  {
+    "index": 261,
+    "name": "261_unidentified_object_28",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0781_20261107-032611_261_unidentified_object_28_a.png",
+      "outside": "images/0782_20261107-032611_261_unidentified_object_28_b.png"
+    }
+  },
+  {
+    "index": 262,
+    "name": "262_pipe_55",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0784_20261107-032611_262_pipe_55_a.png",
+      "outside": "images/0785_20261107-032611_262_pipe_55_b.png"
+    }
+  },
+  {
+    "index": 263,
+    "name": "263_unidentified_object_29",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0787_20261107-032614_263_unidentified_object_29_a.png",
+      "outside": "images/0788_20261107-032614_263_unidentified_object_29_b.png"
+    }
+  },
+  {
+    "index": 264,
+    "name": "264_unidentified_object_30",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0790_20261107-032613_264_unidentified_object_30_a.png",
+      "outside": "images/0791_20261107-032613_264_unidentified_object_30_b.png"
+    }
+  },
+  {
+    "index": 265,
+    "name": "265_unidentified_object_31",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0793_20261107-032617_265_unidentified_object_31_a.png",
+      "outside": "images/0794_20261107-032617_265_unidentified_object_31_b.png"
+    }
+  },
+  {
+    "index": 266,
+    "name": "266_vertical_pipe_42",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0796_20261107-032616_266_vertical_pipe_42_a.png",
+      "outside": "images/0797_20261107-032616_266_vertical_pipe_42_b.png"
+    }
+  },
+  {
+    "index": 267,
+    "name": "267_pipe_56",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0799_20261107-032619_267_pipe_56_a.png",
+      "outside": "images/0800_20261107-032619_267_pipe_56_b.png"
+    }
+  },
+  {
+    "index": 268,
+    "name": "268_vertical_pipe_43",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0802_20261107-032619_268_vertical_pipe_43_a.png",
+      "outside": "images/0803_20261107-032619_268_vertical_pipe_43_b.png"
+    }
+  },
+  {
+    "index": 269,
+    "name": "269_unidentified_object_32",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0805_20261107-032622_269_unidentified_object_32_a.png",
+      "outside": "images/0806_20261107-032622_269_unidentified_object_32_b.png"
+    }
+  },
+  {
+    "index": 270,
+    "name": "270_unidentified_object_33",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0808_20261107-032621_270_unidentified_object_33_a.png",
+      "outside": "images/0809_20261107-032621_270_unidentified_object_33_b.png"
+    }
+  },
+  {
+    "index": 271,
+    "name": "271_unidentified_object_34",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0811_20261107-032624_271_unidentified_object_34_a.png",
+      "outside": "images/0812_20261107-032624_271_unidentified_object_34_b.png"
+    }
+  },
+  {
+    "index": 272,
+    "name": "272_pipe_57",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0814_20261107-032623_272_pipe_57_a.png",
+      "outside": "images/0815_20261107-032623_272_pipe_57_b.png"
+    }
+  },
+  {
+    "index": 273,
+    "name": "273_pipe_58",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0817_20261107-032627_273_pipe_58_a.png",
+      "outside": "images/0818_20261107-032627_273_pipe_58_b.png"
+    }
+  },
+  {
+    "index": 274,
+    "name": "274_unidentified_object_35",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0820_20261107-032626_274_unidentified_object_35_a.png",
+      "outside": "images/0821_20261107-032626_274_unidentified_object_35_b.png"
+    }
+  },
+  {
+    "index": 275,
+    "name": "275_pipe_59",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0823_20261107-032630_275_pipe_59_a.png",
+      "outside": "images/0824_20261107-032630_275_pipe_59_b.png"
+    }
+  },
+  {
+    "index": 276,
+    "name": "276_pipe_fitting_8",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0826_20261107-032629_276_pipe_fitting_8_a.png",
+      "outside": "images/0827_20261107-032629_276_pipe_fitting_8_b.png"
+    }
+  },
+  {
+    "index": 277,
+    "name": "277_pipe_60",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0829_20261107-032632_277_pipe_60_a.png",
+      "outside": "images/0830_20261107-032632_277_pipe_60_b.png"
+    }
+  },
+  {
+    "index": 278,
+    "name": "278_pipe_61",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0832_20261107-032632_278_pipe_61_a.png",
+      "outside": "images/0833_20261107-032632_278_pipe_61_b.png"
+    }
+  },
+  {
+    "index": 279,
+    "name": "279_vertical_pipe_44",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0835_20261107-032635_279_vertical_pipe_44_a.png",
+      "outside": "images/0836_20261107-032635_279_vertical_pipe_44_b.png"
+    }
+  },
+  {
+    "index": 280,
+    "name": "280_pipe_62",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0838_20261107-032634_280_pipe_62_a.png",
+      "outside": "images/0839_20261107-032634_280_pipe_62_b.png"
+    }
+  },
+  {
+    "index": 281,
+    "name": "281_vertical_pipe_45",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0841_20261107-032637_281_vertical_pipe_45_a.png",
+      "outside": "images/0842_20261107-032637_281_vertical_pipe_45_b.png"
+    }
+  },
+  {
+    "index": 282,
+    "name": "282_unidentified_object_36",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0844_20261107-032637_282_unidentified_object_36_a.png",
+      "outside": "images/0845_20261107-032637_282_unidentified_object_36_b.png"
+    }
+  },
+  {
+    "index": 283,
+    "name": "283_vertical_pipe_46",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0847_20261107-032640_283_vertical_pipe_46_a.png",
+      "outside": "images/0848_20261107-032640_283_vertical_pipe_46_b.png"
+    }
+  },
+  {
+    "index": 284,
+    "name": "284_pipe_63",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0850_20261107-032640_284_pipe_63_a.png",
+      "outside": "images/0851_20261107-032640_284_pipe_63_b.png"
+    }
+  },
+  {
+    "index": 285,
+    "name": "285_unidentified_object_37",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0853_20261107-032643_285_unidentified_object_37_a.png",
+      "outside": "images/0854_20261107-032643_285_unidentified_object_37_b.png"
+    }
+  },
+  {
+    "index": 286,
+    "name": "286_pipe_fitting_9",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0856_20261107-032642_286_pipe_fitting_9_a.png",
+      "outside": "images/0857_20261107-032642_286_pipe_fitting_9_b.png"
+    }
+  },
+  {
+    "index": 287,
+    "name": "287_pipe_64",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0859_20261107-032646_287_pipe_64_a.png",
+      "outside": "images/0860_20261107-032646_287_pipe_64_b.png"
+    }
+  },
+  {
+    "index": 288,
+    "name": "288_pipe_65",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0862_20261107-032644_288_pipe_65_a.png",
+      "outside": "images/0863_20261107-032644_288_pipe_65_b.png"
+    }
+  },
+  {
+    "index": 289,
+    "name": "289_pipe_66",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0865_20261107-032648_289_pipe_66_a.png",
+      "outside": "images/0866_20261107-032648_289_pipe_66_b.png"
+    }
+  },
+  {
+    "index": 290,
+    "name": "290_pipe_67",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0868_20261107-032645_290_pipe_67_a.png",
+      "outside": "images/0869_20261107-032645_290_pipe_67_b.png"
+    }
+  },
+  {
+    "index": 291,
+    "name": "291_pipe_68",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0871_20261107-032650_291_pipe_68_a.png",
+      "outside": "images/0872_20261107-032650_291_pipe_68_b.png"
+    }
+  },
+  {
+    "index": 292,
+    "name": "292_vertical_pipe_47",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0874_20261107-032648_292_vertical_pipe_47_a.png",
+      "outside": "images/0875_20261107-032648_292_vertical_pipe_47_b.png"
+    }
+  },
+  {
+    "index": 293,
+    "name": "293_pipe_69",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0877_20261107-032652_293_pipe_69_a.png",
+      "outside": "images/0878_20261107-032652_293_pipe_69_b.png"
+    }
+  },
+  {
+    "index": 294,
+    "name": "294_pipe_70",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0880_20261107-032650_294_pipe_70_a.png",
+      "outside": "images/0881_20261107-032650_294_pipe_70_b.png"
+    }
+  },
+  {
+    "index": 295,
+    "name": "295_vertical_pipe_48",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0883_20261107-032655_295_vertical_pipe_48_a.png",
+      "outside": "images/0884_20261107-032655_295_vertical_pipe_48_b.png"
+    }
+  },
+  {
+    "index": 296,
+    "name": "296_unidentified_object_38",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0886_20261107-032653_296_unidentified_object_38_a.png",
+      "outside": "images/0887_20261107-032653_296_unidentified_object_38_b.png"
+    }
+  },
+  {
+    "index": 297,
+    "name": "297_unidentified_object_39",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0889_20261107-032658_297_unidentified_object_39_a.png",
+      "outside": "images/0890_20261107-032658_297_unidentified_object_39_b.png"
+    }
+  },
+  {
+    "index": 298,
+    "name": "298_pipe_71",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0892_20261107-032657_298_pipe_71_a.png",
+      "outside": "images/0893_20261107-032657_298_pipe_71_b.png"
+    }
+  },
+  {
+    "index": 299,
+    "name": "299_pipe_72",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0895_20261107-032701_299_pipe_72_a.png",
+      "outside": "images/0896_20261107-032701_299_pipe_72_b.png"
+    }
+  },
+  {
+    "index": 300,
+    "name": "300_vertical_pipe_49",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0898_20261107-032659_300_vertical_pipe_49_a.png",
+      "outside": "images/0899_20261107-032659_300_vertical_pipe_49_b.png"
+    }
+  },
+  {
+    "index": 301,
+    "name": "301_vertical_pipe_50",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0901_20261107-032705_301_vertical_pipe_50_a.png",
+      "outside": "images/0902_20261107-032705_301_vertical_pipe_50_b.png"
+    }
+  },
+  {
+    "index": 302,
+    "name": "302_unidentified_object_40",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0904_20261107-032703_302_unidentified_object_40_a.png",
+      "outside": "images/0905_20261107-032703_302_unidentified_object_40_b.png"
+    }
+  },
+  {
+    "index": 303,
+    "name": "303_pipe_73",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0907_20261107-032708_303_pipe_73_a.png",
+      "outside": "images/0908_20261107-032708_303_pipe_73_b.png"
+    }
+  },
+  {
+    "index": 304,
+    "name": "304_vertical_pipe_51",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0910_20261107-032706_304_vertical_pipe_51_a.png",
+      "outside": "images/0911_20261107-032706_304_vertical_pipe_51_b.png"
+    }
+  },
+  {
+    "index": 305,
+    "name": "305_unidentified_object_41",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0913_20261107-032712_305_unidentified_object_41_a.png",
+      "outside": "images/0914_20261107-032712_305_unidentified_object_41_b.png"
+    }
+  },
+  {
+    "index": 306,
+    "name": "306_pipe_fitting_10",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0916_20261107-032710_306_pipe_fitting_10_a.png",
+      "outside": "images/0917_20261107-032710_306_pipe_fitting_10_b.png"
+    }
+  },
+  {
+    "index": 307,
+    "name": "307_pipe_fitting_11",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0919_20261107-032715_307_pipe_fitting_11_a.png",
+      "outside": "images/0920_20261107-032715_307_pipe_fitting_11_b.png"
+    }
+  },
+  {
+    "index": 308,
+    "name": "308_pipe_74",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0922_20261107-032712_308_pipe_74_a.png",
+      "outside": "images/0923_20261107-032712_308_pipe_74_b.png"
+    }
+  },
+  {
+    "index": 309,
+    "name": "309_pipe_75",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0925_20261107-032718_309_pipe_75_a.png",
+      "outside": "images/0926_20261107-032718_309_pipe_75_b.png"
+    }
+  },
+  {
+    "index": 310,
+    "name": "310_pipe_fitting_12",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0928_20261107-032715_310_pipe_fitting_12_a.png",
+      "outside": "images/0929_20261107-032715_310_pipe_fitting_12_b.png"
+    }
+  },
+  {
+    "index": 311,
+    "name": "311_unidentified_object_42",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0931_20261107-032721_311_unidentified_object_42_a.png",
+      "outside": "images/0932_20261107-032721_311_unidentified_object_42_b.png"
+    }
+  },
+  {
+    "index": 312,
+    "name": "312_unidentified_object_43",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0934_20261107-032718_312_unidentified_object_43_a.png",
+      "outside": "images/0935_20261107-032718_312_unidentified_object_43_b.png"
+    }
+  },
+  {
+    "index": 313,
+    "name": "313_pipe_76",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0937_20261107-032723_313_pipe_76_a.png",
+      "outside": "images/0938_20261107-032723_313_pipe_76_b.png"
+    }
+  },
+  {
+    "index": 314,
+    "name": "314_pipe_77",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0940_20261107-032722_314_pipe_77_a.png",
+      "outside": "images/0941_20261107-032722_314_pipe_77_b.png"
+    }
+  },
+  {
+    "index": 315,
+    "name": "315_pipe_78",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0943_20261107-032726_315_pipe_78_a.png",
+      "outside": "images/0944_20261107-032726_315_pipe_78_b.png"
+    }
+  },
+  {
+    "index": 316,
+    "name": "316_pipe_fitting_13",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0946_20261107-032724_316_pipe_fitting_13_a.png",
+      "outside": "images/0947_20261107-032724_316_pipe_fitting_13_b.png"
+    }
+  },
+  {
+    "index": 317,
+    "name": "317_vertical_pipe_52",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0949_20261107-032728_317_vertical_pipe_52_a.png",
+      "outside": "images/0950_20261107-032728_317_vertical_pipe_52_b.png"
+    }
+  },
+  {
+    "index": 318,
+    "name": "318_unidentified_object_44",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0952_20261107-032726_318_unidentified_object_44_a.png",
+      "outside": "images/0953_20261107-032726_318_unidentified_object_44_b.png"
+    }
+  },
+  {
+    "index": 319,
+    "name": "319_pipe_79",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0955_20261107-032731_319_pipe_79_a.png",
+      "outside": "images/0956_20261107-032731_319_pipe_79_b.png"
+    }
+  },
+  {
+    "index": 320,
+    "name": "320_pipe_80",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0958_20261107-032729_320_pipe_80_a.png",
+      "outside": "images/0959_20261107-032729_320_pipe_80_b.png"
+    }
+  },
+  {
+    "index": 321,
+    "name": "321_vertical_pipe_53",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0961_20261107-032733_321_vertical_pipe_53_a.png",
+      "outside": "images/0962_20261107-032733_321_vertical_pipe_53_b.png"
+    }
+  },
+  {
+    "index": 322,
+    "name": "322_unidentified_object_45",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0964_20261107-032731_322_unidentified_object_45_a.png",
+      "outside": "images/0965_20261107-032731_322_unidentified_object_45_b.png"
+    }
+  },
+  {
+    "index": 323,
+    "name": "323_pipe_81",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0967_20261107-032738_323_pipe_81_a.png",
+      "outside": "images/0968_20261107-032738_323_pipe_81_b.png"
+    }
+  },
+  {
+    "index": 324,
+    "name": "324_pipe_fitting_14",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0970_20261107-032734_324_pipe_fitting_14_a.png",
+      "outside": "images/0971_20261107-032734_324_pipe_fitting_14_b.png"
+    }
+  },
+  {
+    "index": 325,
+    "name": "325_unidentified_object_46",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0973_20261107-032741_325_unidentified_object_46_a.png",
+      "outside": "images/0974_20261107-032741_325_unidentified_object_46_b.png"
+    }
+  },
+  {
+    "index": 326,
+    "name": "326_vertical_pipe_54",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0976_20261107-032736_326_vertical_pipe_54_a.png",
+      "outside": "images/0977_20261107-032736_326_vertical_pipe_54_b.png"
+    }
+  },
+  {
+    "index": 327,
+    "name": "327_unidentified_object_47",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/0979_20261107-032744_327_unidentified_object_47_a.png",
+      "outside": "images/0980_20261107-032744_327_unidentified_object_47_b.png"
+    }
+  },
+  {
+    "index": 328,
+    "name": "328_vertical_pipe_55",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0982_20261107-032740_328_vertical_pipe_55_a.png",
+      "outside": "images/0983_20261107-032740_328_vertical_pipe_55_b.png"
+    }
+  },
+  {
+    "index": 329,
+    "name": "329_pipe_fitting_15",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0985_20261107-032747_329_pipe_fitting_15_a.png",
+      "outside": "images/0986_20261107-032747_329_pipe_fitting_15_b.png"
+    }
+  },
+  {
+    "index": 330,
+    "name": "330_pipe_fitting_16",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0988_20261107-032743_330_pipe_fitting_16_a.png",
+      "outside": "images/0989_20261107-032743_330_pipe_fitting_16_b.png"
+    }
+  },
+  {
+    "index": 331,
+    "name": "331_vertical_pipe_56",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/0991_20261107-032750_331_vertical_pipe_56_a.png",
+      "outside": "images/0992_20261107-032750_331_vertical_pipe_56_b.png"
+    }
+  },
+  {
+    "index": 332,
+    "name": "332_pipe_82",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/0994_20261107-032746_332_pipe_82_a.png",
+      "outside": "images/0995_20261107-032746_332_pipe_82_b.png"
+    }
+  },
+  {
+    "index": 333,
+    "name": "333_pipe_fitting_17",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/0997_20261107-032754_333_pipe_fitting_17_a.png",
+      "outside": "images/0998_20261107-032754_333_pipe_fitting_17_b.png"
+    }
+  },
+  {
+    "index": 334,
+    "name": "334_unidentified_object_48",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1000_20261107-032748_334_unidentified_object_48_a.png",
+      "outside": "images/1001_20261107-032748_334_unidentified_object_48_b.png"
+    }
+  },
+  {
+    "index": 335,
+    "name": "335_vertical_pipe_57",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1003_20261107-032757_335_vertical_pipe_57_a.png",
+      "outside": "images/1004_20261107-032757_335_vertical_pipe_57_b.png"
+    }
+  },
+  {
+    "index": 336,
+    "name": "336_vertical_pipe_58",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1006_20261107-032751_336_vertical_pipe_58_a.png",
+      "outside": "images/1007_20261107-032751_336_vertical_pipe_58_b.png"
+    }
+  },
+  {
+    "index": 337,
+    "name": "337_pipe_fitting_18",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1009_20261107-032759_337_pipe_fitting_18_a.png",
+      "outside": "images/1010_20261107-032759_337_pipe_fitting_18_b.png"
+    }
+  },
+  {
+    "index": 338,
+    "name": "338_pipe_83",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1012_20261107-032754_338_pipe_83_a.png",
+      "outside": "images/1013_20261107-032754_338_pipe_83_b.png"
+    }
+  },
+  {
+    "index": 339,
+    "name": "339_pipe_84",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1015_20261107-032801_339_pipe_84_a.png",
+      "outside": "images/1016_20261107-032801_339_pipe_84_b.png"
+    }
+  },
+  {
+    "index": 340,
+    "name": "340_vertical_pipe_59",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1018_20261107-032756_340_vertical_pipe_59_a.png",
+      "outside": "images/1019_20261107-032756_340_vertical_pipe_59_b.png"
+    }
+  },
+  {
+    "index": 341,
+    "name": "341_pipe_85",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1021_20261107-032804_341_pipe_85_a.png",
+      "outside": "images/1022_20261107-032804_341_pipe_85_b.png"
+    }
+  },
+  {
+    "index": 342,
+    "name": "342_unidentified_object_49",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1024_20261107-032759_342_unidentified_object_49_a.png",
+      "outside": "images/1025_20261107-032759_342_unidentified_object_49_b.png"
+    }
+  },
+  {
+    "index": 343,
+    "name": "343_pipe_86",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1027_20261107-032806_343_pipe_86_a.png",
+      "outside": "images/1028_20261107-032806_343_pipe_86_b.png"
+    }
+  },
+  {
+    "index": 344,
+    "name": "344_pipe_87",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1030_20261107-032801_344_pipe_87_a.png",
+      "outside": "images/1031_20261107-032801_344_pipe_87_b.png"
+    }
+  },
+  {
+    "index": 345,
+    "name": "345_vertical_pipe_60",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1033_20261107-032808_345_vertical_pipe_60_a.png",
+      "outside": "images/1034_20261107-032808_345_vertical_pipe_60_b.png"
+    }
+  },
+  {
+    "index": 346,
+    "name": "346_unidentified_object_50",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1036_20261107-032803_346_unidentified_object_50_a.png",
+      "outside": "images/1037_20261107-032803_346_unidentified_object_50_b.png"
+    }
+  },
+  {
+    "index": 347,
+    "name": "347_unidentified_object_51",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1039_20261107-032813_347_unidentified_object_51_a.png",
+      "outside": "images/1040_20261107-032813_347_unidentified_object_51_b.png"
+    }
+  },
+  {
+    "index": 348,
+    "name": "348_pipe_fitting_19",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1042_20261107-032806_348_pipe_fitting_19_a.png",
+      "outside": "images/1043_20261107-032806_348_pipe_fitting_19_b.png"
+    }
+  },
+  {
+    "index": 349,
+    "name": "349_vertical_pipe_61",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1045_20261107-032816_349_vertical_pipe_61_a.png",
+      "outside": "images/1046_20261107-032816_349_vertical_pipe_61_b.png"
+    }
+  },
+  {
+    "index": 350,
+    "name": "350_unidentified_object_52",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1048_20261107-032809_350_unidentified_object_52_a.png",
+      "outside": "images/1049_20261107-032809_350_unidentified_object_52_b.png"
+    }
+  },
+  {
+    "index": 351,
+    "name": "351_pipe_88",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1051_20261107-032818_351_pipe_88_a.png",
+      "outside": "images/1052_20261107-032818_351_pipe_88_b.png"
+    }
+  },
+  {
+    "index": 352,
+    "name": "352_pipe_fitting_20",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1054_20261107-032812_352_pipe_fitting_20_a.png",
+      "outside": "images/1055_20261107-032812_352_pipe_fitting_20_b.png"
+    }
+  },
+  {
+    "index": 353,
+    "name": "353_pipe_89",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1057_20261107-032822_353_pipe_89_a.png",
+      "outside": "images/1058_20261107-032822_353_pipe_89_b.png"
+    }
+  },
+  {
+    "index": 354,
+    "name": "354_unidentified_object_53",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1060_20261107-032814_354_unidentified_object_53_a.png",
+      "outside": "images/1061_20261107-032814_354_unidentified_object_53_b.png"
+    }
+  },
+  {
+    "index": 355,
+    "name": "355_unidentified_object_54",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1063_20261107-032824_355_unidentified_object_54_a.png",
+      "outside": "images/1064_20261107-032824_355_unidentified_object_54_b.png"
+    }
+  },
+  {
+    "index": 356,
+    "name": "356_pipe_fitting_21",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1066_20261107-032817_356_pipe_fitting_21_a.png",
+      "outside": "images/1067_20261107-032817_356_pipe_fitting_21_b.png"
+    }
+  },
+  {
+    "index": 357,
+    "name": "357_pipe_fitting_22",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1069_20261107-032828_357_pipe_fitting_22_a.png",
+      "outside": "images/1070_20261107-032828_357_pipe_fitting_22_b.png"
+    }
+  },
+  {
+    "index": 358,
+    "name": "358_vertical_pipe_62",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1072_20261107-032819_358_vertical_pipe_62_a.png",
+      "outside": "images/1073_20261107-032819_358_vertical_pipe_62_b.png"
+    }
+  },
+  {
+    "index": 359,
+    "name": "359_vertical_pipe_63",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1075_20261107-032830_359_vertical_pipe_63_a.png",
+      "outside": "images/1076_20261107-032830_359_vertical_pipe_63_b.png"
+    }
+  },
+  {
+    "index": 360,
+    "name": "360_pipe_90",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1078_20261107-032823_360_pipe_90_a.png",
+      "outside": "images/1079_20261107-032823_360_pipe_90_b.png"
+    }
+  },
+  {
+    "index": 361,
+    "name": "361_pipe_fitting_23",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1081_20261107-032834_361_pipe_fitting_23_a.png",
+      "outside": "images/1082_20261107-032834_361_pipe_fitting_23_b.png"
+    }
+  },
+  {
+    "index": 362,
+    "name": "362_vertical_pipe_64",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1084_20261107-032825_362_vertical_pipe_64_a.png",
+      "outside": "images/1085_20261107-032825_362_vertical_pipe_64_b.png"
+    }
+  },
+  {
+    "index": 363,
+    "name": "363_pipe_91",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1087_20261107-032837_363_pipe_91_a.png",
+      "outside": "images/1088_20261107-032837_363_pipe_91_b.png"
+    }
+  },
+  {
+    "index": 364,
+    "name": "364_pipe_fitting_24",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1090_20261107-032827_364_pipe_fitting_24_a.png",
+      "outside": "images/1091_20261107-032827_364_pipe_fitting_24_b.png"
+    }
+  },
+  {
+    "index": 365,
+    "name": "365_vertical_pipe_65",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1093_20261107-032840_365_vertical_pipe_65_a.png",
+      "outside": "images/1094_20261107-032840_365_vertical_pipe_65_b.png"
+    }
+  },
+  {
+    "index": 366,
+    "name": "366_pipe_92",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1096_20261107-032829_366_pipe_92_a.png",
+      "outside": "images/1097_20261107-032829_366_pipe_92_b.png"
+    }
+  },
+  {
+    "index": 367,
+    "name": "367_pipe_fitting_25",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1099_20261107-032843_367_pipe_fitting_25_a.png",
+      "outside": "images/1100_20261107-032843_367_pipe_fitting_25_b.png"
+    }
+  },
+  {
+    "index": 368,
+    "name": "368_column_3",
+    "label": "column",
+    "images": {
+      "closeup": "images/1102_20261107-032832_368_column_3_a.png",
+      "outside": "images/1103_20261107-032832_368_column_3_b.png"
+    }
+  },
+  {
+    "index": 369,
+    "name": "369_unidentified_object_55",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1105_20261107-032846_369_unidentified_object_55_a.png",
+      "outside": "images/1106_20261107-032846_369_unidentified_object_55_b.png"
+    }
+  },
+  {
+    "index": 370,
+    "name": "370_pipe_93",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1108_20261107-032836_370_pipe_93_a.png",
+      "outside": "images/1109_20261107-032836_370_pipe_93_b.png"
+    }
+  },
+  {
+    "index": 371,
+    "name": "371_unidentified_object_56",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1111_20261107-032848_371_unidentified_object_56_a.png",
+      "outside": "images/1112_20261107-032848_371_unidentified_object_56_b.png"
+    }
+  },
+  {
+    "index": 372,
+    "name": "372_pipe_fitting_26",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1114_20261107-032840_372_pipe_fitting_26_a.png",
+      "outside": "images/1115_20261107-032840_372_pipe_fitting_26_b.png"
+    }
+  },
+  {
+    "index": 373,
+    "name": "373_vertical_pipe_66",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1117_20261107-032851_373_vertical_pipe_66_a.png",
+      "outside": "images/1118_20261107-032851_373_vertical_pipe_66_b.png"
+    }
+  },
+  {
+    "index": 374,
+    "name": "374_unidentified_object_57",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1120_20261107-032842_374_unidentified_object_57_a.png",
+      "outside": "images/1121_20261107-032842_374_unidentified_object_57_b.png"
+    }
+  },
+  {
+    "index": 375,
+    "name": "375_unidentified_object_58",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1123_20261107-032854_375_unidentified_object_58_a.png",
+      "outside": "images/1124_20261107-032854_375_unidentified_object_58_b.png"
+    }
+  },
+  {
+    "index": 376,
+    "name": "376_column_4",
+    "label": "column",
+    "images": {
+      "closeup": "images/1126_20261107-032844_376_column_4_a.png",
+      "outside": "images/1127_20261107-032844_376_column_4_b.png"
+    }
+  },
+  {
+    "index": 377,
+    "name": "377_vertical_pipe_67",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1129_20261107-032858_377_vertical_pipe_67_a.png",
+      "outside": "images/1130_20261107-032858_377_vertical_pipe_67_b.png"
+    }
+  },
+  {
+    "index": 378,
+    "name": "378_unidentified_object_59",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1132_20261107-032848_378_unidentified_object_59_a.png",
+      "outside": "images/1133_20261107-032848_378_unidentified_object_59_b.png"
+    }
+  },
+  {
+    "index": 379,
+    "name": "379_vertical_pipe_68",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1135_20261107-032901_379_vertical_pipe_68_a.png",
+      "outside": "images/1136_20261107-032901_379_vertical_pipe_68_b.png"
+    }
+  },
+  {
+    "index": 380,
+    "name": "380_vertical_pipe_69",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1138_20261107-032852_380_vertical_pipe_69_a.png",
+      "outside": "images/1139_20261107-032852_380_vertical_pipe_69_b.png"
+    }
+  },
+  {
+    "index": 381,
+    "name": "381_pipe_fitting_27",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1141_20261107-032905_381_pipe_fitting_27_a.png",
+      "outside": "images/1142_20261107-032905_381_pipe_fitting_27_b.png"
+    }
+  },
+  {
+    "index": 382,
+    "name": "382_pipe_94",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1144_20261107-032854_382_pipe_94_a.png",
+      "outside": "images/1145_20261107-032854_382_pipe_94_b.png"
+    }
+  },
+  {
+    "index": 383,
+    "name": "383_vertical_pipe_70",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1147_20261107-032907_383_vertical_pipe_70_a.png",
+      "outside": "images/1148_20261107-032907_383_vertical_pipe_70_b.png"
+    }
+  },
+  {
+    "index": 384,
+    "name": "384_pipe_95",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1150_20261107-032859_384_pipe_95_a.png",
+      "outside": "images/1151_20261107-032859_384_pipe_95_b.png"
+    }
+  },
+  {
+    "index": 385,
+    "name": "385_pipe_96",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1153_20261107-032908_385_pipe_96_a.png",
+      "outside": "images/1154_20261107-032908_385_pipe_96_b.png"
+    }
+  },
+  {
+    "index": 386,
+    "name": "386_vertical_pipe_71",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1156_20261107-032901_386_vertical_pipe_71_a.png",
+      "outside": "images/1157_20261107-032901_386_vertical_pipe_71_b.png"
+    }
+  },
+  {
+    "index": 387,
+    "name": "387_pipe_fitting_28",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1159_20261107-032911_387_pipe_fitting_28_a.png",
+      "outside": "images/1160_20261107-032911_387_pipe_fitting_28_b.png"
+    }
+  },
+  {
+    "index": 388,
+    "name": "388_unidentified_object_60",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1162_20261107-032904_388_unidentified_object_60_a.png",
+      "outside": "images/1163_20261107-032904_388_unidentified_object_60_b.png"
+    }
+  },
+  {
+    "index": 389,
+    "name": "389_vertical_pipe_72",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1165_20261107-032914_389_vertical_pipe_72_a.png",
+      "outside": "images/1166_20261107-032914_389_vertical_pipe_72_b.png"
+    }
+  },
+  {
+    "index": 390,
+    "name": "390_vertical_pipe_73",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1168_20261107-032907_390_vertical_pipe_73_a.png",
+      "outside": "images/1169_20261107-032907_390_vertical_pipe_73_b.png"
+    }
+  },
+  {
+    "index": 391,
+    "name": "391_pipe_fitting_29",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1171_20261107-032916_391_pipe_fitting_29_a.png",
+      "outside": "images/1172_20261107-032916_391_pipe_fitting_29_b.png"
+    }
+  },
+  {
+    "index": 392,
+    "name": "392_pipe_97",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1174_20261107-032909_392_pipe_97_a.png",
+      "outside": "images/1175_20261107-032909_392_pipe_97_b.png"
+    }
+  },
+  {
+    "index": 393,
+    "name": "393_small_object_1",
+    "label": "small object",
+    "images": {
+      "closeup": "images/1177_20261107-032919_393_small_object_1_a.png",
+      "outside": "images/1178_20261107-032919_393_small_object_1_b.png"
+    }
+  },
+  {
+    "index": 394,
+    "name": "394_vertical_pipe_74",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1180_20261107-032912_394_vertical_pipe_74_a.png",
+      "outside": "images/1181_20261107-032912_394_vertical_pipe_74_b.png"
+    }
+  },
+  {
+    "index": 395,
+    "name": "395_vertical_pipe_75",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1183_20261107-032921_395_vertical_pipe_75_a.png",
+      "outside": "images/1184_20261107-032921_395_vertical_pipe_75_b.png"
+    }
+  },
+  {
+    "index": 396,
+    "name": "396_small_object_2",
+    "label": "small object",
+    "images": {
+      "closeup": "images/1186_20261107-032915_396_small_object_2_a.png",
+      "outside": "images/1187_20261107-032915_396_small_object_2_b.png"
+    }
+  },
+  {
+    "index": 397,
+    "name": "397_unidentified_object_61",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1189_20261107-032923_397_unidentified_object_61_a.png",
+      "outside": "images/1190_20261107-032923_397_unidentified_object_61_b.png"
+    }
+  },
+  {
+    "index": 398,
+    "name": "398_pipe_fitting_30",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1192_20261107-032918_398_pipe_fitting_30_a.png",
+      "outside": "images/1193_20261107-032918_398_pipe_fitting_30_b.png"
+    }
+  },
+  {
+    "index": 399,
+    "name": "399_vertical_pipe_76",
+    "label": "vertical pipe",
+    "images": {
+      "closeup": "images/1195_20261107-032925_399_vertical_pipe_76_a.png",
+      "outside": "images/1196_20261107-032925_399_vertical_pipe_76_b.png"
+    }
+  },
+  {
+    "index": 400,
+    "name": "400_pipe_fitting_31",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1198_20261107-032920_400_pipe_fitting_31_a.png",
+      "outside": "images/1199_20261107-032920_400_pipe_fitting_31_b.png"
+    }
+  },
+  {
+    "index": 401,
+    "name": "401_pipe_fitting_32",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1201_20261107-032929_401_pipe_fitting_32_a.png",
+      "outside": "images/1202_20261107-032929_401_pipe_fitting_32_b.png"
+    }
+  },
+  {
+    "index": 402,
+    "name": "402_pipe_fitting_33",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1204_20261107-032922_402_pipe_fitting_33_a.png",
+      "outside": "images/1205_20261107-032922_402_pipe_fitting_33_b.png"
+    }
+  },
+  {
+    "index": 403,
+    "name": "403_column_5",
+    "label": "column",
+    "images": {
+      "closeup": "images/1207_20261107-032932_403_column_5_a.png",
+      "outside": "images/1208_20261107-032932_403_column_5_b.png"
+    }
+  },
+  {
+    "index": 404,
+    "name": "404_pipe_98",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1210_20261107-032924_404_pipe_98_a.png",
+      "outside": "images/1211_20261107-032924_404_pipe_98_b.png"
+    }
+  },
+  {
+    "index": 405,
+    "name": "405_pipe_fitting_34",
+    "label": "pipe fitting",
+    "images": {
+      "closeup": "images/1213_20261107-032934_405_pipe_fitting_34_a.png",
+      "outside": "images/1214_20261107-032934_405_pipe_fitting_34_b.png"
+    }
+  },
+  {
+    "index": 406,
+    "name": "406_column_6",
+    "label": "column",
+    "images": {
+      "closeup": "images/1216_20261107-032928_406_column_6_a.png",
+      "outside": "images/1217_20261107-032928_406_column_6_b.png"
+    }
+  },
+  {
+    "index": 407,
+    "name": "407_unidentified_object_62",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1219_20261107-032936_407_unidentified_object_62_a.png",
+      "outside": "images/1220_20261107-032936_407_unidentified_object_62_b.png"
+    }
+  },
+  {
+    "index": 408,
+    "name": "408_unidentified_object_63",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1222_20261107-032932_408_unidentified_object_63_a.png",
+      "outside": "images/1223_20261107-032932_408_unidentified_object_63_b.png"
+    }
+  },
+  {
+    "index": 409,
+    "name": "409_pipe_99",
+    "label": "pipe",
+    "images": {
+      "closeup": "images/1225_20261107-032938_409_pipe_99_a.png",
+      "outside": "images/1226_20261107-032938_409_pipe_99_b.png"
+    }
+  },
+  {
+    "index": 410,
+    "name": "410_unidentified_object_64",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1228_20261107-032934_410_unidentified_object_64_a.png",
+      "outside": "images/1229_20261107-032934_410_unidentified_object_64_b.png"
+    }
+  },
+  {
+    "index": 411,
+    "name": "411_unidentified_object_65",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1231_20261107-032941_411_unidentified_object_65_a.png",
+      "outside": "images/1232_20261107-032941_411_unidentified_object_65_b.png"
+    }
+  },
+  {
+    "index": 412,
+    "name": "412_unidentified_object_66",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1234_20261107-032936_412_unidentified_object_66_a.png",
+      "outside": "images/1235_20261107-032936_412_unidentified_object_66_b.png"
+    }
+  },
+  {
+    "index": 413,
+    "name": "413_unidentified_object_67",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1237_20261107-032944_413_unidentified_object_67_a.png",
+      "outside": "images/1238_20261107-032944_413_unidentified_object_67_b.png"
+    }
+  },
+  {
+    "index": 414,
+    "name": "414_unidentified_object_68",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1240_20261107-032938_414_unidentified_object_68_a.png",
+      "outside": "images/1241_20261107-032938_414_unidentified_object_68_b.png"
+    }
+  },
+  {
+    "index": 415,
+    "name": "415_small_object_3",
+    "label": "small object",
+    "images": {
+      "closeup": "images/1243_20261107-032947_415_small_object_3_a.png",
+      "outside": "images/1244_20261107-032947_415_small_object_3_b.png"
+    }
+  },
+  {
+    "index": 416,
+    "name": "416_unidentified_object_69",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1246_20261107-032941_416_unidentified_object_69_a.png",
+      "outside": "images/1247_20261107-032941_416_unidentified_object_69_b.png"
+    }
+  },
+  {
+    "index": 417,
+    "name": "417_unidentified_object_70",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1249_20261107-032950_417_unidentified_object_70_a.png",
+      "outside": "images/1250_20261107-032950_417_unidentified_object_70_b.png"
+    }
+  },
+  {
+    "index": 418,
+    "name": "418_unidentified_object_71",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1252_20261107-032943_418_unidentified_object_71_a.png",
+      "outside": "images/1253_20261107-032943_418_unidentified_object_71_b.png"
+    }
+  },
+  {
+    "index": 419,
+    "name": "419_small_object_4",
+    "label": "small object",
+    "images": {
+      "closeup": "images/1255_20261107-032952_419_small_object_4_a.png",
+      "outside": "images/1256_20261107-032952_419_small_object_4_b.png"
+    }
+  },
+  {
+    "index": 420,
+    "name": "420_unidentified_object_72",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1258_20261107-032945_420_unidentified_object_72_a.png",
+      "outside": "images/1259_20261107-032945_420_unidentified_object_72_b.png"
+    }
+  },
+  {
+    "index": 421,
+    "name": "421_unidentified_object_73",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1261_20261107-032954_421_unidentified_object_73_a.png",
+      "outside": "images/1262_20261107-032954_421_unidentified_object_73_b.png"
+    }
+  },
+  {
+    "index": 422,
+    "name": "422_unidentified_object_74",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1264_20261107-032948_422_unidentified_object_74_a.png",
+      "outside": "images/1265_20261107-032948_422_unidentified_object_74_b.png"
+    }
+  },
+  {
+    "index": 423,
+    "name": "423_unidentified_object_75",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1267_20261107-032956_423_unidentified_object_75_a.png",
+      "outside": "images/1268_20261107-032956_423_unidentified_object_75_b.png"
+    }
+  },
+  {
+    "index": 424,
+    "name": "424_unidentified_object_76",
+    "label": "unidentified object",
+    "images": {
+      "closeup": "images/1270_20261107-032950_424_unidentified_object_76_a.png",
+      "outside": "images/1271_20261107-032950_424_unidentified_object_76_b.png"
+    }
+  },
+  {
+    "index": 425,
+    "name": "425_small_object_5",
+    "label": "small object",
+    "images": {
+      "closeup": "images/1273_20261107-032959_425_small_object_5_a.png",
+      "outside": "images/1274_20261107-032959_425_small_object_5_b.png"
+    }
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "clean": {
+    "below_floor": 26950,
+    "outside_walls": 19040,
+    "above_ceiling": 8770,
+    "lone": 71214,
+    "kept": 1550507,
+    "of": 1676481,
+    "floor_plane": [
+      -0.002548,
+      -0.004824,
+      -1.174
+    ],
+    "floor_rms": 0.0134,
+    "walls": {
+      "back": -3.7659,
+      "front": 3.5388,
+      "left": -4.2354,
+      "right": 4.9083
+    },
+    "ceiling_y": 1.306
+  },
+  "structure": {
+    "floor": 185567,
+    "ceiling": 3369,
+    "wall_back": 26883,
+    "wall_front": 19497,
+    "wall_left": 15835,
+    "wall_right": 18131
+  }
+}
