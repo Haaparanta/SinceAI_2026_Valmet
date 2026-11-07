@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed
-.PHONY: setup pipeline api web check demo lint test test-list test-pick test-changed test-failed contracts timelapse viewer snap help
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed contracts timelapse viewer snap help
 UV ?= uv
 PY := $(UV) run python
 
@@ -59,6 +59,9 @@ api:             ## FastAPI on :8000 (reload)
 
 web:             ## Vite dev server on :5173
 	cd web && npm run dev
+
+web-vr:          ## Vite over HTTPS on all interfaces: open https://<this-ip>:5173 in Quest Browser, then Enter VR
+	cd web && npm run dev:vr
 
 viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,json} for web/ (seconds)
 	$(PY) scripts/export_viewer_scene.py
