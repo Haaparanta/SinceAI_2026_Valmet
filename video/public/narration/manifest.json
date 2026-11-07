@@ -1,0 +1,1075 @@
+{
+  "provider": "elevenlabs",
+  "voice": "Daniel - Steady Broadcaster",
+  "voice_id": "onwK4e9ZLuTAKqWW03F9",
+  "model": "eleven_multilingual_v2",
+  "scenes": {
+    "s1_problem": {
+      "file": "narration/s1_problem.mp3",
+      "duration": 11.52,
+      "words": [
+        {
+          "text": "A",
+          "start": 0,
+          "end": 0.081
+        },
+        {
+          "text": "scan",
+          "start": 0.151,
+          "end": 0.557
+        },
+        {
+          "text": "of",
+          "start": 0.639,
+          "end": 0.708
+        },
+        {
+          "text": "a",
+          "start": 0.766,
+          "end": 0.789
+        },
+        {
+          "text": "plant",
+          "start": 0.848,
+          "end": 1.138
+        },
+        {
+          "text": "room",
+          "start": 1.196,
+          "end": 1.405
+        },
+        {
+          "text": "looks",
+          "start": 1.474,
+          "end": 1.73
+        },
+        {
+          "text": "real,",
+          "start": 1.811,
+          "end": 2.31
+        },
+        {
+          "text": "but",
+          "start": 2.612,
+          "end": 2.775
+        },
+        {
+          "text": "it",
+          "start": 2.833,
+          "end": 2.891
+        },
+        {
+          "text": "is",
+          "start": 2.949,
+          "end": 3.03
+        },
+        {
+          "text": "blind.",
+          "start": 3.088,
+          "end": 3.657
+        },
+        {
+          "text": "It",
+          "start": 4.017,
+          "end": 4.156
+        },
+        {
+          "text": "does",
+          "start": 4.203,
+          "end": 4.365
+        },
+        {
+          "text": "not",
+          "start": 4.423,
+          "end": 4.563
+        },
+        {
+          "text": "know",
+          "start": 4.621,
+          "end": 4.783
+        },
+        {
+          "text": "where",
+          "start": 4.841,
+          "end": 5.004
+        },
+        {
+          "text": "the",
+          "start": 5.027,
+          "end": 5.097
+        },
+        {
+          "text": "pumps",
+          "start": 5.132,
+          "end": 5.41
+        },
+        {
+          "text": "are,",
+          "start": 5.457,
+          "end": 5.793
+        },
+        {
+          "text": "or",
+          "start": 6.095,
+          "end": 6.235
+        },
+        {
+          "text": "what",
+          "start": 6.281,
+          "end": 6.432
+        },
+        {
+          "text": "a",
+          "start": 6.478,
+          "end": 6.502
+        },
+        {
+          "text": "pipe",
+          "start": 6.571,
+          "end": 6.85
+        },
+        {
+          "text": "is.",
+          "start": 6.896,
+          "end": 7.279
+        },
+        {
+          "text": "Approve-to-Build",
+          "start": 7.767,
+          "end": 8.649
+        },
+        {
+          "text": "Twin",
+          "start": 8.696,
+          "end": 9.091
+        },
+        {
+          "text": "gives",
+          "start": 9.659,
+          "end": 9.927
+        },
+        {
+          "text": "it",
+          "start": 9.973,
+          "end": 10.066
+        },
+        {
+          "text": "that",
+          "start": 10.124,
+          "end": 10.333
+        },
+        {
+          "text": "meaning.",
+          "start": 10.414,
+          "end": 11.471
+        }
+      ],
+      "text": "A scan of a plant room looks real, but it is blind. It does not know where the pumps are, or what a pipe is. Approve-to-Build Twin gives it that meaning.",
+      "hash": "f81a1bf0e98d"
+    },
+    "s2_two_builds": {
+      "file": "narration/s2_two_builds.mp3",
+      "duration": 17.084082,
+      "words": [
+        {
+          "text": "The",
+          "start": 0,
+          "end": 0.139
+        },
+        {
+          "text": "same",
+          "start": 0.209,
+          "end": 0.476
+        },
+        {
+          "text": "room,",
+          "start": 0.546,
+          "end": 1.033
+        },
+        {
+          "text": "built",
+          "start": 1.324,
+          "end": 1.591
+        },
+        {
+          "text": "twice.",
+          "start": 1.625,
+          "end": 2.31
+        },
+        {
+          "text": "Cyan:",
+          "start": 2.972,
+          "end": 3.68
+        },
+        {
+          "text": "a",
+          "start": 4.238,
+          "end": 4.307
+        },
+        {
+          "text": "person",
+          "start": 4.389,
+          "end": 4.725
+        },
+        {
+          "text": "approved",
+          "start": 4.772,
+          "end": 5.259
+        },
+        {
+          "text": "28",
+          "start": 5.457,
+          "end": 5.956
+        },
+        {
+          "text": "parts",
+          "start": 6.002,
+          "end": 6.385
+        },
+        {
+          "text": "one",
+          "start": 6.803,
+          "end": 7.047
+        },
+        {
+          "text": "by",
+          "start": 7.105,
+          "end": 7.314
+        },
+        {
+          "text": "one,",
+          "start": 7.419,
+          "end": 7.918
+        },
+        {
+          "text": "each",
+          "start": 8.208,
+          "end": 8.417
+        },
+        {
+          "text": "decision",
+          "start": 8.475,
+          "end": 8.963
+        },
+        {
+          "text": "photographed.",
+          "start": 9.265,
+          "end": 10.194
+        },
+        {
+          "text": "Amber:",
+          "start": 10.855,
+          "end": 11.459
+        },
+        {
+          "text": "the",
+          "start": 12.016,
+          "end": 12.109
+        },
+        {
+          "text": "machine",
+          "start": 12.156,
+          "end": 12.492
+        },
+        {
+          "text": "alone",
+          "start": 12.527,
+          "end": 12.899
+        },
+        {
+          "text": "found",
+          "start": 12.98,
+          "end": 13.247
+        },
+        {
+          "text": "530",
+          "start": 13.351,
+          "end": 14.362
+        },
+        {
+          "text": "objects",
+          "start": 14.431,
+          "end": 14.919
+        },
+        {
+          "text": "in",
+          "start": 15.221,
+          "end": 15.372
+        },
+        {
+          "text": "about",
+          "start": 15.406,
+          "end": 15.673
+        },
+        {
+          "text": "an",
+          "start": 15.708,
+          "end": 15.79
+        },
+        {
+          "text": "hour.",
+          "start": 15.859,
+          "end": 17.043
+        }
+      ],
+      "text": "The same room, built twice. Cyan: a person approved 28 parts one by one, each decision photographed. Amber: the machine alone found 530 objects in about an hour.",
+      "hash": "68774f844a43"
+    },
+    "s3_viewer": {
+      "file": "narration/s3_viewer.mp3",
+      "duration": 10.631837,
+      "words": [
+        {
+          "text": "This",
+          "start": 0,
+          "end": 0.221
+        },
+        {
+          "text": "is",
+          "start": 0.279,
+          "end": 0.372
+        },
+        {
+          "text": "the",
+          "start": 0.418,
+          "end": 0.488
+        },
+        {
+          "text": "live",
+          "start": 0.569,
+          "end": 0.894
+        },
+        {
+          "text": "viewer",
+          "start": 0.929,
+          "end": 1.277
+        },
+        {
+          "text": "at",
+          "start": 1.579,
+          "end": 1.741
+        },
+        {
+          "text": "twinbuild.click:",
+          "start": 1.788,
+          "end": 3.193
+        },
+        {
+          "text": "the",
+          "start": 3.762,
+          "end": 3.843
+        },
+        {
+          "text": "scan",
+          "start": 3.889,
+          "end": 4.168
+        },
+        {
+          "text": "streams",
+          "start": 4.226,
+          "end": 4.598
+        },
+        {
+          "text": "coarse",
+          "start": 4.667,
+          "end": 5.016
+        },
+        {
+          "text": "first,",
+          "start": 5.074,
+          "end": 5.619
+        },
+        {
+          "text": "in",
+          "start": 5.817,
+          "end": 5.968
+        },
+        {
+          "text": "five",
+          "start": 6.072,
+          "end": 6.467
+        },
+        {
+          "text": "detail",
+          "start": 6.525,
+          "end": 6.954
+        },
+        {
+          "text": "levels.",
+          "start": 7.024,
+          "end": 7.581
+        },
+        {
+          "text": "Orbit",
+          "start": 7.883,
+          "end": 8.231
+        },
+        {
+          "text": "it,",
+          "start": 8.266,
+          "end": 8.568
+        },
+        {
+          "text": "click",
+          "start": 8.8,
+          "end": 9.091
+        },
+        {
+          "text": "any",
+          "start": 9.23,
+          "end": 9.474
+        },
+        {
+          "text": "part.",
+          "start": 9.532,
+          "end": 10.588
+        }
+      ],
+      "text": "This is the live viewer at twinbuild.click: the scan streams coarse first, in five detail levels. Orbit it, click any part.",
+      "hash": "0bf5e4320ac8"
+    },
+    "s4_replay": {
+      "file": "narration/s4_replay.mp3",
+      "duration": 5.146122,
+      "words": [
+        {
+          "text": "Press",
+          "start": 0,
+          "end": 0.29
+        },
+        {
+          "text": "play",
+          "start": 0.348,
+          "end": 0.673
+        },
+        {
+          "text": "to",
+          "start": 0.975,
+          "end": 1.103
+        },
+        {
+          "text": "replay",
+          "start": 1.184,
+          "end": 1.718
+        },
+        {
+          "text": "the",
+          "start": 1.916,
+          "end": 2.043
+        },
+        {
+          "text": "automatic",
+          "start": 2.113,
+          "end": 2.635
+        },
+        {
+          "text": "build,",
+          "start": 2.694,
+          "end": 3.111
+        },
+        {
+          "text": "object",
+          "start": 3.413,
+          "end": 3.855
+        },
+        {
+          "text": "by",
+          "start": 3.913,
+          "end": 4.052
+        },
+        {
+          "text": "object.",
+          "start": 4.122,
+          "end": 5.108
+        }
+      ],
+      "text": "Press play to replay the automatic build, object by object.",
+      "hash": "3f6250941007"
+    },
+    "s5_cards": {
+      "file": "narration/s5_cards.mp3",
+      "duration": 10.893061,
+      "words": [
+        {
+          "text": "Click",
+          "start": 0,
+          "end": 0.267
+        },
+        {
+          "text": "a",
+          "start": 0.313,
+          "end": 0.337
+        },
+        {
+          "text": "step",
+          "start": 0.395,
+          "end": 0.627
+        },
+        {
+          "text": "ladder,",
+          "start": 0.697,
+          "end": 1.161
+        },
+        {
+          "text": "a",
+          "start": 1.393,
+          "end": 1.474
+        },
+        {
+          "text": "trolley,",
+          "start": 1.533,
+          "end": 2.101
+        },
+        {
+          "text": "even",
+          "start": 2.461,
+          "end": 2.694
+        },
+        {
+          "text": "the",
+          "start": 2.728,
+          "end": 2.798
+        },
+        {
+          "text": "exit",
+          "start": 2.868,
+          "end": 3.181
+        },
+        {
+          "text": "sign.",
+          "start": 3.239,
+          "end": 3.692
+        },
+        {
+          "text": "Each",
+          "start": 4.18,
+          "end": 4.389
+        },
+        {
+          "text": "card",
+          "start": 4.447,
+          "end": 4.818
+        },
+        {
+          "text": "shows",
+          "start": 4.888,
+          "end": 5.213
+        },
+        {
+          "text": "size,",
+          "start": 5.271,
+          "end": 5.909
+        },
+        {
+          "text": "confidence,",
+          "start": 6.211,
+          "end": 7.012
+        },
+        {
+          "text": "pictures,",
+          "start": 7.21,
+          "end": 7.86
+        },
+        {
+          "text": "and",
+          "start": 8.127,
+          "end": 8.266
+        },
+        {
+          "text": "the",
+          "start": 8.313,
+          "end": 8.382
+        },
+        {
+          "text": "nearest",
+          "start": 8.44,
+          "end": 8.777
+        },
+        {
+          "text": "parts",
+          "start": 8.835,
+          "end": 9.207
+        },
+        {
+          "text": "with",
+          "start": 9.474,
+          "end": 9.671
+        },
+        {
+          "text": "distances.",
+          "start": 9.729,
+          "end": 10.867
+        }
+      ],
+      "text": "Click a step ladder, a trolley, even the exit sign. Each card shows size, confidence, pictures, and the nearest parts with distances.",
+      "hash": "eb4dd200eed8"
+    },
+    "s6_measure": {
+      "file": "narration/s6_measure.mp3",
+      "duration": 2.507755,
+      "words": [
+        {
+          "text": "Or",
+          "start": 0,
+          "end": 0.186
+        },
+        {
+          "text": "measure",
+          "start": 0.244,
+          "end": 0.534
+        },
+        {
+          "text": "between",
+          "start": 0.569,
+          "end": 0.94
+        },
+        {
+          "text": "any",
+          "start": 1.022,
+          "end": 1.231
+        },
+        {
+          "text": "two",
+          "start": 1.289,
+          "end": 1.474
+        },
+        {
+          "text": "points.",
+          "start": 1.556,
+          "end": 2.461
+        }
+      ],
+      "text": "Or measure between any two points.",
+      "hash": "7fa3ecc50dfc"
+    },
+    "s7_manual": {
+      "file": "narration/s7_manual.mp3",
+      "duration": 14.28898,
+      "words": [
+        {
+          "text": "The",
+          "start": 0,
+          "end": 0.151
+        },
+        {
+          "text": "manual",
+          "start": 0.197,
+          "end": 0.569
+        },
+        {
+          "text": "build",
+          "start": 0.639,
+          "end": 0.975
+        },
+        {
+          "text": "keeps",
+          "start": 1.335,
+          "end": 1.695
+        },
+        {
+          "text": "the",
+          "start": 1.753,
+          "end": 1.846
+        },
+        {
+          "text": "audit",
+          "start": 1.916,
+          "end": 2.241
+        },
+        {
+          "text": "trail:",
+          "start": 2.276,
+          "end": 2.833
+        },
+        {
+          "text": "Pump",
+          "start": 3.193,
+          "end": 3.46
+        },
+        {
+          "text": "1,",
+          "start": 3.541,
+          "end": 3.971
+        },
+        {
+          "text": "accepted",
+          "start": 4.203,
+          "end": 4.853
+        },
+        {
+          "text": "at",
+          "start": 4.946,
+          "end": 5.097
+        },
+        {
+          "text": "step",
+          "start": 5.155,
+          "end": 5.399
+        },
+        {
+          "text": "447,",
+          "start": 5.48,
+          "end": 6.571
+        },
+        {
+          "text": "with",
+          "start": 6.803,
+          "end": 6.978
+        },
+        {
+          "text": "its",
+          "start": 7.024,
+          "end": 7.129
+        },
+        {
+          "text": "approval",
+          "start": 7.152,
+          "end": 7.581
+        },
+        {
+          "text": "pictures",
+          "start": 7.639,
+          "end": 8.104
+        },
+        {
+          "text": "right",
+          "start": 8.522,
+          "end": 8.777
+        },
+        {
+          "text": "on",
+          "start": 8.824,
+          "end": 8.905
+        },
+        {
+          "text": "the",
+          "start": 8.94,
+          "end": 9.009
+        },
+        {
+          "text": "card.",
+          "start": 9.067,
+          "end": 9.601
+        },
+        {
+          "text": "The",
+          "start": 10.17,
+          "end": 10.275
+        },
+        {
+          "text": "proposal",
+          "start": 10.321,
+          "end": 10.797
+        },
+        {
+          "text": "in",
+          "start": 10.855,
+          "end": 10.925
+        },
+        {
+          "text": "green,",
+          "start": 11.018,
+          "end": 11.575
+        },
+        {
+          "text": "the",
+          "start": 11.877,
+          "end": 11.981
+        },
+        {
+          "text": "room",
+          "start": 12.051,
+          "end": 12.318
+        },
+        {
+          "text": "in",
+          "start": 12.434,
+          "end": 12.562
+        },
+        {
+          "text": "its",
+          "start": 12.608,
+          "end": 12.748
+        },
+        {
+          "text": "own",
+          "start": 12.806,
+          "end": 13.038
+        },
+        {
+          "text": "colours.",
+          "start": 13.119,
+          "end": 14.257
+        }
+      ],
+      "text": "The manual build keeps the audit trail: Pump 1, accepted at step 447, with its approval pictures right on the card. The proposal in green, the room in its own colours.",
+      "hash": "a926807c843c"
+    },
+    "s8_compare": {
+      "file": "narration/s8_compare.mp3",
+      "duration": 11.363265,
+      "words": [
+        {
+          "text": "Both",
+          "start": 0,
+          "end": 0.313
+        },
+        {
+          "text": "builds",
+          "start": 0.383,
+          "end": 0.697
+        },
+        {
+          "text": "in",
+          "start": 0.755,
+          "end": 0.824
+        },
+        {
+          "text": "one",
+          "start": 0.906,
+          "end": 1.103
+        },
+        {
+          "text": "room,",
+          "start": 1.161,
+          "end": 1.498
+        },
+        {
+          "text": "compared:",
+          "start": 1.544,
+          "end": 2.38
+        },
+        {
+          "text": "the",
+          "start": 2.949,
+          "end": 3.03
+        },
+        {
+          "text": "machine",
+          "start": 3.088,
+          "end": 3.506
+        },
+        {
+          "text": "finds",
+          "start": 3.576,
+          "end": 4.017
+        },
+        {
+          "text": "23",
+          "start": 4.11,
+          "end": 4.76
+        },
+        {
+          "text": "of",
+          "start": 4.923,
+          "end": 5.05
+        },
+        {
+          "text": "the",
+          "start": 5.108,
+          "end": 5.178
+        },
+        {
+          "text": "28",
+          "start": 5.224,
+          "end": 5.724
+        },
+        {
+          "text": "approved",
+          "start": 5.747,
+          "end": 6.165
+        },
+        {
+          "text": "parts,",
+          "start": 6.235,
+          "end": 6.827
+        },
+        {
+          "text": "and",
+          "start": 6.989,
+          "end": 7.14
+        },
+        {
+          "text": "adds",
+          "start": 7.198,
+          "end": 7.407
+        },
+        {
+          "text": "417",
+          "start": 7.5,
+          "end": 8.545
+        },
+        {
+          "text": "objects",
+          "start": 8.649,
+          "end": 9.16
+        },
+        {
+          "text": "the",
+          "start": 9.462,
+          "end": 9.567
+        },
+        {
+          "text": "person",
+          "start": 9.625,
+          "end": 9.985
+        },
+        {
+          "text": "never",
+          "start": 10.054,
+          "end": 10.24
+        },
+        {
+          "text": "got",
+          "start": 10.298,
+          "end": 10.484
+        },
+        {
+          "text": "to.",
+          "start": 10.53,
+          "end": 11.331
+        }
+      ],
+      "text": "Both builds in one room, compared: the machine finds 23 of the 28 approved parts, and adds 417 objects the person never got to.",
+      "hash": "67b0c909149d"
+    },
+    "s9_value": {
+      "file": "narration/s9_value.mp3",
+      "duration": 13.635918,
+      "words": [
+        {
+          "text": "Human-approved",
+          "start": 0,
+          "end": 0.778
+        },
+        {
+          "text": "parts,",
+          "start": 0.848,
+          "end": 1.451
+        },
+        {
+          "text": "machine-scale",
+          "start": 1.811,
+          "end": 2.67
+        },
+        {
+          "text": "coverage,",
+          "start": 2.728,
+          "end": 3.32
+        },
+        {
+          "text": "and",
+          "start": 3.587,
+          "end": 3.727
+        },
+        {
+          "text": "a",
+          "start": 3.785,
+          "end": 3.82
+        },
+        {
+          "text": "picture",
+          "start": 3.878,
+          "end": 4.342
+        },
+        {
+          "text": "for",
+          "start": 4.447,
+          "end": 4.609
+        },
+        {
+          "text": "every",
+          "start": 4.748,
+          "end": 5.085
+        },
+        {
+          "text": "decision.",
+          "start": 5.143,
+          "end": 5.793
+        },
+        {
+          "text": "A",
+          "start": 6.281,
+          "end": 6.351
+        },
+        {
+          "text": "scan",
+          "start": 6.444,
+          "end": 6.896
+        },
+        {
+          "text": "that",
+          "start": 7.163,
+          "end": 7.338
+        },
+        {
+          "text": "can",
+          "start": 7.372,
+          "end": 7.488
+        },
+        {
+          "text": "finally",
+          "start": 7.558,
+          "end": 7.93
+        },
+        {
+          "text": "tell",
+          "start": 7.988,
+          "end": 8.185
+        },
+        {
+          "text": "you",
+          "start": 8.243,
+          "end": 8.348
+        },
+        {
+          "text": "what",
+          "start": 8.44,
+          "end": 8.626
+        },
+        {
+          "text": "is",
+          "start": 8.684,
+          "end": 8.766
+        },
+        {
+          "text": "this,",
+          "start": 8.824,
+          "end": 9.276
+        },
+        {
+          "text": "and",
+          "start": 9.578,
+          "end": 9.752
+        },
+        {
+          "text": "where.",
+          "start": 9.834,
+          "end": 10.333
+        },
+        {
+          "text": "Open",
+          "start": 10.902,
+          "end": 11.215
+        },
+        {
+          "text": "it",
+          "start": 11.273,
+          "end": 11.413
+        },
+        {
+          "text": "at",
+          "start": 11.714,
+          "end": 11.9
+        },
+        {
+          "text": "twinbuild.click.",
+          "start": 11.947,
+          "end": 13.607
+        }
+      ],
+      "text": "Human-approved parts, machine-scale coverage, and a picture for every decision. A scan that can finally tell you what is this, and where. Open it at twinbuild.click.",
+      "hash": "09863d1d1771"
+    }
+  }
+}

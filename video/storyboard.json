@@ -1,0 +1,347 @@
+{
+  "title": "Approve-to-Build Twin · Since AI 2026 × Valmet",
+  "recording": "recordings/screen_crop.mp4",
+  "scenes": [
+    {
+      "id": "s1_problem",
+      "kind": "cut",
+      "title": "The problem",
+      "start_s": 0,
+      "duration_s": 12,
+      "visual": "the textured auto build orbiting (recording 17-30 s) with the title block over it",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "A scan looks real.",
+        "It knows nothing."
+      ],
+      "animation": "title block fades in, then out before the next scene",
+      "narration": "A scan of a plant room looks real, but it is blind. It does not know where the pumps are, or what a pipe is. Approve-to-Build Twin gives it that meaning.",
+      "props": {
+        "shots": [
+          {
+            "in": 16.6
+          }
+        ],
+        "headline": [
+          "A scan looks real.",
+          "It knows nothing."
+        ],
+        "brand": true
+      }
+    },
+    {
+      "id": "s2_two_builds",
+      "kind": "cut",
+      "title": "One room, built twice",
+      "start_s": 12,
+      "duration_s": 14,
+      "visual": "both builds coloured by origin, orbiting (recording 4-16 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "One room, built twice",
+        "28 parts approved by a person",
+        "530 objects found by the machine"
+      ],
+      "animation": "two chips slide in: cyan MANUAL 28, amber AUTO 530",
+      "narration": "The same room, built twice. Cyan: a person approved 28 parts one by one, each decision photographed. Amber: the machine alone found 530 objects in about an hour.",
+      "props": {
+        "shots": [
+          {
+            "in": 4.2
+          }
+        ],
+        "headline": [
+          "One room, built twice"
+        ],
+        "chips": [
+          {
+            "color": "cyan",
+            "text": "MANUAL · 28 parts · a person approves each one",
+            "at": 2.2
+          },
+          {
+            "color": "amber",
+            "text": "AUTO · 530 objects · the machine alone, ~1 h",
+            "at": 6.8
+          }
+        ]
+      }
+    },
+    {
+      "id": "s3_viewer",
+      "kind": "cut",
+      "title": "The live viewer",
+      "start_s": 26,
+      "duration_s": 12,
+      "visual": "orbiting the textured room, hovering a pipe (recording 22-34 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "Live at twinbuild.click",
+        "5 detail levels, coarse first"
+      ],
+      "animation": "URL chip, then a small line about the detail levels",
+      "narration": "This is the live viewer at twinbuild.click: the scan streams coarse first, in five detail levels. Orbit it, click any part.",
+      "props": {
+        "shots": [
+          {
+            "in": 30.0
+          }
+        ],
+        "headline": [
+          "Live at twinbuild.click"
+        ],
+        "sub": "5 detail levels · coarse first · desktop, phone, Quest 3"
+      }
+    },
+    {
+      "id": "s4_replay",
+      "kind": "cut",
+      "title": "Play the build",
+      "start_s": 38,
+      "duration_s": 7,
+      "visual": "the build slider at 0, play pressed, the automatic build grows (recording 57.5-64 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "▶ 530 objects, one by one"
+      ],
+      "animation": "spotlight on the play button and the counter",
+      "narration": "Press play to replay the automatic build, object by object.",
+      "props": {
+        "shots": [
+          {
+            "in": 58.2,
+            "rate": 2.0
+          }
+        ],
+        "headline": [
+          "530 objects, one by one"
+        ],
+        "spot": {
+          "x": 1512,
+          "y": 104,
+          "w": 392,
+          "h": 80,
+          "label": "build replay",
+          "at": 0.6
+        }
+      }
+    },
+    {
+      "id": "s5_cards",
+      "kind": "cut",
+      "title": "Click any object",
+      "start_s": 45,
+      "duration_s": 14,
+      "visual": "three cuts: step ladder card (68 s), trolley (203 s), exit sign (248 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "Click any object",
+        "size · confidence · pictures · nearest parts"
+      ],
+      "animation": "spotlight on the part card; three quick cuts",
+      "narration": "Click a step ladder, a trolley, even the exit sign. Each card shows size, confidence, pictures, and the nearest parts with distances.",
+      "props": {
+        "shots": [
+          {
+            "in": 68.3,
+            "dur": 3.4
+          },
+          {
+            "in": 203.0,
+            "dur": 3.0
+          },
+          {
+            "in": 248.4
+          }
+        ],
+        "headline": [
+          "Click any object"
+        ],
+        "spot": {
+          "x": 12,
+          "y": 528,
+          "w": 448,
+          "h": 500,
+          "label": "size · confidence · pictures · nearest parts",
+          "at": 7.0
+        }
+      }
+    },
+    {
+      "id": "s6_measure",
+      "kind": "cut",
+      "title": "Measure",
+      "start_s": 59,
+      "duration_s": 4.6,
+      "visual": "measuring between two points on the scan: 2.357 u ≈ 2.71 m (recording 314-319 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "Measure between any two points: 2.36 u ≈ 2.71 m"
+      ],
+      "animation": "spotlight on the measurement label",
+      "narration": "Or measure between any two points.",
+      "props": {
+        "shots": [
+          {
+            "in": 315.2
+          }
+        ],
+        "headline": [
+          "Measure between any two points"
+        ],
+        "zoom": {
+          "at": 0.5,
+          "scale": 1.6,
+          "x": 1100,
+          "y": 600
+        }
+      }
+    },
+    {
+      "id": "s7_manual",
+      "kind": "cut",
+      "title": "The manual build",
+      "start_s": 64,
+      "duration_s": 16,
+      "visual": "Manual pressed (318 s), then Pump 1 with its approval images (333-345 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "Every approval photographed",
+        "Pump 1 · accepted at step 447"
+      ],
+      "animation": "spotlight on the approval images, then zoom on them",
+      "narration": "The manual build keeps the audit trail: Pump 1, accepted at step 447, with its approval pictures right on the card. The proposal in green, the room in its own colours.",
+      "props": {
+        "shots": [
+          {
+            "in": 318.6,
+            "dur": 3.2
+          },
+          {
+            "in": 333.2
+          }
+        ],
+        "headline": [
+          "Every approval photographed"
+        ],
+        "spot": {
+          "x": 24,
+          "y": 690,
+          "w": 420,
+          "h": 112,
+          "label": "approval images",
+          "at": 4.8,
+          "labelBelow": true
+        },
+        "zoom": {
+          "at": 6.6,
+          "scale": 1.7,
+          "x": 240,
+          "y": 760,
+          "until": 11.5
+        },
+        "headAt": {
+          "x": 860,
+          "y": 100
+        }
+      }
+    },
+    {
+      "id": "s8_compare",
+      "kind": "cut",
+      "title": "Both builds compared",
+      "start_s": 80,
+      "duration_s": 14,
+      "visual": "both builds in red/grey with the comparison panel; an automatic pipe selected (recording 360.5-375 s)",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "23 of 28 parts found",
+        "417 objects the person never got to"
+      ],
+      "animation": "spotlight on the comparison summary in the panel",
+      "narration": "Both builds in one room, compared: the machine finds 23 of the 28 approved parts, and adds 417 objects the person never got to.",
+      "props": {
+        "shots": [
+          {
+            "in": 360.6
+          }
+        ],
+        "headline": [
+          "23 of 28 found · 417 new"
+        ],
+        "spot": {
+          "x": 1512,
+          "y": 248,
+          "w": 392,
+          "h": 140,
+          "label": "manual vs automatic",
+          "at": 2.6
+        }
+      }
+    },
+    {
+      "id": "s9_value",
+      "kind": "cut",
+      "title": "Why it matters",
+      "start_s": 94,
+      "duration_s": 15,
+      "visual": "the by-origin room orbiting, dimmed, with three value lines",
+      "assets": [
+        "screen-recording"
+      ],
+      "on_screen_text": [
+        "Human-approved parts",
+        "Machine-scale coverage",
+        "A picture for every decision"
+      ],
+      "animation": "three value lines reveal one by one",
+      "narration": "Human-approved parts, machine-scale coverage, and a picture for every decision. A scan that can finally tell you what is this, and where. Open it at twinbuild.click.",
+      "props": {
+        "shots": [
+          {
+            "in": 6.0
+          }
+        ],
+        "dim": 0.5,
+        "values": [
+          "Human-approved parts",
+          "Machine-scale coverage",
+          "A picture for every decision"
+        ]
+      }
+    },
+    {
+      "id": "s10_end",
+      "kind": "outro",
+      "title": "End card",
+      "start_s": 109,
+      "duration_s": 4,
+      "visual": "end card: title, URL, built-with chips",
+      "assets": [],
+      "on_screen_text": [
+        "Approve-to-Build Twin",
+        "twinbuild.click",
+        "Since AI 2026 × Valmet"
+      ],
+      "animation": "fade in, hold",
+      "narration": "",
+      "props": {}
+    }
+  ]
+}

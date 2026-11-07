@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | viewer | viewer-auto | compare | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | docker-build | docker-run | publish-scene | deploy | deploy-trigger | deploy-trigger-run | deploy-github (docs/DEPLOY.md)
-.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer viewer-auto snap help docker-build docker-run gcp-setup publish-scene deploy deploy-trigger deploy-trigger-run deploy-github
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | media | demo-video | viewer | viewer-auto | compare | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | docker-build | docker-run | publish-scene | deploy | deploy-trigger | deploy-trigger-run | deploy-github (docs/DEPLOY.md)
+.PHONY: setup pipeline api web web-vr check demo demo-video lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse media viewer viewer-auto snap help docker-build docker-run gcp-setup publish-scene deploy deploy-trigger deploy-trigger-run deploy-github
 UV ?= uv
 PY := $(UV) run python
 # Google Cloud (docs/DEPLOY.md): the project, the Cloud Build account and the private bucket that holds the exports
@@ -60,6 +60,9 @@ timelapse:       ## equipment-room images (else images/) -> docs/timelapse.mp4 (
 
 media:           ## README videos + GIF previews of both builds from the committed images -> docs/media/ (no .ply needed)
 	$(UV) run --group video python scripts/readme_media.py $(ARGS)
+
+demo-video:      ## the two-minute demo video (video/README.md): narration (ElevenLabs key in video/.env) + captions + Remotion render -> video/out/a2b_demo.mp4
+	cd video && npm install --no-audit --no-fund && node tools/narrate.mjs --voice Daniel --speed 1.06 && node tools/assets.mjs && node tools/srt.mjs && npx remotion render src/index.ts Demo out/a2b_demo.mp4 --codec h264 --crf 19
 
 api:             ## FastAPI on :8000 (reload)
 	$(UV) run uvicorn api.main:app --reload --port 8000
