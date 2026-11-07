@@ -12192,7 +12192,7 @@
       "index": 1024,
       "kind": "part",
       "name": "process_pump_2",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/1024_20261107-035218.png",
         "images/1025_20261107-035218.png",
@@ -12629,7 +12629,37 @@
           0.7,
           2.1
         ]
-      }
+      },
+      "decided_at": "2026-11-07T03:53:30+02:00"
+    },
+    {
+      "index": 1045,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/1045_20261107-035335.png",
+        "images/1046_20261107-035340.png",
+        "images/1047_20261107-035354.png",
+        "images/1048_20261107-035356.png",
+        "images/1049_20261107-035357.png",
+        "images/1050_20261107-035357.png",
+        "images/1051_20261107-035358.png",
+        "images/1052_20261107-035359.png",
+        "images/1053_20261107-035400.png",
+        "images/1054_20261107-035402.png",
+        "images/1055_20261107-035403.png",
+        "images/1056_20261107-035405.png",
+        "images/1057_20261107-035406.png",
+        "images/1058_20261107-035407.png",
+        "images/1059_20261107-035407.png",
+        "images/1060_20261107-035407.png",
+        "images/1061_20261107-035407.png"
+      ],
+      "created_at": "2026-11-07T03:54:07+02:00",
+      "event": "after 1024 ACCEPTED (part process_pump_2)",
+      "kept": 1617777,
+      "built": 422502
     }
   ],
   "parts": [
@@ -13227,6 +13257,43 @@
       },
       "indices": "build/parts/0965_pipe_13.idx.npy",
       "ply": "build/parts/0965_pipe_13.ply"
+    },
+    {
+      "index": 1024,
+      "name": "process_pump_2",
+      "label": "Pump 2",
+      "kind": "equipment",
+      "count": 22023,
+      "bbox": {
+        "min": [
+          0.8003,
+          -1.1594,
+          1.1418
+        ],
+        "max": [
+          2.5992,
+          0.1,
+          1.9371
+        ]
+      },
+      "params": {
+        "x": 1.6,
+        "y": -0.6,
+        "z": 1.4,
+        "radius": 0.8,
+        "label": "Pump",
+        "cls": "PROCESS_PUMP",
+        "voxel": 0.04,
+        "min_alpha": 0.08,
+        "min_per_voxel": 3,
+        "y_top": 0.62,
+        "box": "0.8,2.6,-1.2,0.1,0.7,2.1",
+        "min_group": 40,
+        "nearest": 1.0,
+        "exclude": "1.08,1.52,-1.2,0.2,1.22,1.46"
+      },
+      "indices": "build/parts/1024_process_pump_2.idx.npy",
+      "ply": "build/parts/1024_process_pump_2.ply"
     }
   ],
   "removed": [
