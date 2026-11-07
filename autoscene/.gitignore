@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+out/**/*.ply
+out/**/*.npy
+out/**/*.npz
+out/views/
+*.pt
+*.npz.tmp
+.pytest_cache/
+.ruff_cache/
+weights/
+mobileclip*
+out/images/
