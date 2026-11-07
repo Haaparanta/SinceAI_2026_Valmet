@@ -14,3 +14,6 @@ weights/
 mobileclip*
 out/images/
 out/*.log
+out/contact_sheet.png
+out/flipbook.mp4
+out/images_manifest_*.json
