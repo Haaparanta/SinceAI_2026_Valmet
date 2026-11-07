@@ -1,7 +1,7 @@
 """a2b API (FastAPI) - scaffold.
 
 Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats,
-GET /api/viewer/scene.bin, GET /api/viewer/scene.json.
+GET /api/viewer/scene.bin, GET /api/viewer/scene.json, GET /api/images/{name} (the numbered step images).
 The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots) land with M4-M9.
 
     uv run uvicorn api.main:app --reload --port 8000
@@ -10,6 +10,7 @@ The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots)
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -19,6 +20,9 @@ from fastapi.responses import FileResponse
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 DERIVED = DATA / "derived"
+IMAGES = ROOT / "images"
+# NNNN_YYYYMMDD-HHMMSS[_tag].png, the image-name rule of pipeline/stepbuild/state.py (no path parts, so no traversal)
+IMAGE_NAME = re.compile(r"^\d{4,}_\d{8}-\d{6}(?:_[\w-]+)?\.png$")
 DEMO_MODE = os.environ.get("DEMO_MODE", "0").strip().lower() not in ("", "0", "false", "no")
 
 app = FastAPI(title="a2b API", version="0.1.0", description="Approve-to-Build Twin. All metadata is SYNTHETIC.")
@@ -70,6 +74,15 @@ def viewer_scene_bin() -> FileResponse:
 def viewer_scene_json() -> FileResponse:
     """Parts (name, kind, count, [start, end) range, bbox), room bounds and dollhouse cut for scene.bin."""
     return _viewer_file("scene.json", "application/json")
+
+
+@app.get("/api/images/{name}")
+def step_image(name: str) -> FileResponse:
+    """One numbered build-step image (the viewer's info card shows the images a part was accepted with)."""
+    path = IMAGES / name
+    if not IMAGE_NAME.match(name) or not path.is_file():
+        raise HTTPException(status_code=404, detail=f"no step image {name!r}")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/api/scene/stats")

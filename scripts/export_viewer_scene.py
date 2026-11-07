@@ -57,6 +57,16 @@ def bbox(xyz: np.ndarray) -> dict:
     return {"min": [round(float(v), 4) for v in xyz.min(0)], "max": [round(float(v), 4) for v in xyz.max(0)]}
 
 
+def step_info(step: dict | None) -> dict:
+    """The proposal step a part was accepted in: its numbered images (file names in images/) and timestamp."""
+    if not step:
+        return {}
+    info: dict = {"images": [Path(i).name for i in step.get("images", [])]}
+    if step.get("created_at"):
+        info["accepted_at"] = step["created_at"]
+    return info
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--manifest", type=Path, default=S.MANIFEST)
@@ -78,6 +88,7 @@ def main() -> int:
     if args.pool_max and pool_total > args.pool_max:
         pool_idx = np.sort(np.random.default_rng(0).choice(pool_idx, args.pool_max, replace=False))
 
+    steps = {st.get("index"): st for st in m.data.get("steps", [])}
     parts_meta, order, part_ids = [], [pool_idx], [np.zeros(len(pool_idx), np.uint16)]
     start = len(pool_idx)
     for k, p in enumerate(m.data["parts"], 1):
@@ -88,6 +99,7 @@ def main() -> int:
             "seq": k, "step": p["index"], "name": p["name"], "label": p.get("label", p["name"]),
             "kind": p.get("kind", "object"), "count": len(idx), "start": start, "end": start + len(idx),
             "bbox": p.get("bbox") or bbox(xyz_of(splats[idx])),
+            **step_info(steps.get(p["index"])),
         })
         start += len(idx)
 
