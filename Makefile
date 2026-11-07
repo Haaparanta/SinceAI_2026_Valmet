@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture
-.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture contracts timelapse viewer snap help
+# Targets: setup | pipeline | api | web | web-vr | check | demo | timelapse | viewer | snap | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed | test-web | viewer-fixture | compare
+.PHONY: setup pipeline api web web-vr check demo lint test test-list test-pick test-changed test-failed test-web viewer-fixture compare contracts timelapse viewer snap help
 UV ?= uv
 PY := $(UV) run python
 
@@ -66,8 +66,12 @@ web-vr:          ## Vite over HTTPS on all interfaces: open https://<this-ip>:51
 viewer-fixture:  ## synthetic viewer exports for both builds (viewer/, viewer_auto/) from committed files (no .ply; never replaces a real export)
 	$(PY) scripts/make_viewer_fixture.py
 
+compare:         ## manual vs automatic build (committed boxes, no .ply) -> data/derived/compare.json + docs/build_comparison.md
+	$(PY) scripts/compare_builds.py
+
 test-web:        ## browser tests: viewer + capture.html in headless Chromium (own Vite on :5199); fixtures for builds with no export
 	@$(PY) scripts/make_viewer_fixture.py --missing-only
+	@test -f data/derived/compare.json || $(PY) scripts/compare_builds.py --no-report
 	node --test --test-reporter=spec tests/web/*.test.mjs
 
 viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,splat,json} for web/ (seconds)
