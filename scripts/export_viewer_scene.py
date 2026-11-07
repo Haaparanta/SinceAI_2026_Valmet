@@ -11,6 +11,10 @@ part is one contiguous range [start, end) and "the twin after k parts" is a pref
 scene.bin, little-endian, n = total points:
     float32 xyz[n*3] | uint16 part[n] (0 = pool, k = parts[k-1]) | uint8 rgb[n*3] | uint8 size_mm[n]
 size_mm = splat render footprint (stepbuild.splats.size_of) in 1/1000 scene units, clamped to 1..255.
+
+scene.splat: the same rows as real Gaussian splats (SH degree 0) for the viewer's Splats mode, in the .splat layout
+of scripts/splat_format.py (32 bytes per splat). Row i of scene.splat is row i of scene.bin, so the pool and every
+part are the same [start, end) ranges.
 """
 
 from __future__ import annotations
@@ -25,8 +29,10 @@ import orjson
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
+sys.path.insert(0, str(ROOT / "scripts"))  # splat_format, also when this file is imported (tests)
 
 from common.orientation import FRAME
+from splat_format import write_splat
 from stepbuild import state as S
 from stepbuild.splats import rgb_of, size_of, xyz_of
 
@@ -116,6 +122,7 @@ def main() -> int:
         for arr in (xyz.astype("<f4"), part.astype("<u2"), rgb, size_mm):
             f.write(np.ascontiguousarray(arr).tobytes())
     tmp.replace(args.out / "scene.bin")
+    write_splat(args.out / "scene.splat", sel)
 
     bounds = m.data.get("room_bounds_p1_p99") or bbox(xyz)
     floor = next((p for p in parts_meta if p["name"] == "floor"), None)
@@ -130,12 +137,14 @@ def main() -> int:
         "room_bounds": bounds, "floor_y": round(floor_y, 4),
         "dollhouse_cut_y": m.data.get("dollhouse_cut_y"),
         "layout": "float32 xyz[n*3] | uint16 part[n] | uint8 rgb[n*3] | uint8 size_mm[n]",
+        "splats": {"file": "scene.splat", "format": "splat", "bytes_per_splat": 32},
         "parts": parts_meta,
     }
     (args.out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")
     mb = (args.out / "scene.bin").stat().st_size / 1e6
+    smb = (args.out / "scene.splat").stat().st_size / 1e6
     print(f"{len(rows):,} points ({len(pool_idx):,} pool of {pool_total:,}, {len(parts_meta)} parts) "
-          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.json")
+          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat ({smb:.1f} MB) + scene.json")
     return 0
 
 

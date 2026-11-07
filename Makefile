@@ -63,7 +63,7 @@ web:             ## Vite dev server on :5173
 web-vr:          ## Vite over HTTPS on all interfaces: open https://<this-ip>:5173 in Quest Browser, then Enter VR
 	cd web && npm run dev:vr
 
-viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,json} for web/ (seconds)
+viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,splat,json} for web/ (seconds)
 	$(PY) scripts/export_viewer_scene.py
 
 snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome; needs `make web`; Q="src=overlay&part=pipe_3" ...
@@ -72,5 +72,5 @@ snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome;
 demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 	DEMO_MODE=1 $(UV) run uvicorn api.main:app --port 8000 & PID=$$!; trap "kill $$PID" EXIT; cd web && npm run dev
 
-viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,json}; open the viewer with ?scene=auto
+viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,splat,json}; open the viewer with ?scene=auto
 	$(PY) scripts/export_autoscene_viewer.py
