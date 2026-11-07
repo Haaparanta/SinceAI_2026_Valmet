@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | check | demo | timelapse
-.PHONY: setup pipeline api web check demo lint test contracts timelapse help
+# Targets: setup | pipeline | api | web | check | demo | timelapse | test (T=/K= to pick) | test-list | test-pick | test-changed | test-failed
+.PHONY: setup pipeline api web check demo lint test test-list test-pick test-changed test-failed contracts timelapse help
 UV ?= uv
 PY := $(UV) run python
 
@@ -30,8 +30,20 @@ contracts:       ## export contracts/json-schema/*.json from the pydantic models
 lint:            ## ruff
 	$(UV) run ruff check .
 
-test:            ## pytest
-	$(UV) run pytest -q
+test:            ## pytest; pick some: T="parts cleaning" (files) T=parts::test_x  K=lamp (name match)  ARGS="-x -vv"
+	$(PY) scripts/run_tests.py $(T) $(if $(K),-k "$(K)") $(if $(ARGS),-- $(ARGS))
+
+test-list:       ## list test files + test names (what T= / K= can pick)
+	@$(PY) scripts/run_tests.py --list
+
+test-pick:       ## numbered menu: choose which test files to run
+	@$(PY) scripts/run_tests.py --pick
+
+test-changed:    ## only tests related to .py files changed vs origin/main (+ uncommitted)
+	@$(PY) scripts/run_tests.py --changed
+
+test-failed:     ## only the tests that failed last run
+	@$(PY) scripts/run_tests.py --failed
 
 check:           ## lint + contract drift + tests + web typecheck/build  (must be green before hand-off)
 	$(UV) run ruff check .
