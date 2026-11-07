@@ -11258,7 +11258,7 @@
       "index": 965,
       "kind": "part",
       "name": "pipe_13",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/0965_20261107-022628.png",
         "images/0966_20261107-022628.png",
@@ -11638,6 +11638,552 @@
         "start": -1.15,
         "end": 1.1,
         "runs": 1
+      },
+      "decided_at": "2026-11-07T02:28:44+02:00"
+    },
+    {
+      "index": 983,
+      "kind": "state",
+      "name": "progress",
+      "status": "interrupted",
+      "images": [
+        "images/0983_20261107-022900.png",
+        "images/0984_20261107-022938.png"
+      ],
+      "created_at": "2026-11-07T02:44:28+02:00",
+      "event": "after 0965 ACCEPTED (part pipe_13)",
+      "note": "state rendering stopped by the user after 2 of 17 images; the full set follows"
+    },
+    {
+      "index": 985,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/0985_20261107-024440.png",
+        "images/0986_20261107-024502.png",
+        "images/0987_20261107-024525.png",
+        "images/0988_20261107-024528.png",
+        "images/0989_20261107-024530.png",
+        "images/0990_20261107-024531.png",
+        "images/0991_20261107-024532.png",
+        "images/0992_20261107-024532.png",
+        "images/0993_20261107-024534.png",
+        "images/0994_20261107-024536.png",
+        "images/0995_20261107-024538.png",
+        "images/0996_20261107-024540.png",
+        "images/0997_20261107-024541.png",
+        "images/0998_20261107-024542.png",
+        "images/0999_20261107-024542.png",
+        "images/1000_20261107-024542.png",
+        "images/1001_20261107-024543.png"
+      ],
+      "created_at": "2026-11-07T02:45:43+02:00",
+      "event": "after 0965 ACCEPTED (part pipe_13)",
+      "kept": 1617777,
+      "built": 400479
+    },
+    {
+      "index": 1002,
+      "kind": "part",
+      "name": "pipe_14",
+      "status": "pending",
+      "images": [
+        "images/1002_20261107-024613.png",
+        "images/1003_20261107-024613.png",
+        "images/1004_20261107-024613.png",
+        "images/1005_20261107-024613.png",
+        "images/1006_20261107-024614.png",
+        "images/1007_20261107-024614.png",
+        "images/1008_20261107-024614.png",
+        "images/1009_20261107-024614.png",
+        "images/1010_20261107-024614.png",
+        "images/1011_20261107-024614.png",
+        "images/1012_20261107-024614.png",
+        "images/1013_20261107-024614.png",
+        "images/1014_20261107-024614.png",
+        "images/1015_20261107-024614.png",
+        "images/1016_20261107-024614.png",
+        "images/1017_20261107-024614.png",
+        "images/1018_20261107-024614.png",
+        "images/1019_20261107-024614.png",
+        "images/1020_20261107-024614.png",
+        "images/1021_20261107-024614.png",
+        "images/1022_20261107-024614.png"
+      ],
+      "created_at": "2026-11-07T02:46:14+02:00",
+      "count": 2354,
+      "pool_before": 1217298,
+      "bbox": {
+        "min": [
+          3.0569,
+          -1.1426,
+          -2.9353
+        ],
+        "max": [
+          3.2717,
+          0.8945,
+          -2.7209
+        ]
+      },
+      "headline": "ADD PIPE 14 · 2,354 points as part 21",
+      "cameras": {
+        "close-up from the room, green | own colours": {
+          "position": [
+            0.3445,
+            -0.3646,
+            -0.1341
+          ],
+          "target": [
+            3.1685,
+            -0.1634,
+            -2.8282
+          ],
+          "fov_deg": 68.95127042260657
+        },
+        "the part alone, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "the part with 35 cm of surroundings, own colours, 4 sides": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            -1
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up": {
+          "position": [
+            3.1685,
+            1.6807,
+            3.3187
+          ],
+          "target": [
+            3.1685,
+            -0.1634,
+            -2.8282
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the left": {
+          "position": [
+            -2.2112,
+            1.7002,
+            0.2778
+          ],
+          "target": [
+            3.1685,
+            -0.1634,
+            -2.8282
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from the right": {
+          "position": [
+            8.5482,
+            1.7002,
+            0.2778
+          ],
+          "target": [
+            3.1685,
+            -0.1634,
+            -2.8282
+          ],
+          "fov_deg": 50.0
+        },
+        "close-up from above": {
+          "position": [
+            3.1685,
+            6.481,
+            -2.8288
+          ],
+          "target": [
+            3.1685,
+            -0.1634,
+            -2.8282
+          ],
+          "fov_deg": 50.0
+        },
+        "outside, all points": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "outside from the opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "inside the room (START camera)": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "axis view from the top (looking down -Y)": {
+          "position": [
+            0.3445,
+            151.7607,
+            -0.1493
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the right (looking -X)": {
+          "position": [
+            91.3647,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the left (looking +X)": {
+          "position": [
+            -90.6757,
+            0.0172,
+            -0.1341
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the front (looking -Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            110.884
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "axis view from the back (looking +Z)": {
+          "position": [
+            0.3445,
+            0.0172,
+            -111.1522
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 3.0
+        },
+        "overview": {
+          "position": [
+            -3.4351,
+            0.1445,
+            -3.1791
+          ],
+          "target": [
+            3.4942,
+            -0.4919,
+            2.0409
+          ],
+          "fov_deg": 80.0
+        },
+        "before | after": {
+          "position": [
+            8.0591,
+            7.7318,
+            13.8924
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts (built 100 % + new), outside": {
+          "position": [
+            5.0287,
+            4.7014,
+            8.3826
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts, opposite corner": {
+          "position": [
+            -4.3397,
+            4.7014,
+            -8.6508
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 45.0
+        },
+        "only the parts, from above": {
+          "position": [
+            0.3445,
+            10.4356,
+            -0.1351
+          ],
+          "target": [
+            0.3445,
+            0.0172,
+            -0.1341
+          ],
+          "fov_deg": 50.0
+        }
+      },
+      "layer_share": {
+        "close-up from the room, green | own colours": {},
+        "the part alone, own colours, 4 sides": {},
+        "the part with 35 cm of surroundings, own colours, 4 sides": {},
+        "close-up": {
+          "rest": 194396,
+          "built": 136428,
+          "selected": 2418
+        },
+        "close-up from the left": {
+          "rest": 154229,
+          "built": 170840,
+          "selected": 3193
+        },
+        "close-up from the right": {
+          "rest": 156141,
+          "built": 86435,
+          "selected": 3992
+        },
+        "close-up from above": {
+          "rest": 108255,
+          "built": 111348,
+          "selected": 750
+        },
+        "outside, all points": {
+          "rest": 173683,
+          "built": 86278,
+          "selected": 939
+        },
+        "dollhouse: outside, top of the room above y +0.54 hidden": {
+          "rest": 138047,
+          "built": 57505,
+          "selected": 1947
+        },
+        "outside from the opposite corner": {
+          "rest": 150737,
+          "built": 112922,
+          "selected": 1501
+        },
+        "inside the room (START camera)": {
+          "rest": 226291,
+          "built": 161988,
+          "selected": 2453
+        },
+        "axis view from the top (looking down -Y)": {
+          "rest": 204640,
+          "built": 137455,
+          "selected": 454
+        },
+        "axis view from the right (looking -X)": {
+          "rest": 257680,
+          "built": 61959,
+          "selected": 6824
+        },
+        "axis view from the left (looking +X)": {
+          "rest": 272642,
+          "built": 48116,
+          "selected": 5094
+        },
+        "axis view from the front (looking -Z)": {
+          "rest": 218385,
+          "built": 65018,
+          "selected": 2018
+        },
+        "axis view from the back (looking +Z)": {
+          "rest": 189063,
+          "built": 90684,
+          "selected": 5152
+        },
+        "overview": {
+          "rest": 226291,
+          "built": 161988,
+          "selected": 2453
+        },
+        "before | after": {},
+        "only the parts (built 100 % + new), outside": {
+          "built": 261855,
+          "new": 1148
+        },
+        "only the parts, opposite corner": {
+          "built": 259837,
+          "new": 1216
+        },
+        "only the parts, from above": {
+          "built": 270407,
+          "new": 1173
+        }
+      },
+      "label": "Pipe 14",
+      "part_kind": "pipe",
+      "params": {
+        "along": "y",
+        "a": 3.12,
+        "b": -2.78,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1,
+        "neighbour": ""
+      },
+      "info": {
+        "round_sides": 11,
+        "axis": [
+          3.1645,
+          -2.8282
+        ],
+        "radius": 0.0792,
+        "start": -1.15,
+        "end": 0.9,
+        "runs": 1
+      }
+    },
+    {
+      "index": 1023,
+      "kind": "probe",
+      "name": "pump_candidates",
+      "status": "info",
+      "images": [
+        "images/1023_20261107-034905.png"
+      ],
+      "created_at": "2026-11-07T03:49:05+02:00",
+      "candidates": {
+        "1": {
+          "label": "floor unit: blue pump on red pipes",
+          "box": [
+            [
+              1.0,
+              -1.2,
+              0.85
+            ],
+            [
+              2.4,
+              -0.2,
+              1.9
+            ]
+          ]
+        },
+        "2": {
+          "label": "blue/green part on white risers",
+          "box": [
+            [
+              -2.6,
+              -0.9,
+              1.0
+            ],
+            [
+              -1.6,
+              0.6,
+              2.0
+            ]
+          ]
+        },
+        "3": {
+          "label": "blue round units, left wall back corner",
+          "box": [
+            [
+              -4.25,
+              -1.0,
+              -2.8
+            ],
+            [
+              -3.4,
+              0.4,
+              -1.6
+            ]
+          ]
+        },
+        "4": {
+          "label": "pump 1 (built) for comparison",
+          "box": [
+            [
+              2.95,
+              -1.16,
+              -2.7
+            ],
+            [
+              3.9,
+              0.62,
+              -0.35
+            ]
+          ]
+        }
       }
     }
   ],
@@ -12205,6 +12751,37 @@
       },
       "indices": "build/parts/0927_pipe_12.idx.npy",
       "ply": "build/parts/0927_pipe_12.ply"
+    },
+    {
+      "index": 965,
+      "name": "pipe_13",
+      "label": "Pipe 13",
+      "kind": "pipe",
+      "count": 3829,
+      "bbox": {
+        "min": [
+          1.4717,
+          -1.1352,
+          -3.5539
+        ],
+        "max": [
+          1.6756,
+          1.0978,
+          -3.3493
+        ]
+      },
+      "params": {
+        "along": "y",
+        "a": 1.56,
+        "b": -3.42,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1,
+        "neighbour": ""
+      },
+      "indices": "build/parts/0965_pipe_13.idx.npy",
+      "ply": "build/parts/0965_pipe_13.ply"
     }
   ],
   "removed": [
