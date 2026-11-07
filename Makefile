@@ -1,6 +1,7 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
 # Targets: setup | pipeline | api | web | check | demo | timelapse | viewer | snap
-.PHONY: setup pipeline api web check demo lint test contracts timelapse viewer snap help
+#          docker-build | docker-run | gcp-setup | publish-scene | deploy   (docs/DEPLOY.md)
+.PHONY: setup pipeline api web check demo lint test contracts timelapse viewer snap gcp-setup publish-scene deploy docker-build docker-run help
 UV ?= uv
 PY := $(UV) run python
 
@@ -53,6 +54,26 @@ viewer:          ## build/manifest.json + part indices -> data/derived/viewer/sc
 
 snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome; needs `make web`; Q="src=overlay&part=pipe_3" ...
 	cd web && node tools/snap.mjs $(if $(SNAP_URL),--url $(SNAP_URL)) $(foreach q,$(Q),"$(q)")
+
+# --- container + Google Cloud Run (docs/DEPLOY.md) -------------------------------------------------------------------
+PROJECT ?= twinbuild-a2b
+BUILD_SA = projects/$(PROJECT)/serviceAccounts/a2b-build@$(PROJECT).iam.gserviceaccount.com
+
+docker-build:    ## image with API + built viewer + scene (run `make viewer` first)
+	docker build -t a2b:local .
+
+docker-run:      ## run the local image on http://localhost:8080
+	docker run --rm -p 8080:8080 a2b:local
+
+gcp-setup:       ## one-time Google Cloud setup: PROJECT=twinbuild-a2b BILLING=<billing account id>
+	PROJECT=$(PROJECT) scripts/gcp_setup.sh
+
+publish-scene: viewer  ## export the build and upload scene.{bin,json} to the private scene bucket
+	gcloud storage cp data/derived/viewer/scene.bin data/derived/viewer/scene.json \
+	  gs://$(PROJECT)-scene/viewer/ --project $(PROJECT)
+
+deploy:          ## Cloud Build: scene from the bucket -> image -> Cloud Run europe-north1 (same as the main trigger)
+	gcloud beta builds submit --project $(PROJECT) --config cloudbuild.yaml --service-account $(BUILD_SA) .
 
 demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 	DEMO_MODE=1 $(UV) run uvicorn api.main:app --port 8000 & PID=$$!; trap "kill $$PID" EXIT; cd web && npm run dev

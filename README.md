@@ -24,6 +24,7 @@ This is a chance to make AI understand not just words and numbers, but physical 
 | [`research/`](research/) | Research notes: splat cleaning, semantic extraction, navigation, three.js/WebXR, offline AI copilot, curator + metadata binding. Start at [`00`](research/00_context_and_source_data.md) |
 | [`design/`](design/) | **Cyberpunk v2** theme: [`cyberpunk-tokens.css`](design/cyberpunk-tokens.css) and the [guide](design/CYBERPUNK_THEME.md) |
 | [`web/`](web/) | three.js viewer of the step-by-step build (`index.html`: Scan / Model / Overlay / Wireframe, parts list, build replay) and the URL-driven snapshot page `capture.html` (plan/elevation views with a grid, close-ups, captions). `make viewer` exports the build, `make web` serves it, `cd web && npm run snap -- "<query>"` writes numbered PNGs to `images/` |
+| [`docs/DEPLOY.md`](docs/DEPLOY.md) | Live at **https://a2b-aj7gruyyjq-lz.a.run.app** (Cloud Run, europe-north1; twinbuild.click once DNS is set). One container: FastAPI + built viewer + scene. `make publish-scene && make deploy` |
 
 ## Walk the room in a Meta Quest 3 (WebXR)
 
