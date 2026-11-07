@@ -1,6 +1,6 @@
 # Cloud Build: exports from the scene bucket -> image -> Artifact Registry -> Cloud Run (europe-north1).
 #   make deploy                      # same pipeline from the laptop (gcloud builds submit)
-#   a trigger on pushes to main      # make deploy-trigger once; see docs/DEPLOY.md. No keys anywhere: runs as a2b-build
+#   every merge to main              # .github/workflows/deploy.yml (make deploy-github once). No keys anywhere: runs as a2b-build
 # The exports are uploaded beforehand with `make publish-scene` (they are not in git): viewer/ (the manual build),
 # viewer_auto/ (the automatic build) and compare.json. Only viewer/ is required.
 substitutions:

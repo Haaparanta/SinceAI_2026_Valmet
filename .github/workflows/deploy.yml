@@ -1,0 +1,49 @@
+# Every merge to main: the same `make deploy` as on the laptop, run by GitHub Actions as the a2b-build service account
+# (Workload Identity Federation: no key stored anywhere; scripts/gcp_github_deploy.sh set it up once).
+# Cloud Build then builds the image from the exports in the scene bucket and deploys it to Cloud Run (cloudbuild.yaml).
+# Only changes that reach the image trigger a build (the same files .gcloudignore uploads); docs don't.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - api/**
+      - web/**
+      - design/**
+      - Dockerfile
+      - .dockerignore
+      - .gcloudignore
+      - cloudbuild.yaml
+      - Makefile
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Cloud Build -> Cloud Run (twinbuild.click)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sign in to Google Cloud as a2b-build
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/566541224410/locations/global/workloadIdentityPools/github/providers/github
+          service_account: a2b-build@twinbuild-a2b.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: beta
+
+      - name: make deploy
+        run: make deploy PROJECT=twinbuild-a2b
