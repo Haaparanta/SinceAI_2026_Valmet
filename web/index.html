@@ -35,6 +35,8 @@
           <div class="seg" role="group" aria-label="Options">
             <button id="cut" aria-pressed="false" title="hide everything above the dollhouse cut (D); automatic from above">Cutaway</button>
             <button id="boxes" aria-pressed="false" title="wire box around every built part (B)">Boxes</button>
+            <button id="near" aria-pressed="true" title="distance lines from the selected part to its nearest neighbours (N)">Nearby</button>
+            <button id="measure" aria-pressed="false" title="click two points on the scan to measure between them (M)">Measure</button>
             <button id="home" title="frame the whole room (Home)">Reset</button>
             <button id="snap" class="desktop-only" title="open this exact view as a snapshot page (P)">Snapshot</button>
           </div>
@@ -53,14 +55,58 @@
           <span id="upto-label" class="mono"></span>
           <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <input id="upto" type="range" min="0" max="0" value="0" aria-label="Built up to part" />
+        <div class="replay">
+          <button id="play" class="icon-btn" aria-pressed="false" aria-label="Play the build" title="play the build part by part (Space)">
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+          </button>
+          <input id="upto" type="range" min="0" max="0" value="0" aria-label="Built up to part" />
+        </div>
         <div id="panel-body">
+          <div class="filter">
+            <input id="filter" type="search" placeholder="Filter parts" aria-label="Filter parts" autocomplete="off" />
+            <div id="kinds" class="chips" role="group" aria-label="Kind"></div>
+          </div>
           <ol id="parts"></ol>
           <p id="stats" class="mono">loading scene.bin …</p>
         </div>
       </aside>
+      <section id="card" aria-label="Selected part" hidden>
+        <header class="card-head">
+          <span id="card-seq" class="mono"></span>
+          <h2 id="card-title"></h2>
+          <span id="card-kind" class="chip-static mono"></span>
+          <button id="card-close" class="icon-btn" aria-label="Clear selection" title="clear selection (Esc)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </header>
+        <dl id="card-facts"></dl>
+        <div id="card-images-wrap">
+          <h3>Approval images</h3>
+          <div id="card-images" class="thumbs"></div>
+        </div>
+        <div id="card-near-wrap">
+          <h3>Nearest parts</h3>
+          <ol id="card-near"></ol>
+        </div>
+      </section>
+      <div id="lightbox" role="dialog" aria-modal="true" aria-label="Approval image" hidden>
+        <img id="lb-img" alt="" />
+        <div class="lb-bar">
+          <button id="lb-prev" class="icon-btn" aria-label="Previous image">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span id="lb-cap" class="mono"></span>
+          <button id="lb-next" class="icon-btn" aria-label="Next image">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="lb-close" class="icon-btn" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
       <footer id="help" class="mono">
-        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part (list or room) · select + frame, Esc · clear &nbsp;|&nbsp; ←/→ · replay build &nbsp;|&nbsp; scene units (u)</span>
+        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby</span>
         <span class="pointer-coarse">drag · orbit &nbsp;·&nbsp; pinch · zoom &nbsp;·&nbsp; tap a part · select</span>
       </footer>
       <div id="toast" class="mono" role="status" aria-live="polite" hidden></div>
