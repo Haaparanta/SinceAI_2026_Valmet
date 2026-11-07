@@ -278,9 +278,9 @@ describe("viewer (index.html)", () => {
     await page.close();
   });
 
+  // regression: the auto-cutaway used to hide a selected part above the cut (lamps, pipes, ceiling); fixed in the shader
   test(
     "a selected part stays visible when the camera frames it from above the dollhouse cut",
-    { todo: above ? "docs/REQUESTS.md [test→web]: auto-cutaway hides selected parts above dollhouse_cut_y" : false },
     async (t) => {
       if (!above) return t.skip("no part lies above dollhouse_cut_y in this export");
       const { page } = await openViewer(`?src=model&part=${above.name}`);
