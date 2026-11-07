@@ -1,0 +1,31 @@
+{
+  "name": "a2b-demo-video",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The two-minute demo video of the Approve-to-Build Twin: screen recording, ElevenLabs narration, captions, Remotion composition",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Demo out/a2b_demo.mp4 --codec h264 --crf 18 --concurrency 4",
+    "still": "remotion still src/index.ts Demo out/frame.png --frame 60",
+    "record": "node tools/record.mjs",
+    "narrate": "node tools/narrate.mjs"
+  },
+  "dependencies": {
+    "@remotion/captions": "4.0.541",
+    "@remotion/cli": "4.0.541",
+    "@remotion/gif": "4.0.541",
+    "@remotion/google-fonts": "4.0.541",
+    "@remotion/media-utils": "4.0.541",
+    "@remotion/transitions": "4.0.541",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "playwright-core": "1.65.0",
+    "typescript": "5.7.2"
+  }
+}
