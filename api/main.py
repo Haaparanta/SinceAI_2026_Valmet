@@ -1,8 +1,8 @@
 """a2b API (FastAPI) - scaffold.
 
 Routes now: GET /api/health, GET /api/demo-mode, GET /api/scene/points, GET /api/scene/stats,
-GET /api/viewer/scene.bin, GET /api/viewer/scene.json, GET /api/viewer-auto/scene.{bin,json} (the automatic build),
-GET /api/images/{name} (the numbered step images; also the automatic build's object pictures).
+GET /api/viewer/scene.{bin,splat,json} (the step-by-step build), GET /api/viewer-auto/scene.{bin,splat,json} (the
+automatic build), GET /api/images/{name} (the numbered step images; also the automatic build's object pictures).
 The routers of AGENTS.md S5 (proposals, scene graph, assets, copilot, snapshots) land with M4-M9.
 
     uv run uvicorn api.main:app --reload --port 8000
@@ -73,6 +73,12 @@ def viewer_scene_bin() -> FileResponse:
     return _viewer_file("scene.bin", "application/octet-stream")
 
 
+@app.get("/api/viewer/scene.splat")
+def viewer_scene_splat() -> FileResponse:
+    """The same rows as Gaussian splats (.splat layout) for the viewer's Splats mode."""
+    return _viewer_file("scene.splat", "application/octet-stream")
+
+
 @app.get("/api/viewer/scene.json")
 def viewer_scene_json() -> FileResponse:
     """Parts (name, kind, count, [start, end) range, bbox), room bounds and dollhouse cut for scene.bin."""
@@ -83,6 +89,12 @@ def viewer_scene_json() -> FileResponse:
 def viewer_auto_scene_bin() -> FileResponse:
     """The automatic build (autoscene) as one point cloud, same layout (scripts/export_autoscene_viewer.py)."""
     return _viewer_file("scene.bin", "application/octet-stream", "viewer_auto")
+
+
+@app.get("/api/viewer-auto/scene.splat")
+def viewer_auto_scene_splat() -> FileResponse:
+    """The automatic build as Gaussian splats (.splat layout) for the viewer's Splats mode."""
+    return _viewer_file("scene.splat", "application/octet-stream", "viewer_auto")
 
 
 @app.get("/api/viewer-auto/scene.json")

@@ -1,7 +1,7 @@
 """Export the automatic build (autoscene/out/scene.json + objects.npz) for the web viewer, in the same format as
 scripts/export_viewer_scene.py writes for the manual build.
 
-    uv run python scripts/export_autoscene_viewer.py          # -> data/derived/viewer_auto/scene.bin + scene.json
+    uv run python scripts/export_autoscene_viewer.py          # -> data/derived/viewer_auto/scene.{bin,splat,json}
 
 The viewer then shows it at http://localhost:5173/?scene=auto (capture.html takes the same parameter). Point order:
 the pool (kept splats no object claimed) first, then every object in build order as one contiguous range, so
@@ -9,6 +9,7 @@ the pool (kept splats no object claimed) first, then every object in build order
 
 scene.bin, little-endian, n = total points:
     float32 xyz[n*3] | uint16 part[n] (0 = pool, k = parts[k-1]) | uint8 rgb[n*3] | uint8 size_mm[n]
+scene.splat: the same rows as Gaussian splats for the viewer's Splats mode (scripts/splat_format.py).
 """
 
 from __future__ import annotations
@@ -24,10 +25,12 @@ import orjson
 ROOT = Path(__file__).resolve().parents[1]
 AUTOSCENE = ROOT / "autoscene"
 sys.path.insert(0, str(AUTOSCENE))
+sys.path.insert(0, str(ROOT / "scripts"))  # splat_format
 
 from autoscene.orientation import FRAME
 from autoscene.scene import cache_for
 from autoscene.splats import load_real_splats, rgb_of, size_of, xyz_of
+from splat_format import write_splat
 
 OUT = ROOT / "data" / "derived" / "viewer_auto"
 KIND = {"structure": "structure", "yoloe": "object", "cluster": "cluster"}
@@ -91,6 +94,7 @@ def main() -> int:
         for arr in (xyz.astype("<f4"), part.astype("<u2"), rgb, size_mm):
             f.write(np.ascontiguousarray(arr).tobytes())
     tmp.replace(args.out / "scene.bin")
+    write_splat(args.out / "scene.splat", sel)
 
     bounds = scene["room_bounds_p1_p99"]
     a, b, c = scene["floor_plane"]
@@ -105,13 +109,14 @@ def main() -> int:
         "room_bounds": bounds, "floor_y": round(float(floor_y), 4),
         "dollhouse_cut_y": round(float(scene["ceiling_y"]) - 0.75, 3),
         "layout": "float32 xyz[n*3] | uint16 part[n] | uint8 rgb[n*3] | uint8 size_mm[n]",
+        "splats": {"file": "scene.splat", "format": "splat", "bytes_per_splat": 32},
         "by_label": scene["by_label"], "by_source": scene["by_source"],
         "parts": parts_meta,
     }
     (args.out / "scene.json").write_bytes(orjson.dumps(meta, option=orjson.OPT_INDENT_2) + b"\n")
     mb = (args.out / "scene.bin").stat().st_size / 1e6
     print(f"{len(rows):,} points ({len(pool_idx):,} pool of {pool_total:,}, {len(parts_meta)} objects) "
-          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.json")
+          f"-> {args.out.relative_to(ROOT)}/scene.bin ({mb:.1f} MB) + scene.splat + scene.json")
     return 0
 
 
