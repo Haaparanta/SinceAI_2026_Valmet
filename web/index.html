@@ -22,6 +22,10 @@
           <span class="badge" title="the asset data is the partner's synthetic builder pack">SYNTHETIC DATA</span>
         </div>
         <div class="hud-controls" role="toolbar" aria-label="View">
+          <div class="seg" role="group" aria-label="Render as" id="render">
+            <button data-render="points" title="the scan as dots: fast everywhere (G)">Points</button>
+            <button data-render="splats" title="the scan as real Gaussian splats: photographic, heavier (G)">Splats</button>
+          </div>
           <div class="seg" role="group" aria-label="Source" id="source">
             <button data-source="scan" title="every kept scan point (1)">Scan</button>
             <button data-source="model" title="accepted parts only: the twin (2)">Model</button>
@@ -106,7 +110,7 @@
         </div>
       </div>
       <footer id="help" class="mono">
-        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby</span>
+        <span class="pointer-fine">drag · orbit &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; right-drag · pan &nbsp;|&nbsp; 1–4 · source &nbsp;|&nbsp; click a part · select &nbsp;|&nbsp; Esc · clear &nbsp;|&nbsp; ←/→ · step, Space · play build &nbsp;|&nbsp; M · measure &nbsp;|&nbsp; N · nearby &nbsp;|&nbsp; G · splats</span>
         <span class="pointer-coarse">drag · orbit &nbsp;·&nbsp; pinch · zoom &nbsp;·&nbsp; tap a part · select</span>
       </footer>
       <div id="toast" class="mono" role="status" aria-live="polite" hidden></div>

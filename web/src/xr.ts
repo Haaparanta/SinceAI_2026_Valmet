@@ -8,6 +8,7 @@
  * - Trigger (or pinch with hand tracking): teleport arc to the floor.
  * - Point at equipment or a pipe: its box lights up and a label floats at the spot. Squeeze (grip): select / deselect it.
  * - A / X: cycle Scan, Model, Overlay. B / Y: part boxes on/off. Left stick click: back to the spawn point.
+ * - Right stick click: switch between the point cloud and Gaussian splats.
  *
  * Nothing here downloads at runtime (no controller-profile CDN): controllers are drawn as simple rays, hands as spheres,
  * so the demo also runs with Wi-Fi off.
@@ -24,6 +25,8 @@ export interface XrHooks {
   cycleSource(): void;
   /** B / Y button */
   toggleBoxes(): void;
+  /** right stick click: points <-> Gaussian splats */
+  toggleRender(): void;
   /** squeeze while pointing at a part: select it, or clear the selection if it already is */
   select(seq: number): void;
   /** two short lines for the wrist panel: what is on screen */
@@ -323,6 +326,7 @@ export class XrWalk {
         this.walk(ax[0], ax[1], dt);
         if (edge(3)) this.goToSpawn();
       } else if (source.handedness === "right") {
+        if (edge(3)) this.hooks.toggleRender();
         if (Math.abs(ax[0]) > 0.7 && !pad.turnLatch) {
           this.turn(-Math.sign(ax[0]) * TURN);
           pad.turnLatch = true;
@@ -529,7 +533,7 @@ export class XrWalk {
     ctx.fillStyle = "#9aa0b4";
     ctx.font = "30px system-ui, sans-serif";
     ctx.fillText(b, 36, 192);
-    ctx.fillText("stick walk · trigger teleport · grip select · A/X view", 36, 246);
+    ctx.fillText("trigger teleport · grip select · A/X view · R-click splats", 36, 246);
     this.panelTex.needsUpdate = true;
   }
 

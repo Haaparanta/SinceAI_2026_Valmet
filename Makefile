@@ -70,7 +70,7 @@ test-web:        ## browser tests: viewer + capture.html in headless Chromium (o
 	@test -f data/derived/viewer/scene.json || $(PY) scripts/make_viewer_fixture.py
 	node --test --test-reporter=spec tests/web/*.test.mjs
 
-viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,json} for web/ (seconds)
+viewer:          ## build/manifest.json + part indices -> data/derived/viewer/scene.{bin,splat,json} for web/ (seconds)
 	$(PY) scripts/export_viewer_scene.py
 
 snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome; needs `make web`; Q="src=overlay&part=pipe_3" ...
@@ -79,5 +79,5 @@ snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome;
 demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 	DEMO_MODE=1 $(UV) run uvicorn api.main:app --port 8000 & PID=$$!; trap "kill $$PID" EXIT; cd web && npm run dev
 
-viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,json}; open the viewer with ?scene=auto
+viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,splat,json}; open the viewer with ?scene=auto
 	$(PY) scripts/export_autoscene_viewer.py

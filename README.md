@@ -20,7 +20,7 @@ This is a chance to make AI understand not just words and numbers, but physical 
 
 - **Master scan:** `Equipment Room.ply` (1,676,481 splats, every row real), replacing `Industrial Boiler Room (1).ply` since 2026-11-06 23:15. It is gitignored like every `.ply`; see [docs/source-data](docs/source-data/README.md).
 - **Step-by-step build** ([`pipeline/build.py`](pipeline/build.py)): the twin is built one proposal at a time, and a person accepts or rejects each one. So far: 4 cleaning steps (below floor, behind wall ×2, outside the room envelope) and **19 accepted parts**: floor, ceiling, back wall, 2 lamps, pump 1, pallet jack 1 and pipes 1–12. That is 396,650 of the 1,617,777 kept splats. The state is in [`build/manifest.json`](build/manifest.json), and every step has numbered images in [`images/`](images/) (0001–0964; 0001–0138 belong to two archived earlier runs).
-- **Web viewer** ([`web/`](web/)): three.js view of the build (Scan / Model / Overlay / Wireframe, parts list, build replay) plus the snapshot page `capture.html`. Select a part (list, click or tap) for its **info card**: size, position, acceptance step with its **approval images**, and the **nearest parts with distances**, also drawn as leader lines in 3D. **Measure** (M) gives the distance between two scan points, **▶** (Space) replays the build part by part, and the parts list filters by name and kind. It works on desktop, on phones (compact top bar, build list as a bottom sheet, touch orbit/pinch) and in **WebXR on Meta Quest 3**: *Enter VR* puts you on open floor inside the room at real-world scale, and walking in your room walks you through the scan ([how](#vr-on-meta-quest-3)).
+- **Web viewer** ([`web/`](web/)): three.js view of the build (Scan / Model / Overlay / Wireframe, parts list, build replay) plus the snapshot page `capture.html`. **Points | Splats** (G) switches the scan between the dot cloud and real **Gaussian splats** ([Spark](https://sparkjs.dev)), with every view, the build replay, selection and the cutaway working on splats too ([details](#gaussian-splats)). Select a part (list, click or tap) for its **info card**: size, position, acceptance step with its **approval images**, and the **nearest parts with distances**, also drawn as leader lines in 3D. **Measure** (M) gives the distance between two scan points, **▶** (Space) replays the build part by part, and the parts list filters by name and kind. It works on desktop, on phones (compact top bar, build list as a bottom sheet, touch orbit/pinch) and in **WebXR on Meta Quest 3**: *Enter VR* puts you on open floor inside the room at real-world scale, and walking in your room walks you through the scan ([how](#vr-on-meta-quest-3)).
 - **API** ([`api/main.py`](api/main.py)): scaffold only. It serves health, demo mode, scene points/stats and the viewer scene.
 - **Also done:** M1 clean loader (`pipeline/01_clean.py`), the xlsx → JSON dump with 30 merged `AssetRecord`s (`pipeline/05_bind_metadata.py --dump`), frozen contracts with a drift check, and a timelapse video tool.
 - **Not started yet** (planned in [`AGENTS.md`](AGENTS.md)): the browser curator with approve buttons, `data/scene_graph.json`, binding xlsx assets to parts, the occupancy grid and route, and the copilot / `Diagnosis`.
@@ -46,6 +46,21 @@ The `.ply` / `.mp4` files are not in git; put them in `Source-Data-Do-Not_change
 | Before hand-off | `make check` (ruff + contract drift + every test + web typecheck/build) |
 | Self-score against the brief | `python3 scoring/score.py` |
 
+## Gaussian splats
+
+`make viewer` (and `make viewer-auto`) also writes `scene.splat` next to `scene.bin`: the same rows as SH-0 Gaussian
+splats (position, scale, rotation, opacity, base colour), 32 bytes per splat in the `.splat` layout
+([`scripts/splat_format.py`](scripts/splat_format.py)). Row *i* is the same splat in both files, so the viewer cuts
+`scene.splat` into one Spark `SplatMesh` for the unclaimed scan and one per part, and gives each mesh the opacity and
+tint of its role. Scan / Model / Overlay / Wireframe, Red / grey, the build replay, selection and the dollhouse cut
+(a `SplatEdit` plane) all work on splats.
+
+- Press **Splats** (or **G**, or open the viewer with `?render=splats`). The file downloads on first use, with progress
+  on the button: about 52 MB for the 1.6 M-splat Equipment Room.
+- **VR:** the right stick click switches too. Splats are much heavier than points on a headset, so start in Points and
+  switch when you stand still. In VR, splats are cut at √5 standard deviations instead of 3 (about 40 % fewer pixels).
+- Not on the snapshot page: `capture.html` stays point-based, so snapshots are reproducible.
+
 ## VR on Meta Quest 3
 
 Browsers only offer WebXR on `https://` or `localhost`, so pick one of these:
@@ -60,6 +75,7 @@ In VR you stand on the floor of the scanned room, on open floor away from the eq
 | Walk in your room | Walk in the scan (room-scale, 1 m = 1 m) |
 | Left stick | Walk where you look (stops at the room walls) |
 | Right stick left/right | 30° snap turn around your head |
+| Right stick click | Points ↔ Gaussian splats |
 | Trigger, or pinch with hand tracking | Teleport: aim the arc at the floor and release |
 | Point at equipment or a pipe | Its box lights up and a label shows name, kind and point count |
 | Squeeze (grip) while pointing | Select that part (red); squeeze again to clear |
