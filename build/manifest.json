@@ -12665,7 +12665,7 @@
       "index": 1062,
       "kind": "part",
       "name": "process_pump_3",
-      "status": "pending",
+      "status": "rejected",
       "images": [
         "images/1062_20261107-035543.png",
         "images/1063_20261107-035543.png",
@@ -13102,7 +13102,38 @@
           1.38,
           1.92
         ]
-      }
+      },
+      "decided_at": "2026-11-07T03:58:02+02:00",
+      "note": "user: these are control valves, not a pump; re-proposed as two control valves"
+    },
+    {
+      "index": 1083,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/1083_20261107-035806.png",
+        "images/1084_20261107-035811.png",
+        "images/1085_20261107-035825.png",
+        "images/1086_20261107-035826.png",
+        "images/1087_20261107-035827.png",
+        "images/1088_20261107-035828.png",
+        "images/1089_20261107-035829.png",
+        "images/1090_20261107-035830.png",
+        "images/1091_20261107-035831.png",
+        "images/1092_20261107-035832.png",
+        "images/1093_20261107-035834.png",
+        "images/1094_20261107-035835.png",
+        "images/1095_20261107-035836.png",
+        "images/1096_20261107-035836.png",
+        "images/1097_20261107-035837.png",
+        "images/1098_20261107-035837.png",
+        "images/1099_20261107-035838.png"
+      ],
+      "created_at": "2026-11-07T03:58:38+02:00",
+      "event": "after 1062 REJECTED (part process_pump_3)",
+      "kept": 1617777,
+      "built": 422502
     }
   ],
   "parts": [
