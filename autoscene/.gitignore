@@ -13,3 +13,4 @@ out/views/
 weights/
 mobileclip*
 out/images/
+out/*.log
