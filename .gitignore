@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Large partner source media: too big for GitHub (>100 MB) or kept out on purpose.
+# Share these outside git and drop them into Source-Data-Do-Not_change/ locally.
+Source-Data-Do-Not_change/*.ply
+Source-Data-Do-Not_change/*.mp4
+
+# a2b scaffold (see AGENTS.md S2)
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+data/raw
+data/derived/*
+!data/derived/.gitkeep
+data/snapshots/*
+!data/snapshots/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+web/node_modules/
+web/dist/
+
+# step-by-step build (pipeline/build.py): manifest, part indices and images/ are committed;
+# the .ply files are rebuilt from the indices and stay local
+build/**/*.ply
+build/**/*.tmp
+
+# scripts/timelapse.py output (rebuild with `make timelapse`)
+docs/timelapse*.mp4
