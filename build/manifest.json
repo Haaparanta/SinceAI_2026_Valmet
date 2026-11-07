@@ -15019,7 +15019,7 @@
       "index": 1252,
       "kind": "part",
       "name": "pipe_15",
-      "status": "pending",
+      "status": "accepted",
       "images": [
         "images/1252_20261107-041459.png",
         "images/1253_20261107-041500.png",
@@ -15399,7 +15399,37 @@
         "start": -1.15,
         "end": 1.4,
         "runs": 1
-      }
+      },
+      "decided_at": "2026-11-07T04:16:52+02:00"
+    },
+    {
+      "index": 1270,
+      "kind": "state",
+      "name": "progress",
+      "status": "info",
+      "images": [
+        "images/1270_20261107-041658.png",
+        "images/1271_20261107-041709.png",
+        "images/1272_20261107-041722.png",
+        "images/1273_20261107-041724.png",
+        "images/1274_20261107-041726.png",
+        "images/1275_20261107-041727.png",
+        "images/1276_20261107-041728.png",
+        "images/1277_20261107-041729.png",
+        "images/1278_20261107-041731.png",
+        "images/1279_20261107-041733.png",
+        "images/1280_20261107-041736.png",
+        "images/1281_20261107-041738.png",
+        "images/1282_20261107-041741.png",
+        "images/1283_20261107-041741.png",
+        "images/1284_20261107-041742.png",
+        "images/1285_20261107-041743.png",
+        "images/1286_20261107-041743.png"
+      ],
+      "created_at": "2026-11-07T04:17:43+02:00",
+      "event": "after 1252 ACCEPTED (part pipe_15)",
+      "kept": 1617777,
+      "built": 438493
     }
   ],
   "parts": [
@@ -16176,6 +16206,37 @@
       },
       "indices": "build/parts/1214_pipe_14.idx.npy",
       "ply": "build/parts/1214_pipe_14.ply"
+    },
+    {
+      "index": 1252,
+      "name": "pipe_15",
+      "label": "Pipe 15",
+      "kind": "pipe",
+      "count": 5009,
+      "bbox": {
+        "min": [
+          -2.2572,
+          -1.1256,
+          -3.4583
+        ],
+        "max": [
+          -2.0601,
+          1.3893,
+          -3.2599
+        ]
+      },
+      "params": {
+        "along": "y",
+        "a": -2.16,
+        "b": -3.38,
+        "search": 0.15,
+        "shell": 0.03,
+        "gap": 0.3,
+        "min_alpha": 0.1,
+        "neighbour": ""
+      },
+      "indices": "build/parts/1252_pipe_15.idx.npy",
+      "ply": "build/parts/1252_pipe_15.ply"
     }
   ],
   "removed": [
