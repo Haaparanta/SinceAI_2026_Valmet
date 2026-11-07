@@ -1,0 +1,11 @@
+# Allowlist: the image needs only the API, the web sources, the design tokens and the exported scene.
+*
+!api/
+!web/
+!design/
+!data/derived/viewer/scene.bin
+!data/derived/viewer/scene.json
+web/node_modules
+web/dist
+**/__pycache__
+**/.DS_Store

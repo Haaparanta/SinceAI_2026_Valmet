@@ -1,0 +1,54 @@
+# Cloud Build: scene from the bucket -> image -> Artifact Registry -> Cloud Run (europe-north1).
+#   make deploy                      # same pipeline from the laptop (gcloud builds submit)
+#   a trigger on pushes to main      # see docs/DEPLOY.md; no keys anywhere, runs as the a2b-build service account
+# The scene is uploaded beforehand with `make publish-scene` (it is not in git).
+substitutions:
+  _REGION: europe-north1
+  _SERVICE: a2b
+  _REPO: a2b
+  _SCENE_BUCKET: ${PROJECT_ID}-scene
+  _RUNTIME_SA: a2b-run@${PROJECT_ID}.iam.gserviceaccount.com
+options:
+  dynamicSubstitutions: true
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - id: scene
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p data/derived/viewer
+        gcloud storage cp gs://${_SCENE_BUCKET}/viewer/scene.bin gs://${_SCENE_BUCKET}/viewer/scene.json data/derived/viewer/
+        ls -l data/derived/viewer
+
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args: [build, -t, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${BUILD_ID}", -t, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest", .]
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}"]
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${BUILD_ID}
+      - --region=${_REGION}
+      - --service-account=${_RUNTIME_SA}
+      - --port=8080
+      - --cpu=1
+      - --memory=512Mi
+      - --concurrency=80
+      - --min-instances=0
+      - --max-instances=1
+      - --cpu-boost
+      - --set-env-vars=DEMO_MODE=0
+
+images: ["${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${BUILD_ID}"]
+timeout: 1200s
