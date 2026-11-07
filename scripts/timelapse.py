@@ -4,9 +4,12 @@
     uv run --group video python scripts/timelapse.py path/to/images -o out.mp4 --min 30 --max 60
     uv run --group video python scripts/timelapse.py --first 7 --last 354 --title "Boiler room" --subtitle "Day 1"
     uv run --group video python scripts/timelapse.py --plain              # just the images, no cards or effects
+    uv run --group video python scripts/timelapse.py --auto               # autoscene images -> docs/timelapse_autoscene.mp4
 
 Default input is the equipment-room worktree's images/ (.claude/worktrees/pli-cleanup-3d-viz-1dda2f), which has
-the newest step images; without that worktree it falls back to this checkout's images/.
+the newest step images; without that worktree it falls back to this checkout's images/. --auto switches to the
+automatic pipeline's pictures (autoscene/out/images, from the hackathon-challenge-readme-1ab2da worktree when this
+checkout has none), with its own titles and an end card that counts objects instead of steps.
 
 The video: a title card over a blurred view of the finished room (fades in from black) -> every image in order with
 short crossfades and a progress bar along the bottom edge -> the last image held -> an end card with the step count
@@ -39,6 +42,11 @@ INDEX_RE = re.compile(r"^(\d+)")
 STAMP_RE = re.compile(r"_(\d{8}-\d{6})")
 # Default input: the equipment-room build worktree, which has the newest images (more than the committed images/).
 EQUIPMENT_ROOM_WORKTREE = "pli-cleanup-3d-viz-1dda2f"
+# --auto input: the automatic YOLOE + splat-render pipeline (branch claude/auto-object-detection-rooms-dadf5c).
+AUTOSCENE_WORKTREE = "hackathon-challenge-readme-1ab2da"
+AUTOSCENE_IMAGES = Path("autoscene") / "out" / "images"
+# autoscene picture names: NNNN_<time>_<object no>_<label>_{a,b,c}.png
+AUTOSCENE_OBJECT_RE = re.compile(r"^\d+_\d{8}-\d{6}_(\d+)_.+_[abc]\.\w+$")
 
 # Look: matches the step images (navy background, the blue STATE badge).
 BG = (9, 12, 20)
@@ -73,7 +81,8 @@ class Style:
     subtitle: str = "Equipment room, built from a 3D scan one part at a time"
     xfade_s: float = 0.25  # crossfade between images (max a quarter of an image's frames)
     progress: bool = True  # progress bar along the bottom edge
-    found: int = 0  # images found before thinning, for the end card
+    found: int = 0  # the {n} of end_title: images found before thinning, or objects with --auto
+    end_title: str = "{n} build steps"
 
 
 def image_index(path: Path) -> int | None:
@@ -86,17 +95,22 @@ def image_time(path: Path) -> datetime | None:
     return datetime.strptime(m.group(1), "%Y%m%d-%H%M%S") if m else None
 
 
-def default_images() -> Path:
-    """The equipment-room worktree's images/ when it exists on this machine, else this checkout's images/."""
+def default_images(worktree: str = EQUIPMENT_ROOM_WORKTREE, rel: Path = Path("images")) -> Path:
+    """<rel> inside the named sibling worktree when it exists on this machine, else <rel> in this checkout."""
     try:
         git_dir = subprocess.run(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
             cwd=ROOT, capture_output=True, text=True, check=True,
         ).stdout.strip()  # fmt: skip
     except (OSError, subprocess.CalledProcessError):
-        return ROOT / "images"
-    candidate = Path(git_dir).parent / ".claude" / "worktrees" / EQUIPMENT_ROOM_WORKTREE / "images"
-    return candidate if candidate.is_dir() else ROOT / "images"
+        return ROOT / rel
+    candidate = Path(git_dir).parent / ".claude" / "worktrees" / worktree / rel
+    return candidate if candidate.is_dir() else ROOT / rel
+
+
+def count_objects(images: list[Path]) -> int:
+    """Distinct object numbers in autoscene picture names (each object has an a, b and maybe c picture)."""
+    return len({m.group(1) for p in images if (m := AUTOSCENE_OBJECT_RE.match(p.name))})
 
 
 def collect(folder: Path, first: int | None = None, last: int | None = None) -> list[Path]:
@@ -265,7 +279,7 @@ def frame_stream(p: Plan, size: tuple[int, int], style: Style | None) -> Iterato
         final = with_progress(last, 1.0) if style.progress else last
         t0, t1 = image_time(p.images[0]), image_time(p.images[-1])
         span = f"{fmt_time(t0)}  \u2013  {fmt_time(t1)}" if t0 and t1 else ""
-        steps = f"{style.found or len(p.images)} build steps"
+        steps = style.end_title.format(n=style.found or len(p.images))
         end = card(
             last, [(steps, "bold", 0.075, TEXT), (span, "medium", 0.032, MUTED), (style.title, "light", 0.03, MUTED)]
         )
@@ -318,24 +332,43 @@ def render(p: Plan, out: Path, *, style: Style | None = None, crf: int = 26) -> 
         sys.exit(f"ffmpeg failed with exit code {code}")
 
 
+# defaults that differ between the manual step-by-step build and the automatic pipeline (--auto)
+MANUAL = {
+    "out": ROOT / "docs" / "timelapse.mp4",
+    "hold_last": 2.0,
+    "title": Style.title,
+    "subtitle": Style.subtitle,
+    "end_title": Style.end_title,
+}
+AUTO = {
+    "out": ROOT / "docs" / "timelapse_autoscene.mp4",
+    "hold_last": 3.0,  # the last picture is the finished, textured room: the payoff
+    "title": "Automatic Room Rebuild",
+    "subtitle": "YOLOE detection on Gaussian-splat renders, no human in the loop",
+    "end_title": "{n} objects found automatically",
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
         "images", nargs="?", type=Path,
         help=f"folder of images (default: the {EQUIPMENT_ROOM_WORKTREE} worktree's images/ if present, else images/)",
     )  # fmt: skip
-    ap.add_argument("-o", "--out", type=Path, default=ROOT / "docs" / "timelapse.mp4", help="output .mp4")
+    ap.add_argument("-o", "--out", type=Path, help="output .mp4 (default docs/timelapse.mp4, --auto: _autoscene)")
     ap.add_argument("--min", dest="min_s", type=float, default=30.0, help="shortest video in seconds (default 30)")
     ap.add_argument("--max", dest="max_s", type=float, default=60.0, help="longest video in seconds (default 60)")
     ap.add_argument("--rate", type=float, default=6.0, help="preferred images per second before clamping (default 6)")
     ap.add_argument("--fps", type=int, default=30, help="video frame rate (default 30)")
-    ap.add_argument("--hold-last", type=float, default=2.0, help="extra seconds on the last image (default 2)")
+    ap.add_argument("--hold-last", type=float, help="extra seconds on the last image (default 2, --auto: 3)")
     ap.add_argument("--first", type=int, help="first image index to include (NNNN prefix)")
     ap.add_argument("--last", type=int, help="last image index to include (NNNN prefix)")
     ap.add_argument("--crf", type=int, default=26, help="x264 quality, lower is better (default 26)")
     look = ap.add_argument_group("look")
-    look.add_argument("--title", default=Style.title, help=f'title card headline (default "{Style.title}")')
-    look.add_argument("--subtitle", default=Style.subtitle, help="title card second line")
+    look.add_argument("--auto", action="store_true", help="the automatic pipeline's pictures, titles and output")
+    look.add_argument("--title", help=f'title card headline (default "{Style.title}")')
+    look.add_argument("--subtitle", help="title card second line")
+    look.add_argument("--end-title", help='end card headline, {n} = count (default "{n} build steps")')
     look.add_argument("--intro", type=float, default=3.0, help="title card seconds, 0 = none (default 3)")
     look.add_argument("--outro", type=float, default=4.0, help="end card seconds, 0 = none (default 4)")
     look.add_argument("--xfade", type=float, default=0.25, help="crossfade between images in seconds (default 0.25)")
@@ -344,10 +377,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
     args = ap.parse_args(argv)
 
+    preset = AUTO if args.auto else MANUAL
+    for key, value in preset.items():
+        if getattr(args, key) is None:
+            setattr(args, key, value)
     if args.plain:
         args.intro = args.outro = 0.0
     if args.images is None:
-        args.images = default_images()
+        args.images = default_images(AUTOSCENE_WORKTREE, AUTOSCENE_IMAGES) if args.auto else default_images()
     print(f"images from {args.images}", file=sys.stderr)
     if not args.images.is_dir():
         sys.exit(f"not a folder: {args.images}")
@@ -359,7 +396,10 @@ def main(argv: list[str] | None = None) -> int:
         )  # fmt: skip
     except ValueError as e:
         sys.exit(str(e))
-    style = None if args.plain else Style(args.title, args.subtitle, args.xfade, not args.no_progress, len(images))
+    n = count_objects(images) if args.auto else len(images)
+    style = (
+        None if args.plain else Style(args.title, args.subtitle, args.xfade, not args.no_progress, n, args.end_title)
+    )
 
     shown = sum(p.frames[:-1]) / len(p.frames[:-1]) / p.fps if len(p.frames) > 1 else p.frames[0] / p.fps
     print(

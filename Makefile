@@ -1,6 +1,6 @@
 # a2b - Approve-to-Build Twin (Valmet x Since AI 2026). See AGENTS.md S1 "Bootstrap".
-# Targets: setup | pipeline | api | web | check | demo | timelapse
-.PHONY: setup pipeline api web check demo lint test contracts timelapse help
+# Targets: setup | pipeline | api | web | check | demo | timelapse | timelapse-auto
+.PHONY: setup pipeline api web check demo lint test contracts timelapse timelapse-auto help
 UV ?= uv
 PY := $(UV) run python
 
@@ -41,6 +41,9 @@ check:           ## lint + contract drift + tests + web typecheck/build  (must b
 
 timelapse:       ## equipment-room images (else images/) -> docs/timelapse.mp4 (30-60 s); pass ARGS="--first 7 --hold-last 3" etc.
 	$(UV) run --group video python scripts/timelapse.py $(ARGS)
+
+timelapse-auto:  ## automatic pipeline pictures (autoscene/out/images) -> docs/timelapse_autoscene.mp4 (30-60 s)
+	$(UV) run --group video python scripts/timelapse.py --auto $(ARGS)
 
 api:             ## FastAPI on :8000 (reload)
 	$(UV) run uvicorn api.main:app --reload --port 8000

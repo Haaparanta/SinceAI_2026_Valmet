@@ -82,3 +82,14 @@ def test_frame_stream_matches_plan(tmp_path: Path, plain: bool) -> None:
     frames = list(timelapse.frame_stream(p, (64, 40), style))
     assert len(frames) == p.total_frames
     assert {f.size for f in frames} == {(64, 40)}
+
+
+def test_count_objects_reads_autoscene_names() -> None:
+    names = [
+        "0001_20261107-031921_001_floor_1_a.png",
+        "0002_20261107-031921_001_floor_1_b.png",
+        "0021_20261107-031941_007_chair_1_c.png",
+        "1271_20261107-032950_424_unidentified_object_76_b.png",
+        "1275_20261107-033012_all_objects_coloured.png",
+    ]
+    assert timelapse.count_objects([Path(n) for n in names]) == 3
