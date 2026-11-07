@@ -34,6 +34,11 @@ const last = parts.at(-1);
 const above = parts.find((p) => meta.dollhouse_cut_y != null && p.bbox.min[1] > meta.dollhouse_cut_y);
 const below = parts.find((p) => meta.dollhouse_cut_y == null || p.bbox.max[1] < meta.dollhouse_cut_y);
 const autoMeta = existsSync(resolve(AUTO_DIR, "scene.json")) ? JSON.parse(readFileSync(resolve(AUTO_DIR, "scene.json"), "utf8")) : null;
+const COMPARE_JSON = resolve(ROOT, "data/derived/compare.json");
+const cmp = existsSync(COMPARE_JSON) ? JSON.parse(readFileSync(COMPARE_JSON, "utf8")) : null;
+// the viewer only uses a comparison made from the builds it shows (every name must be a part there)
+const cmpFits = !!(cmp && autoMeta) && cmp.manual.every((r) => parts.some((p) => p.name === r.name)) &&
+  cmp.auto.every((r) => autoMeta.parts.some((p) => p.name === r.name));
 
 let vite;
 let browser;
@@ -469,6 +474,103 @@ describe("both builds (?scene=both)", { skip: autoMeta ? false : "no data/derive
     assert.equal(info.state.style, "origin");
     assert.equal(info.built.length, nManual + nAuto);
     assert.match(await page.textContent("#caption .legend"), /cyan = manual build · amber = automatic build · red = selected/);
+    await page.close();
+  });
+});
+
+describe("manual vs automatic (compare.json, ?scene=both)", { skip: cmpFits ? false : "no compare.json for these exports: run `make compare`" }, () => {
+  const nManual = parts.length;
+  const seqOf = (name) => {
+    const m = parts.findIndex((p) => p.name === name);
+    return m >= 0 ? m + 1 : nManual + autoMeta.parts.findIndex((p) => p.name === name) + 1;
+  };
+  const split = cmp?.manual.find((r) => r.status === "split" && r.fragments.length >= 2);
+  const missed = cmp?.manual.find((r) => r.status === "missed");
+
+  test("summary, status chips and per-part badges come from compare.json", async () => {
+    const { page, problems } = await openViewer("?scene=both");
+    const s = cmp.summary;
+    assert.match(await page.textContent("#compare-summary"), new RegExp(`finds ${s.found} of ${nManual} manual parts`));
+    for (const st of ["matched", "split", "partial", "missed"]) {
+      assert.equal(await page.textContent(`#compare-chips button[data-status="${st}"] .n`), String(s.status[st]));
+    }
+    assert.equal(await page.textContent('#compare-chips button[data-status="new"] .n'), String(s.auto_only));
+    for (const r of cmp.manual) {
+      assert.equal(await page.textContent(`#parts li[data-seq="${seqOf(r.name)}"] .status`), r.status, r.name);
+    }
+    await page.click('#compare-chips button[data-status="missed"]');
+    const shown = await page.$$eval("#parts li[data-seq]:not(.filtered)", (ls) => ls.map((l) => Number(l.dataset.seq)));
+    assert.deepEqual(shown, cmp.manual.filter((r) => r.status === "missed").map((r) => seqOf(r.name)));
+    await page.click('#compare-chips button[data-status="new"]');
+    assert.equal(await page.locator("#parts li[data-seq]:not(.filtered)").count(), s.auto_only);
+    assert.deepEqual(problems, []);
+    await page.close();
+  });
+
+  test("a split manual part lists its automatic pieces and boxes them amber in 3D", { skip: split ? false : "no split part" }, async () => {
+    const { page } = await openViewer(`?scene=both&part=${split.name}`);
+    assert.match(await page.textContent("#card-facts"), /split into pieces/);
+    const pieces = await page.$$eval("#card-pieces li .d", (ls) => ls.map((l) => Number(l.textContent.match(/#(\d+)/)[1])));
+    assert.deepEqual(pieces, split.fragments.map(seqOf));
+    const boxes = await page.evaluate(() => {
+      const { cloud } = window.__a2b;
+      return cloud.boxes.map((b, i) => (b.visible ? [i + 1, b.material.color.getHexString()] : null)).filter(Boolean);
+    });
+    const amber = boxes.filter(([, c]) => c === "ffb020").map(([k]) => k).sort((a, b) => a - b);
+    assert.deepEqual(amber, [...split.fragments.map(seqOf)].sort((a, b) => a - b));
+    assert.deepEqual(boxes.filter(([, c]) => c === "ff2d55").map(([k]) => k), [seqOf(split.name)], "selected part red");
+    // a piece's card points back to the manual part it belongs to
+    await page.click("#card-pieces li >> nth=0");
+    assert.equal(await page.textContent("#card-origin"), "AUTO");
+    await page.click('#card-facts button.link:has-text("inside")');
+    assert.equal(search(page).get("part"), split.name);
+    await page.close();
+  });
+
+  test("a missed manual part names the closest automatic object", { skip: missed ? false : "no missed part" }, async () => {
+    const { page } = await openViewer(`?scene=both&part=${missed.name}`);
+    const facts = await page.textContent("#card-facts");
+    assert.match(facts, /missed/);
+    if (missed.nearest) assert.match(facts, new RegExp(`closest: ${missed.nearest.label}`));
+    assert.equal(await page.isHidden("#card-pieces-wrap"), true);
+    await page.close();
+  });
+
+  test("the origin chips hide the other build in the room too, and clicks cannot pick it", async () => {
+    const r = split ?? cmp.manual[0];
+    const { page } = await openViewer(`?scene=both&src=model&part=${r.name}`);
+    const before = await litPixels(page);
+    await page.click('#kinds button[data-origin="manual"]');
+    assert.equal(search(page).get("show"), "manual");
+    assert.equal(search(page).get("part"), r.name, "a manual selection survives showing only manual");
+    const manualOnly = await litPixels(page);
+    await page.click('#kinds button[data-origin="manual"]');
+    await page.click('#kinds button[data-origin="auto"]');
+    assert.equal(search(page).get("show"), "auto");
+    assert.equal(search(page).get("part"), null, "the manual selection is dropped when manual parts are hidden");
+    const uniforms = await page.evaluate(() => window.__a2b.cloud.passes.map((x) => [x.mat.uniforms.uHideManual.value, x.mat.uniforms.uHideAuto.value]));
+    assert.deepEqual(uniforms, [[1, 0], [1, 0], [1, 0]]);
+    assert.ok(manualOnly < before, `fewer lit pixels with the automatic build hidden (${manualOnly} < ${before})`);
+    // no manual part can be hovered or clicked while only the automatic build is shown
+    const picked = await page.evaluate(() => {
+      const { cloud } = window.__a2b;
+      return cloud.meta.parts.filter((p) => p.origin === "manual").some((p) => cloud.visibleIn(p.seq, "auto"));
+    });
+    assert.equal(picked, false);
+    await page.reload();
+    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    assert.equal(await page.getAttribute('#kinds button[data-origin="auto"]', "aria-pressed"), "true", "show= survives a reload");
+    await page.close();
+  });
+
+  test("without compare.json the card falls back to box overlap on the fly", async () => {
+    const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+    await page.route("**/api/compare.json", (r) => r.fulfill({ status: 404, body: "missing" }));
+    await page.goto(`${BASE}/?scene=both&part=${parts[0].name}`);
+    await page.waitForFunction(() => window.__a2b, null, { timeout: 20000 });
+    assert.equal(await page.isHidden("#compare"), true);
+    assert.match(await page.textContent("#card-facts"), /Match/);
+    assert.equal(await page.locator("#parts .status").count(), 0);
     await page.close();
   });
 });
