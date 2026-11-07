@@ -137,5 +137,12 @@ switch): the manual parts come first, then the automatic objects; parts are tagg
 make viewer && make viewer-auto && make web     # then http://localhost:5173/?scene=both
 ```
 
+**How well does the automatic build do?** `make compare` measures it against the manual build (the human-approved
+reference) from the committed boxes alone, no scan needed: each manual part is *matched*, *split* into pieces,
+*partly found* or *missed*, and each automatic object is either inside a manual part or new. Results:
+[`docs/build_comparison.md`](docs/build_comparison.md). In `?scene=both` the panel shows the same numbers with
+status filters, every part gets a badge, a selected manual part boxes its automatic pieces in amber, and the
+manual / automatic chips show one build at a time in the room too.
+
 Without the scan (cloud sessions, CI), `make viewer-fixture` writes synthetic stand-ins for both exports from the
 committed `build/manifest.json` and `autoscene/out/scene.json`, and `make test-web` runs the browser tests on them.
