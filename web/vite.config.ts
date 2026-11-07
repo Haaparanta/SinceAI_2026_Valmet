@@ -19,15 +19,21 @@ function derivedFiles(): Plugin {
     // scripts/export_viewer_scene.py (the step-by-step build for the viewer and capture.html)
     "/api/viewer/scene.bin": resolve(derived, "viewer/scene.bin"),
     "/api/viewer/scene.json": resolve(derived, "viewer/scene.json"),
+    // scripts/export_autoscene_viewer.py (the automatic build; the viewer picks it with ?scene=auto)
+    "/api/viewer-auto/scene.bin": resolve(derived, "viewer_auto/scene.bin"),
+    "/api/viewer-auto/scene.json": resolve(derived, "viewer_auto/scene.json"),
   };
   return {
     name: "a2b-derived-files",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const path = (req.url ?? "").split("?")[0];
-        // numbered step images, same rule as api/main.py (GET /api/images/{name})
+        // numbered step images, same rule as api/main.py (GET /api/images/{name}): the manual build's images/,
+        // else the automatic build's autoscene/out/images/
         const img = /^\/api\/images\/(\d{4,}_\d{8}-\d{6}(?:_[\w-]+)?\.png)$/.exec(path);
-        const file = img ? resolve(repoRoot, "images", img[1]) : routes[path];
+        const file = img
+          ? [resolve(repoRoot, "images", img[1]), resolve(repoRoot, "autoscene/out/images", img[1])].find(existsSync)
+          : routes[path];
         if (!file || !existsSync(file)) return next();
         const type = file.endsWith(".json") ? "application/json" : file.endsWith(".png") ? "image/png" : "application/octet-stream";
         res.setHeader("Content-Type", type);

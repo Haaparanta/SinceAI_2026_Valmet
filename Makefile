@@ -71,3 +71,6 @@ snap:            ## capture.html views -> images/NNNN_*.png via headless Chrome;
 
 demo: pipeline   ## pipeline (cached) + API + web, Demo Mode on
 	DEMO_MODE=1 $(UV) run uvicorn api.main:app --port 8000 & PID=$$!; trap "kill $$PID" EXIT; cd web && npm run dev
+
+viewer-auto:     ## autoscene/out (automatic build) -> data/derived/viewer_auto/scene.{bin,json}; open the viewer with ?scene=auto
+	$(PY) scripts/export_autoscene_viewer.py
