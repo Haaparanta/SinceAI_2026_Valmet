@@ -8,6 +8,10 @@
  * selected (one part). Each pass has its own opacity and tint, so the Scan / Model / Overlay / Wireframe sources (after
  * the 3D Model Anything viewer, MIT, Wes Bos) and both snapshot styles come from one shader. A part after `upto` counts
  * as pool: scrubbing `upto` replays the build.
+ *
+ * Builds: the manual step-by-step build (default), the automatic one (?scene=auto, scripts/export_autoscene_viewer.py) or
+ * both at once (?scene=both): the manual export as is (its pool is the whole kept scan) followed by the automatic
+ * objects, so parts 1..manual_parts are manual and the rest automatic. Every part carries its `origin`.
  */
 import * as THREE from "three";
 
@@ -33,11 +37,17 @@ export interface PartMeta {
   images?: string[];
   /** ISO time of the acceptance step */
   accepted_at?: string;
+  /** which build the part comes from (set by loadScene) */
+  origin?: Origin;
 }
 export interface SceneMeta {
   version: number;
-  /** "autoscene" for the automatic build; absent for the manual one */
+  /** "autoscene" for the automatic build, "both" for the two merged (loadScene); absent for the manual one */
   build?: string;
+  /** build "both": parts 1..manual_parts are the manual build, the rest the automatic one */
+  manual_parts?: number;
+  /** build "both": rows of the automatic export's pool that were dropped (its scene.splat skips the same rows) */
+  auto_pool_count?: number;
   exported_at: string;
   source: { file: string; header_rows: number; real_rows: number };
   frame: string;
@@ -54,8 +64,13 @@ export interface SceneMeta {
 
 export type Source = "scan" | "model" | "overlay" | "wireframe";
 export const SOURCES: Source[] = ["scan", "model", "overlay", "wireframe"];
-/** true = real colours (the user's image rule since 2026-11-06 22:25); redgrey = AGENTS.md M5 recipe. */
-export type Style = "true" | "redgrey";
+/**
+ * true = real colours (the user's image rule since 2026-11-06 22:25); redgrey = AGENTS.md M5 recipe;
+ * origin = built parts tinted by the build they come from (manual cyan, automatic amber), selected red.
+ */
+export type Style = "true" | "redgrey" | "origin";
+export const STYLES: Style[] = ["true", "redgrey", "origin"];
+export type Origin = "manual" | "auto";
 
 export interface ViewState {
   source: Source;
@@ -73,10 +88,16 @@ export interface ViewState {
 const RED = new THREE.Color(0xff2d55);
 const GREY = new THREE.Color(0x9aa0a6);
 const WIRE = new THREE.Color(0x9de2f0);
+/** "By origin" colours (also the list tags in style.css: keep in sync) */
+export const ORIGIN_COLOUR: Record<Origin, string> = { manual: "#00e5ff", auto: "#ffb020" };
+const MANUAL_TINT = new THREE.Color(ORIGIN_COLOUR.manual);
+const AUTO_TINT = new THREE.Color(ORIGIN_COLOUR.auto);
 
 interface RoleLook {
   alpha: number;
   tint?: THREE.Color;
+  /** tint for automatic parts when it differs from `tint` (style "origin") */
+  autoTint?: THREE.Color;
 }
 type Looks = [pool: RoleLook, built: RoleLook, selected: RoleLook];
 
@@ -86,6 +107,9 @@ export function looksFor(s: ViewState): Looks {
   if (s.style === "redgrey") {
     // AGENTS.md M5 snapshot recipe: new object red and opaque, other approved objects grey at 25 %, raw points hidden.
     return [{ alpha: 0 }, { alpha: 0.25, tint: GREY }, { alpha: 1, tint: RED }];
+  }
+  if (s.style === "origin") {
+    return [{ alpha: sel ? 0.05 : 0.1 }, { alpha: sel ? 0.3 : 1, tint: MANUAL_TINT, autoTint: AUTO_TINT }, { alpha: 1, tint: RED }];
   }
   switch (s.source) {
     case "scan":
@@ -111,6 +135,8 @@ uniform float uCutOn;
 uniform float uHalfH;
 uniform float uSizeScale;
 uniform vec3 uTint;
+uniform vec3 uTintAuto;
+uniform float uSplit;
 uniform float uTintMix;
 varying vec3 vColor;
 void main() {
@@ -126,7 +152,7 @@ void main() {
   bool ortho = projectionMatrix[3][3] > 0.5;
   float pxPerUnit = projectionMatrix[1][1] * uHalfH / (ortho ? 1.0 : max(-mv.z, 0.001));
   gl_PointSize = clamp(psize * 0.001 * uSizeScale * pxPerUnit, 1.0, 48.0);
-  vColor = mix(rgb, uTint, uTintMix);
+  vColor = mix(rgb, part > uSplit + 0.5 ? uTintAuto : uTint, uTintMix);
 }`;
 
 const fragmentShader = /* glsl */ `
@@ -155,27 +181,132 @@ export function parseScene(buf: ArrayBuffer, meta: SceneMeta): THREE.BufferGeome
   return g;
 }
 
-/** Which build to show: the manual step-by-step build (default) or the automatic one (?scene=auto). */
-export type Build = "manual" | "auto";
+/** Which build to show: the manual step-by-step build (default), the automatic one (?scene=auto) or both (?scene=both). */
+export type Build = "manual" | "auto" | "both";
+export const BUILDS: Build[] = ["manual", "auto", "both"];
 export function buildFromUrl(params: URLSearchParams): Build {
-  return params.get("scene") === "auto" ? "auto" : "manual";
+  const b = params.get("scene");
+  return b === "auto" || b === "both" ? b : "manual";
 }
 
-/** API folder of a build's viewer files (scene.json, scene.bin, scene.splat). */
+/** Number of manual parts at the start of meta.parts (the rest are automatic). */
+export function manualCount(meta: SceneMeta): number {
+  return meta.manual_parts ?? (meta.build === "autoscene" ? 0 : meta.parts.length);
+}
+
+const EXPORTS: Record<Origin, { base: string; script: string }> = {
+  manual: { base: buildBase("manual"), script: "export_viewer_scene.py" },
+  auto: { base: buildBase("auto"), script: "export_autoscene_viewer.py" },
+};
+const BYTES_PER_POINT = 12 + 2 + 3 + 1;
+
+interface RawScene {
+  meta: SceneMeta;
+  buf: ArrayBuffer;
+}
+
+async function fetchExport(origin: Origin): Promise<RawScene> {
+  const { base, script } = EXPORTS[origin];
+  const hint = `run \`uv run python scripts/${script}\` first`;
+  const [metaRes, binRes] = await Promise.all([fetch(`${base}/scene.json`), fetch(`${base}/scene.bin`)]);
+  if (!metaRes.ok) throw new Error(`GET ${base}/scene.json -> ${metaRes.status}: ${hint}`);
+  if (!binRes.ok) throw new Error(`GET ${base}/scene.bin -> ${binRes.status}: ${hint}`);
+  const meta = (await metaRes.json()) as SceneMeta;
+  meta.parts = meta.parts.map((p) => ({ ...p, origin }));
+  return { meta, buf: await binRes.arrayBuffer() };
+}
+
+/**
+ * Both builds as one scene: the manual export unchanged (pool + parts), then the automatic export's parts block (its pool
+ * is dropped: it is the same scan, already in the manual pool and parts). Automatic part ids shift by the manual part
+ * count; points of a part the two builds share are drawn twice, once per build.
+ */
+export function mergeBuilds(manual: RawScene, auto: RawScene): RawScene {
+  for (const r of [manual, auto]) {
+    const want = r.meta.count * BYTES_PER_POINT;
+    if (r.buf.byteLength !== want) {
+      throw new Error(`scene.bin is ${r.buf.byteLength} bytes, scene.json says ${r.meta.count} points (${want} bytes): re-export`);
+    }
+  }
+  const nm = manual.meta.count;
+  const na = auto.meta.count;
+  const ap = auto.meta.pool_count;
+  const add = na - ap;
+  const n = nm + add;
+  const shift = manual.meta.parts.length;
+  if (shift + auto.meta.parts.length > 65535) throw new Error("too many parts for uint16 part ids");
+
+  const buf = new ArrayBuffer(n * BYTES_PER_POINT);
+  new Float32Array(buf, 0, n * 3).set(new Float32Array(manual.buf, 0, nm * 3));
+  new Float32Array(buf, 0, n * 3).set(new Float32Array(auto.buf, ap * 12, add * 3), nm * 3);
+  const part = new Uint16Array(buf, n * 12, n);
+  part.set(new Uint16Array(manual.buf, nm * 12, nm));
+  const autoPart = new Uint16Array(auto.buf, na * 12 + ap * 2, add);
+  for (let i = 0; i < add; i++) part[nm + i] = autoPart[i] + shift;
+  const bytes = (src: RawScene, count: number, at: number, skip: number, width: number) =>
+    new Uint8Array(src.buf, count * at + skip * width, (src === manual ? nm : add) * width);
+  const rgb = new Uint8Array(buf, n * 14, n * 3);
+  rgb.set(bytes(manual, nm, 14, 0, 3));
+  rgb.set(bytes(auto, na, 14, ap, 3), nm * 3);
+  const size = new Uint8Array(buf, n * 17, n);
+  size.set(bytes(manual, nm, 17, 0, 1));
+  size.set(bytes(auto, na, 17, ap, 1), nm);
+
+  const m = manual.meta;
+  const a = auto.meta;
+  const offset = nm - ap;
+  const bounds: BBox = {
+    min: [0, 1, 2].map((k) => Math.min(m.room_bounds.min[k], a.room_bounds.min[k])) as V3,
+    max: [0, 1, 2].map((k) => Math.max(m.room_bounds.max[k], a.room_bounds.max[k])) as V3,
+  };
+  const meta: SceneMeta = {
+    ...m,
+    build: "both",
+    manual_parts: shift,
+    auto_pool_count: ap,
+    count: n,
+    room_bounds: bounds,
+    dollhouse_cut_y: m.dollhouse_cut_y ?? a.dollhouse_cut_y,
+    parts: [
+      ...m.parts.map((p) => ({ ...p, origin: "manual" as const })),
+      ...a.parts.map((p) => ({ ...p, origin: "auto" as const, seq: p.seq + shift, start: p.start + offset, end: p.end + offset })),
+    ],
+  };
+  return { meta, buf };
+}
+
+/** API folder of a build's viewer files (scene.json, scene.bin, scene.splat); "both" has none of its own (see mergeBuilds). */
 export function buildBase(build: Build): string {
   return build === "auto" ? "/api/viewer-auto" : "/api/viewer";
 }
 
 export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
-  const base = buildBase(build);
-  const script = build === "auto" ? "export_autoscene_viewer.py" : "export_viewer_scene.py";
-  const hint = `run \`uv run python scripts/${script}\` first`;
-  const metaRes = await fetch(`${base}/scene.json`);
-  if (!metaRes.ok) throw new Error(`GET ${base}/scene.json -> ${metaRes.status}: ${hint}`);
-  const meta = (await metaRes.json()) as SceneMeta;
-  const binRes = await fetch(`${base}/scene.bin`);
-  if (!binRes.ok) throw new Error(`GET ${base}/scene.bin -> ${binRes.status}: ${hint}`);
-  return { meta, geometry: parseScene(await binRes.arrayBuffer(), meta) };
+  const raw =
+    build === "both"
+      ? mergeBuilds(...(await Promise.all([fetchExport("manual"), fetchExport("auto")])))
+      : await fetchExport(build);
+  return { meta: raw.meta, geometry: parseScene(raw.buf, raw.meta) };
+}
+
+/** Axis-aligned box overlap (intersection over union), 0..1. */
+export function iou(a: BBox, b: BBox): number {
+  let inter = 1;
+  for (let k = 0; k < 3; k++) inter *= Math.max(0, Math.min(a.max[k], b.max[k]) - Math.max(a.min[k], b.min[k]));
+  const vol = (x: BBox) => (x.max[0] - x.min[0]) * (x.max[1] - x.min[1]) * (x.max[2] - x.min[2]);
+  const union = vol(a) + vol(b) - inter;
+  return union > 0 ? inter / union : 0;
+}
+
+/** Build "both": the part from the other build whose box overlaps `sel` most (IoU >= minIou), among parts 1..upto. */
+export function counterpart(meta: SceneMeta, sel: PartMeta, upto: number, minIou = 0.1): { part: PartMeta; iou: number } | null {
+  if (meta.build !== "both" || !sel.origin) return null;
+  let best: { part: PartMeta; iou: number } | null = null;
+  for (const p of meta.parts.slice(0, upto)) {
+    if (p.origin === sel.origin) continue;
+    const v = iou(sel.bbox, p.bbox);
+    if (v >= minIou && (!best || v > best.iou)) best = { part: p, iou: v };
+  }
+  return best;
 }
 
 /**
@@ -215,6 +346,8 @@ export class BuildCloud {
           uHalfH: { value: 400 },
           uSizeScale: { value: 1 },
           uTint: { value: new THREE.Color() },
+          uTintAuto: { value: new THREE.Color() },
+          uSplit: { value: manualCount(meta) },
           uTintMix: { value: 0 },
           uAlpha: { value: 1 },
         },
@@ -295,6 +428,7 @@ export class BuildCloud {
       u.uAlpha.value = look.alpha;
       u.uTintMix.value = look.tint ? 1 : 0;
       if (look.tint) (u.uTint.value as THREE.Color).copy(look.tint);
+      if (look.tint) (u.uTintAuto.value as THREE.Color).copy(look.autoTint ?? look.tint);
       const opaque = look.alpha >= 0.99;
       mat.transparent = !opaque;
       mat.depthWrite = opaque;
@@ -378,7 +512,7 @@ export function readState(params: URLSearchParams, meta: SceneMeta, fallback: Pa
   }
   return {
     source: src && SOURCES.includes(src) ? src : (fallback.source ?? "overlay"),
-    style: params.get("style") === "redgrey" ? "redgrey" : "true",
+    style: STYLES.includes(params.get("style") as Style) ? (params.get("style") as Style) : (fallback.style ?? defaultStyle(meta)),
     selected,
     upto,
     cut: params.has("dollhouse") ? params.get("dollhouse") !== "0" : (fallback.cut ?? false),
@@ -386,9 +520,14 @@ export function readState(params: URLSearchParams, meta: SceneMeta, fallback: Pa
   };
 }
 
+/** The style a build opens with when the URL names none: both builds at once are told apart by colour. */
+export function defaultStyle(meta: SceneMeta): Style {
+  return meta.build === "both" ? "origin" : "true";
+}
+
 export function writeState(params: URLSearchParams, s: ViewState, meta: SceneMeta): void {
   params.set("src", s.source);
-  if (s.style === "redgrey") params.set("style", "redgrey");
+  if (s.style !== defaultStyle(meta)) params.set("style", s.style);
   else params.delete("style");
   const sel = meta.parts[s.selected - 1];
   if (sel) params.set("part", sel.name);
