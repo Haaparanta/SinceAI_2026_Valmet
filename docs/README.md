@@ -12,7 +12,7 @@ The originals in [`Source-Data-Do-Not_change/`](../Source-Data-Do-Not_change/) s
 | [source-data/challenge-brief/](source-data/challenge-brief/README.md) | The official challenge brief: problem, four build steps, scoring weights, submission package, contacts |
 | [source-data/builder-pack/](source-data/builder-pack/README.md) | The synthetic Excel pack, all 16 sheets: columns, distributions, how sheets join, telemetry fault signatures, faulty-target choice and a P-005 dossier |
 | [source-data/builder-pack/data-reference/](source-data/builder-pack/data-reference/README.md) | Every row of the small sheets: 30 assets, states, anchors, per-asset evidence counts, 50 service cases, 38 RAG docs |
-| [source-data/boiler-room-ply/](source-data/boiler-room-ply/README.md) | The 3D Gaussian Splatting scan: attribute decoding, junk statistics, room dimensions, floor/ceiling heights, cleaning code |
+| [source-data/boiler-room-ply/](source-data/boiler-room-ply/README.md) | The original 3D Gaussian Splatting scan (the build now uses `Equipment Room.ply`, see [source-data/](source-data/README.md#equipment-roomply)): attribute decoding, junk statistics, room dimensions, floor/ceiling heights, cleaning code |
 | [source-data/demo-videos/](source-data/demo-videos/README.md) | The room walkthrough and the two "semantic extraction" reference videos, with contact sheets and an inventory of what is in the room |
 
 ## Linked references
@@ -39,7 +39,7 @@ New to the challenge? Read in this order:
 
 1. [Challenge brief](source-data/challenge-brief/README.md): what to build and how it is scored, with a requirement-by-requirement trace.
 2. [Videos](source-data/demo-videos/README.md): what the room looks like and what "good" extraction looks like.
-3. [PLY scan](source-data/boiler-room-ply/README.md): how to read it and why 80 % of it must be thrown away.
+3. [PLY scan](source-data/boiler-room-ply/README.md): how to read it and why most of it must be thrown away. The build now runs on the newer, clean [`Equipment Room.ply`](source-data/README.md#equipment-roomply).
 4. [Builder pack](source-data/builder-pack/README.md): the data to map, the fault signatures, and the recommended faulty target (P-005).
 5. [Links overview](links/README.md): Valmet's own products and the standards behind the pitch.
 
