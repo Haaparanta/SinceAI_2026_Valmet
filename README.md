@@ -46,6 +46,28 @@ The `.ply` / `.mp4` files are not in git; put them in `Source-Data-Do-Not_change
 | Before hand-off | `make check` (ruff + contract drift + every test + web typecheck/build) |
 | Self-score against the brief | `python3 scoring/score.py` |
 
+## Detail levels and loading order
+
+`make viewer` / `make viewer-auto` also split the scan into **5 additive detail levels** ([`scripts/lod.py`](scripts/lod.py)),
+written as `lod/<k>.bin` (points) and `lod/<k>.splat` (splats). The split is a voxel pyramid per part. Level 0 keeps the
+most important splat (opacity × size) in each 12 cm voxel of every part and of the unclaimed scan. Each next level
+halves the voxel size (6, 3, 1.5 cm), and level 4 holds the rest. Together the levels are exactly the scan, with no row
+twice. Level 0 is about 4 % of the rows, so a complete, coarse room is on screen after a small fraction of the download.
+
+The viewer loads everything lazily, in this order, each step on screen as soon as it arrives (a thin bar along the top
+shows progress, and the stats line shows `detail k/5`):
+
+1. `scene.json`: the toolbar, the parts list, the part boxes.
+2. Point levels 0 → 4, coarse to fine; points are drawn larger while finer levels are missing.
+3. Splats, if switched on: the Spark module, then splat levels 0 → 4. The points stay on screen until the first splat
+   level is sorted and drawn, so there is no blank frame. Phones and the Quest skip the finest splat level by default;
+   `?splatlod=N` sets the budget.
+4. The VR module, only where WebXR VR is supported, and only after the points are in.
+5. Approval images, only when a card shows them.
+
+The snapshot page still loads the full `scene.bin`, so snapshots draw every point. Exports made before the detail levels
+existed still work: the viewer loads their single `scene.bin` / `scene.splat` instead.
+
 ## Gaussian splats
 
 `make viewer` (and `make viewer-auto`) also writes `scene.splat` next to `scene.bin`: the same rows as SH-0 Gaussian
@@ -55,7 +77,7 @@ splats (position, scale, rotation, opacity, base colour), 32 bytes per splat in 
 tint of its role. Scan / Model / Overlay / Wireframe, Red / grey, the build replay, selection and the dollhouse cut
 (a `SplatEdit` plane) all work on splats.
 
-- Press **Splats** (or **G**, or open the viewer with `?render=splats`). The file downloads on first use, with progress
+- Press **Splats** (or **G**, or open the viewer with `?render=splats`). The splat levels download on first use, coarse first, with progress
   on the button: about 52 MB for the 1.6 M-splat Equipment Room.
 - **VR:** the right stick click switches too. Splats are much heavier than points on a headset, so start in Points and
   switch when you stand still. In VR, splats are cut at √5 standard deviations instead of 3 (about 40 % fewer pixels).
@@ -83,7 +105,7 @@ In VR you stand on the floor of the scanned room, on open floor away from the eq
 | B / Y | Part boxes on/off |
 | Left stick click | Back to the start point |
 
-The left controller carries a small panel showing the current view. Metric scale is still unverified. VR assumes **1 u ≈ 1.15 m**, from the pallet jack's size and the 2.6 u ceiling height. Override it with `?mpu=<metres per unit>`. To hold 72 Hz, VR draws every 2nd point with slightly larger points, and it thins further on its own (down to every 6th point; the wrist panel shows `1/N pts`) when frames run long. `?xrstride=N` pins the density, and `?xrstride=1` draws every point. Nothing is fetched at runtime (controllers are drawn as rays, hands as spheres), so the demo also runs offline.
+The left controller carries a small panel showing the current view. Metric scale is still unverified. VR assumes **1 u ≈ 1.15 m**, from the pallet jack's size and the 2.6 u ceiling height. Override it with `?mpu=<metres per unit>`. To hold 72 Hz, VR leaves out the finest [detail level](#detail-levels-and-loading-order), and when frames still run long it leaves out one more level at a time, down to level 2 of 5 (the wrist panel shows `LOD n/5`). The coarse levels are spatially even, so the room stays whole, only sparser. `?xrlod=N` pins VR to levels 0..N (`?xrlod=4` draws everything). Nothing is fetched at runtime (controllers are drawn as rays, hands as spheres), so the demo also runs offline.
 
 ## Repo map
 

@@ -9,7 +9,14 @@ import {
   BuildCloud,
   buildFromUrl,
   frameBox,
-  loadScene,
+  fetchBytes,
+  exportHint,
+  fullChunk,
+  loadLevel,
+  loadMeta,
+  parseScene,
+  buildBase,
+  type Build,
   METRES_PER_UNIT_GUESS,
   partBox,
   pickPart,
@@ -21,7 +28,7 @@ import {
   type Source,
   type ViewState,
 } from "./scene";
-import { vrSupported, XrWalk } from "./xr";
+import type { XrWalk } from "./xr"; // the VR module loads last, and only where WebXR VR is supported
 
 const fmt = (n: number): string => n.toLocaleString("en-US");
 const FOV = 50;
@@ -43,6 +50,7 @@ const loadingEl = document.querySelector<HTMLElement>("#loading")!;
 const loadingText = document.querySelector<HTMLElement>("#loading-text")!;
 const toastEl = document.querySelector<HTMLElement>("#toast")!;
 const tipEl = document.querySelector<HTMLElement>("#tip")!;
+const progressEl = document.querySelector<HTMLElement>("#progress")!;
 const nearBtn = document.querySelector<HTMLButtonElement>("#near")!;
 const measureBtn = document.querySelector<HTMLButtonElement>("#measure")!;
 const playBtn = document.querySelector<HTMLButtonElement>("#play")!;
@@ -54,12 +62,16 @@ const lbImg = document.querySelector<HTMLImageElement>("#lb-img")!;
 const lbCap = document.querySelector<HTMLElement>("#lb-cap")!;
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 const params = new URLSearchParams(location.search);
-/** metres per scene unit in VR (?mpu=), and VR point thinning (?xrstride=, 1 = every point) */
+/** metres per scene unit in VR (?mpu=) */
 const MPU = Number(params.get("mpu")) || METRES_PER_UNIT_GUESS;
-const XR_STRIDE = Math.max(1, Number(params.get("xrstride")) || 2);
-/** VR thins more points on its own when the headset misses frames, unless ?xrstride= pins the density */
-const XR_ADAPT = !params.has("xrstride");
-const XR_MAX_STRIDE = 6;
+/**
+ * Detail levels drawn in VR: ?xrlod=N pins levels 0..N. Without it VR starts one level below the finest and leaves out
+ * one more level each time the headset runs slow, down to level 1.
+ */
+const XR_LOD = params.has("xrlod") ? Math.max(0, Math.floor(Number(params.get("xrlod")) || 0)) : null;
+/** Splat detail budget: ?splatlod=N loads splat levels 0..N; by default phones and headsets skip the finest one. */
+const SPLAT_LOD = params.has("splatlod") ? Math.max(0, Math.floor(Number(params.get("splatlod")) || 0)) : null;
+const LIGHT_DEVICE = matchMedia("(pointer: coarse)").matches || /OculusBrowser|Quest/i.test(navigator.userAgent);
 const SOURCE_LABEL: Record<Source, string> = { scan: "Scan", model: "Model", overlay: "Overlay", wireframe: "Wireframe" };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -146,12 +158,14 @@ function syncUrl(meta: SceneMeta): void {
 
 /** Push the view state into the point passes and, in splat mode, into the splat meshes. */
 function applyLayers(meta: SceneMeta, cut = autoCut(meta)): void {
-  const useSplats = renderMode === "splats" && !!splats?.ready;
+  const wantSplats = renderMode === "splats" && !!splats?.ready;
+  // hand-over without a blank frame: the points stay until Spark has sorted and actually draws the splats
+  const useSplats = wantSplats && splats!.drawing;
   cloud!.pointsVisible = !useSplats;
   cloud!.apply({ ...state, cut });
-  splats?.show(useSplats);
+  splats?.show(wantSplats);
   if (grid) grid.visible = !useSplats; // splats write no depth, so the grid would show through the floor
-  if (useSplats) splats!.apply({ ...state, cut });
+  if (wantSplats) splats!.apply({ ...state, cut });
 }
 
 function setRender(meta: SceneMeta, mode: RenderMode): void {
@@ -162,27 +176,47 @@ function setRender(meta: SceneMeta, mode: RenderMode): void {
   btn.textContent = "Splats …";
   let shown = -1;
   let layer: SplatLayer | undefined;
-  splatsLoading = import("./splats")
+  const levels = meta.lods?.length ?? 1;
+  const maxLevel = SPLAT_LOD ?? (LIGHT_DEVICE ? Math.max(0, levels - 2) : levels - 1);
+  // in order: the point levels finish first, then the splat levels stream in coarse to fine
+  splatsLoading = pointsReady
+    .then(() => import("./splats"))
     .then(({ SplatLayer }) => {
       layer = new SplatLayer(meta, buildFromUrl(params));
       scene.add(layer.group);
-      return layer.load(renderer, scene, invalidate, (f) => {
-        const pct = Math.floor(f * 100);
-        if (pct === shown) return;
-        shown = pct;
-        btn.textContent = `Splats ${pct}%`;
-      });
+      return layer.load(
+        renderer,
+        scene,
+        invalidate,
+        (f) => {
+          const pct = Math.floor(f * 100);
+          if (pct === shown) return;
+          shown = pct;
+          btn.textContent = `Splats ${pct}%`;
+          showProgress(f, `splats ${pct}%`);
+        },
+        maxLevel,
+        () => {
+          // a splat level arrived: show splats from the first (coarse) level on
+          if (!splats) {
+            splats = layer;
+            layer!.setXr(!!xr?.presenting);
+          }
+          render(meta);
+        },
+      );
     })
     .then(() => {
       if (!layer) return;
-      splats = layer;
-      layer.setXr(!!xr?.presenting);
       btn.textContent = "Splats";
-      toast(`${fmt(meta.count)} Gaussian splats loaded`, 2500);
+      showProgress(null);
+      toast(`${fmt(layer.count)} Gaussian splats loaded`, 2500);
       render(meta);
     })
     .catch((err: unknown) => {
+      showProgress(null);
       if (layer) scene.remove(layer.group);
+      if (splats === layer) splats = undefined;
       btn.textContent = "Splats";
       renderMode = "points";
       render(meta);
@@ -220,8 +254,11 @@ function render(meta: SceneMeta): void {
     li.classList.toggle("future", seq > state.upto);
   }
   const built = meta.parts.slice(0, state.upto).reduce((a, p) => a + p.count, 0);
+  const loaded = cloud.chunks.reduce((a, c) => a + c.count, 0);
+  const levels = meta.lods?.length ?? 1;
+  const detail = loaded < meta.count ? ` (${fmt(loaded)} loaded, detail ${cloud.chunks.length}/${levels})` : "";
   statsEl.textContent =
-    `${fmt(meta.count)} points · ${fmt(built)} in ${state.upto} accepted parts · ` +
+    `${fmt(meta.count)} points${detail} · ${fmt(built)} in ${state.upto} accepted parts · ` +
     `${fmt(meta.removed_count)} removed by cleaning · ${meta.source.file}`;
   syncUrl(meta);
   invalidate();
@@ -596,9 +633,49 @@ function wireControls(meta: SceneMeta): void {
   });
 }
 
+/** Thin bar along the top while something streams in; null hides it. */
+function showProgress(f: number | null, label = ""): void {
+  progressEl.hidden = f === null;
+  if (f === null) return;
+  progressEl.style.setProperty("--p", String(Math.max(0, Math.min(1, f))));
+  progressEl.title = label;
+}
+
+/** Resolves once every point detail level is in (splats and the VR module wait for it). */
+let pointsDone: () => void = () => {};
+const pointsReady = new Promise<void>((res) => (pointsDone = res));
+
+/**
+ * Loading order: scene.json (the UI), the coarsest detail level (first picture), the finer levels one by one (each is
+ * drawn as soon as it arrives), then splats if they were asked for, then the VR module where VR is supported. Exports
+ * without detail levels load the full scene.bin as one step.
+ */
+async function loadPoints(build: Build, meta: SceneMeta, firstShown: () => void): Promise<void> {
+  const levels = meta.lods ?? [];
+  if (!levels.length) {
+    const buf = await fetchBytes(`${buildBase(build)}/scene.bin`, exportHint(build), (f) => showProgress(f, "points"));
+    cloud!.addChunk(fullChunk(meta, parseScene(buf, meta)));
+    render(meta);
+    firstShown();
+    return;
+  }
+  const total = levels.reduce((a, l) => a + l.count, 0);
+  let before = 0;
+  for (const lod of levels) {
+    const chunk = await loadLevel(build, meta, lod, (f) =>
+      showProgress((before + f * lod.count) / total, `detail ${lod.level + 1}/${levels.length}`),
+    );
+    before += lod.count;
+    cloud!.addChunk(chunk);
+    render(meta);
+    if (lod.level === 0) firstShown();
+  }
+}
+
 async function main(): Promise<void> {
-  const { meta, geometry } = await loadScene(buildFromUrl(params));
-  cloud = new BuildCloud(meta, geometry);
+  const build = buildFromUrl(params);
+  const meta = await loadMeta(build);
+  cloud = new BuildCloud(meta);
   scene.add(cloud.group);
   const room = roomBox(meta);
   grid = new THREE.GridHelper(Math.ceil(room.getSize(new THREE.Vector3()).x + 2), 20, 0x2a3350, 0x1a2036);
@@ -611,7 +688,6 @@ async function main(): Promise<void> {
   wireFilter(meta);
   wireLightbox();
   wirePicking(meta);
-  setupXr(meta);
   // small screens start with the build list folded away so the room is visible
   if (matchMedia("(max-width: 640px), (max-height: 500px)").matches) setPanelOpen(false);
   resize();
@@ -619,24 +695,42 @@ async function main(): Promise<void> {
   if (sel) flyTo(partBox(sel), undefined, 0.45);
   else flyTo(room);
   render(meta);
-  if (renderMode === "splats") setRender(meta, "splats"); // ?render=splats: start the download right away
+  if (renderMode === "splats") setRender(meta, "splats"); // ?render=splats: queued behind the point levels
 
   if (import.meta.env.DEV) {
-    Object.assign(window, { __a2b: { renderer, scene, camera, controls, cloud, meta, xr, splats: () => splats } });
+    Object.assign(window, {
+      __a2b: {
+        renderer, scene, camera, controls, cloud, meta, splats: () => splats,
+        get xr() {
+          return xr;
+        },
+      },
+    });
   }
+  startLoop(meta);
+
+  await loadPoints(build, meta, () => {
+    loadingEl.classList.add("done");
+    setTimeout(() => (loadingEl.hidden = true), 450);
+    if (matchMedia("(pointer: coarse)").matches) toast("drag to orbit · pinch to zoom · tap a part to fly to it");
+  });
+  showProgress(null);
+  pointsDone();
+  render(meta);
+  await setupXr(meta);
+}
+
+function startLoop(meta: SceneMeta): void {
   let wasCut = autoCut(meta);
   let lastT = 0;
   let eyeH = 0;
-  loadingEl.classList.add("done");
-  setTimeout(() => (loadingEl.hidden = true), 450);
-  if (matchMedia("(pointer: coarse)").matches) toast("drag to orbit · pinch to zoom · tap a part to fly to it");
   renderer.setAnimationLoop((t: number) => {
     const dt = lastT ? Math.min((t - lastT) / 1000, 0.1) : 0;
     lastT = t;
     if (xr?.presenting) {
       // the headset needs a frame every refresh: no idle skipping in VR
       xr.update(dt);
-      adaptStride(meta, dt);
+      adaptLevel(meta, dt);
       const h = xr.eyeHeight();
       if (h && h !== eyeH) cloud!.setViewportHeight((eyeH = h));
       renderer.render(scene, camera);
@@ -644,6 +738,7 @@ async function main(): Promise<void> {
     }
     eyeH = 0;
     controls.update();
+    if (renderMode === "splats" && splats?.drawing && cloud!.pointsVisible) render(meta); // splats took over
     const cut = autoCut(meta);
     if (cut !== wasCut) {
       wasCut = cut;
@@ -659,26 +754,51 @@ async function main(): Promise<void> {
 
 /**
  * Keep VR smooth on an untested scan size: when frames run long (under ~55 fps on a 72 Hz headset) for a second and a
- * half, draw fewer points. Only ever thins (no oscillation); every VR session starts again from XR_STRIDE.
+ * half, leave out the finest detail level still drawn. The coarse levels are spatially even (scripts/lod.py), so the
+ * room stays whole, only sparser. Only ever coarsens (no oscillation); every VR session starts again.
  */
-let xrStride = XR_STRIDE;
+let xrLevel = Infinity;
 let slowFor = 0;
 let frameAvg = 0;
-function adaptStride(meta: SceneMeta, dt: number): void {
-  if (!XR_ADAPT || !cloud || dt <= 0) return;
+function xrStartLevel(meta: SceneMeta): number {
+  const levels = meta.lods?.length ?? 1;
+  return XR_LOD ?? Math.max(0, levels - 2);
+}
+function adaptLevel(meta: SceneMeta, dt: number): void {
+  if (XR_LOD !== null || !cloud || dt <= 0) return;
   frameAvg = frameAvg ? frameAvg * 0.9 + dt * 0.1 : dt;
   slowFor = frameAvg > 1 / 55 ? slowFor + dt : 0;
-  if (slowFor > 1.5 && xrStride < XR_MAX_STRIDE) {
-    xrStride++;
-    cloud.setStride(xrStride);
+  if (slowFor > 1.5 && xrLevel > 1) {
+    xrLevel--;
+    cloud.setMaxLevel(xrLevel);
     render(meta);
     slowFor = 0;
     frameAvg = 0;
   }
 }
 
+/** Whether this browser can open an immersive VR session at all (false on http:// over the LAN, see README). */
+async function vrSupported(): Promise<boolean> {
+  try {
+    return (await navigator.xr?.isSessionSupported("immersive-vr")) ?? false;
+  } catch {
+    return false;
+  }
+}
+
 /** WebXR walk-through (Quest 3): the Enter VR button, and what changes while the headset is on. */
-function setupXr(meta: SceneMeta): void {
+async function setupXr(meta: SceneMeta): Promise<void> {
+  if (!(await vrSupported())) {
+    // Quest Browser hides WebXR on plain http:// over the LAN: say why instead of showing nothing
+    if (/OculusBrowser|Quest/i.test(navigator.userAgent) && !window.isSecureContext) {
+      vrBtn.hidden = false;
+      vrBtn.disabled = true;
+      vrLabel.textContent = "VR needs HTTPS";
+      vrBtn.title = "open this page over https:// (make web-vr) or via adb reverse on localhost";
+    }
+    return;
+  }
+  const { XrWalk } = await import("./xr");
   let before: Source | null = null;
   const order: Source[] = ["scan", "model", "overlay"];
   const walk = new XrWalk(
@@ -692,9 +812,9 @@ function setupXr(meta: SceneMeta): void {
         // inside the room the real scan reads best; overlay/wireframe haze is for looking from outside
         before = state.source;
         if (state.source === "overlay" || state.source === "wireframe") state = { ...state, source: "scan" };
-        xrStride = XR_STRIDE;
+        xrLevel = xrStartLevel(meta);
         slowFor = frameAvg = 0;
-        cloud!.setStride(xrStride);
+        cloud!.setMaxLevel(xrLevel);
         cloud!.sizeScale = MPU; // view space is metres in XR, point sizes are in scene units
         splats?.setXr(true);
         render(meta);
@@ -702,7 +822,7 @@ function setupXr(meta: SceneMeta): void {
       },
       onEnd() {
         controls.enabled = true;
-        cloud!.setStride(1);
+        cloud!.setMaxLevel(Infinity);
         cloud!.sizeScale = 1;
         splats?.setXr(false);
         if (before) state = { ...state, source: before };
@@ -728,7 +848,8 @@ function setupXr(meta: SceneMeta): void {
       status() {
         const last = meta.parts[state.upto - 1];
         const sel = meta.parts[state.selected - 1];
-        const density = xrStride > 1 ? ` · 1/${xrStride} pts` : "";
+        const levels = meta.lods?.length ?? 1;
+        const density = levels > 1 ? ` · LOD ${Math.min(xrLevel, levels - 1) + 1}/${levels}` : "";
         const as = renderMode === "splats" && splats?.ready ? " splats" : "";
         return [
           `${SOURCE_LABEL[state.source]}${as} · ${state.upto}/${meta.parts.length} parts${as ? "" : density}`,
@@ -742,19 +863,7 @@ function setupXr(meta: SceneMeta): void {
   vrBtn.addEventListener("click", () => {
     walk.toggle().catch((err: unknown) => toast(`VR: ${err instanceof Error ? err.message : String(err)}`, 6000));
   });
-  vrSupported().then((ok) => {
-    if (ok) {
-      vrBtn.hidden = false;
-      return;
-    }
-    // Quest Browser hides WebXR on plain http:// over the LAN: say why instead of showing nothing
-    if (/OculusBrowser|Quest/i.test(navigator.userAgent) && !window.isSecureContext) {
-      vrBtn.hidden = false;
-      vrBtn.disabled = true;
-      vrLabel.textContent = "VR needs HTTPS";
-      vrBtn.title = "open this page over https:// (make web-vr) or via adb reverse on localhost";
-    }
-  });
+  vrBtn.hidden = false;
 }
 
 main().catch((err: unknown) => {

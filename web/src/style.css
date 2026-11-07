@@ -45,6 +45,14 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);
 }
 
+/* --- streaming progress: a thin line along the top while detail levels (or splats) arrive --- */
+#progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 30; pointer-events: none;
+  background: linear-gradient(90deg, var(--cyan) calc(var(--p, 0) * 100%), transparent 0);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--cyan) 60%, transparent);
+  transition: background 120ms linear;
+}
+
 /* --- top bar --- */
 #hud {
   position: absolute;

@@ -4,7 +4,11 @@
  * Data: data/derived/viewer/scene.{bin,json}, written by scripts/export_viewer_scene.py. The pool (scan points not yet
  * claimed by a part) comes first, then every accepted part as one contiguous range in acceptance order.
  *
- * Rendering: the same geometry is drawn in up to three passes, one per role: pool, built (accepted parts up to `upto`),
+ * Detail levels: scene.json "lods" (scripts/lod.py) splits the same rows into additive levels, coarse to fine. The viewer
+ * streams them in order and adds each as a chunk; the snapshot page loads the full scene.bin as a single chunk. Inside
+ * every chunk the rows are grouped by segment (0 = pool, k = part k), so each role is still one contiguous range.
+ *
+ * Rendering: each chunk is drawn in up to three passes, one per role: pool, built (accepted parts up to `upto`),
  * selected (one part). Each pass has its own opacity and tint, so the Scan / Model / Overlay / Wireframe sources (after
  * the 3D Model Anything viewer, MIT, Wes Bos) and both snapshot styles come from one shader. A part after `upto` counts
  * as pool: scrubbing `upto` replays the build.
@@ -34,6 +38,16 @@ export interface PartMeta {
   /** ISO time of the acceptance step */
   accepted_at?: string;
 }
+/** One detail level (scripts/lod.py): `count` rows, `ranges[s]` = rows of segment s (0 = pool, k = part k). */
+export interface LodMeta {
+  level: number;
+  /** voxel edge it was thinned with (scene units); null for the last level, which holds the rest */
+  voxel: number | null;
+  count: number;
+  bin: string;
+  splat: string;
+  ranges: [number, number][];
+}
 export interface SceneMeta {
   version: number;
   /** "autoscene" for the automatic build; absent for the manual one */
@@ -50,6 +64,18 @@ export interface SceneMeta {
   floor_y: number;
   dollhouse_cut_y: number | null;
   parts: PartMeta[];
+  /** additive detail levels, coarse to fine (absent in exports older than scripts/lod.py) */
+  lods?: LodMeta[];
+}
+
+/** A block of rows the cloud draws: the full scene.bin, or one detail level. */
+export interface Chunk {
+  geometry: THREE.BufferGeometry;
+  count: number;
+  /** [start, end) per segment: 0 = pool, k = part k */
+  ranges: [number, number][];
+  /** detail level (0 = coarsest); the full scene.bin counts as the finest */
+  level: number;
 }
 
 export type Source = "scan" | "model" | "overlay" | "wireframe";
@@ -138,11 +164,11 @@ void main() {
   gl_FragColor = vec4(vColor, uAlpha);
 }`;
 
-export function parseScene(buf: ArrayBuffer, meta: SceneMeta): THREE.BufferGeometry {
-  const n = meta.count;
+/** Geometry from the scene.bin layout (scene.bin itself or one lod/<k>.bin) of `n` rows. */
+export function parseScene(buf: ArrayBuffer, meta: SceneMeta, n = meta.count, what = "scene.bin"): THREE.BufferGeometry {
   const expected = n * (12 + 2 + 3 + 1);
   if (buf.byteLength !== expected) {
-    throw new Error(`scene.bin is ${buf.byteLength} bytes, scene.json says ${n} points (${expected} bytes): re-export`);
+    throw new Error(`${what} is ${buf.byteLength} bytes, scene.json says ${n} points (${expected} bytes): re-export`);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(buf, 0, n * 3), 3));
@@ -153,6 +179,36 @@ export function parseScene(buf: ArrayBuffer, meta: SceneMeta): THREE.BufferGeome
   g.boundingBox = new THREE.Box3(new THREE.Vector3(...b.min), new THREE.Vector3(...b.max));
   g.boundingSphere = g.boundingBox.getBoundingSphere(new THREE.Sphere());
   return g;
+}
+
+/** The full scene.bin as one chunk: pool, then the parts' own ranges. */
+export function fullChunk(meta: SceneMeta, geometry: THREE.BufferGeometry): Chunk {
+  return {
+    geometry,
+    count: meta.count,
+    ranges: [[0, meta.pool_count], ...meta.parts.map((p) => [p.start, p.end] as [number, number])],
+    level: meta.lods?.length ? meta.lods.length - 1 : 0,
+  };
+}
+
+/** GET a binary file, reporting progress 0..1 when the server sends a Content-Length. */
+export async function fetchBytes(url: string, hint: string, onProgress?: (f: number) => void): Promise<ArrayBuffer> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}: ${hint}`);
+  const total = Number(res.headers.get("Content-Length")) || 0;
+  if (!res.body || !total || !onProgress) return res.arrayBuffer();
+  const buf = new Uint8Array(total);
+  let got = 0;
+  const reader = res.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (got + value.length > total) throw new Error(`${url} is larger than its Content-Length`);
+    buf.set(value, got);
+    got += value.length;
+    onProgress(got / total);
+  }
+  return got === total ? buf.buffer : buf.slice(0, got).buffer;
 }
 
 /** Which build to show: the manual step-by-step build (default) or the automatic one (?scene=auto). */
@@ -166,16 +222,29 @@ export function buildBase(build: Build): string {
   return build === "auto" ? "/api/viewer-auto" : "/api/viewer";
 }
 
+export function exportHint(build: Build): string {
+  return `run \`make ${build === "auto" ? "viewer-auto" : "viewer"}\` first`;
+}
+
+/** scene.json only: enough to build the UI before any point arrives. */
+export async function loadMeta(build: Build = "manual"): Promise<SceneMeta> {
+  const url = `${buildBase(build)}/scene.json`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}: ${exportHint(build)}`);
+  return (await res.json()) as SceneMeta;
+}
+
+/** One detail level as a chunk. */
+export async function loadLevel(build: Build, meta: SceneMeta, lod: LodMeta, onProgress?: (f: number) => void): Promise<Chunk> {
+  const buf = await fetchBytes(`${buildBase(build)}/${lod.bin}`, exportHint(build), onProgress);
+  return { geometry: parseScene(buf, meta, lod.count, lod.bin), count: lod.count, ranges: lod.ranges, level: lod.level };
+}
+
+/** scene.json + the full scene.bin in one go (the snapshot page, which must draw every point). */
 export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneMeta; geometry: THREE.BufferGeometry }> {
-  const base = buildBase(build);
-  const script = build === "auto" ? "export_autoscene_viewer.py" : "export_viewer_scene.py";
-  const hint = `run \`uv run python scripts/${script}\` first`;
-  const metaRes = await fetch(`${base}/scene.json`);
-  if (!metaRes.ok) throw new Error(`GET ${base}/scene.json -> ${metaRes.status}: ${hint}`);
-  const meta = (await metaRes.json()) as SceneMeta;
-  const binRes = await fetch(`${base}/scene.bin`);
-  if (!binRes.ok) throw new Error(`GET ${base}/scene.bin -> ${binRes.status}: ${hint}`);
-  return { meta, geometry: parseScene(await binRes.arrayBuffer(), meta) };
+  const meta = await loadMeta(build);
+  const buf = await fetchBytes(`${buildBase(build)}/scene.bin`, exportHint(build));
+  return { meta, geometry: parseScene(buf, meta) };
 }
 
 /**
@@ -186,51 +255,28 @@ export async function loadScene(build: Build = "manual"): Promise<{ meta: SceneM
  */
 export const METRES_PER_UNIT_GUESS = 1.15;
 
-/** The point cloud in three passes plus the part wire boxes, driven by a ViewState. */
+interface Pass {
+  points: THREE.Points;
+  mat: THREE.ShaderMaterial;
+  geo: THREE.BufferGeometry;
+}
+
+/** The point cloud as chunks (full scene or detail levels), each in three role passes, plus the part wire boxes. */
 export class BuildCloud {
   readonly group = new THREE.Group();
-  private passes: { points: THREE.Points; mat: THREE.ShaderMaterial; geo: THREE.BufferGeometry }[] = [];
+  private draws: { chunk: Chunk; passes: Pass[] }[] = [];
   private boxes: THREE.Box3Helper[] = [];
-  private stride = 1;
-  private strideIndex: THREE.BufferAttribute | null = null;
+  private halfH = 400;
+  private last: ViewState | null = null;
   sizeScale = 1;
   /** false while the splat layer draws the scan instead (the part boxes stay) */
   pointsVisible = true;
+  /** draw detail levels 0..maxLevel only (VR leaves out the finest levels when frames run long) */
+  maxLevel = Infinity;
   readonly meta: SceneMeta;
-  readonly geometry: THREE.BufferGeometry;
 
-  constructor(meta: SceneMeta, geometry: THREE.BufferGeometry) {
+  constructor(meta: SceneMeta, first?: Chunk) {
     this.meta = meta;
-    this.geometry = geometry;
-    for (let role = 0; role < 3; role++) {
-      const mat = new THREE.ShaderMaterial({
-        vertexShader,
-        fragmentShader,
-        uniforms: {
-          uRole: { value: role },
-          uUpto: { value: meta.parts.length },
-          uSelected: { value: -1 },
-          uCutY: { value: meta.dollhouse_cut_y ?? meta.room_bounds.max[1] },
-          uCutOn: { value: 0 },
-          uHalfH: { value: 400 },
-          uSizeScale: { value: 1 },
-          uTint: { value: new THREE.Color() },
-          uTintMix: { value: 0 },
-          uAlpha: { value: 1 },
-        },
-      });
-      // One geometry per pass over the same (shared, uploaded once) attributes, so each pass can draw only the range
-      // its role can occur in: the parts block is in acceptance order, so "built" and "selected" are contiguous ranges.
-      const geo = new THREE.BufferGeometry();
-      for (const [name, attr] of Object.entries(geometry.attributes)) geo.setAttribute(name, attr);
-      geo.boundingBox = geometry.boundingBox;
-      geo.boundingSphere = geometry.boundingSphere;
-      const points = new THREE.Points(geo, mat);
-      points.frustumCulled = false;
-      points.renderOrder = role;
-      this.passes.push({ points, mat, geo });
-      this.group.add(points);
-    }
     for (const p of meta.parts) {
       const box = new THREE.Box3(new THREE.Vector3(...p.bbox.min), new THREE.Vector3(...p.bbox.max));
       const helper = new THREE.Box3Helper(box, WIRE);
@@ -238,6 +284,53 @@ export class BuildCloud {
       this.boxes.push(helper);
       this.group.add(helper);
     }
+    if (first) this.addChunk(first);
+  }
+
+  /** Chunks in level order (coarse first). */
+  get chunks(): Chunk[] {
+    return this.draws.map((d) => d.chunk);
+  }
+
+  /** The chunks currently drawn (loaded and within maxLevel). */
+  visibleChunks(): Chunk[] {
+    return this.chunks.filter((c) => c.level <= this.maxLevel);
+  }
+
+  /** Add a chunk (a detail level that just arrived); it takes the current view state at once. */
+  addChunk(chunk: Chunk): void {
+    const passes: Pass[] = [];
+    for (let role = 0; role < 3; role++) {
+      const mat = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        uniforms: {
+          uRole: { value: role },
+          uUpto: { value: this.meta.parts.length },
+          uSelected: { value: -1 },
+          uCutY: { value: this.meta.dollhouse_cut_y ?? this.meta.room_bounds.max[1] },
+          uCutOn: { value: 0 },
+          uHalfH: { value: this.halfH },
+          uSizeScale: { value: 1 },
+          uTint: { value: new THREE.Color() },
+          uTintMix: { value: 0 },
+          uAlpha: { value: 1 },
+        },
+      });
+      // One geometry per pass over the chunk's (shared, uploaded once) attributes, so each pass draws only the range its
+      // role can occur in: inside a chunk the parts are in build order, so "built" and "selected" are contiguous ranges.
+      const geo = new THREE.BufferGeometry();
+      for (const [name, attr] of Object.entries(chunk.geometry.attributes)) geo.setAttribute(name, attr);
+      geo.boundingBox = chunk.geometry.boundingBox;
+      geo.boundingSphere = chunk.geometry.boundingSphere;
+      const points = new THREE.Points(geo, mat);
+      points.frustumCulled = false;
+      passes.push({ points, mat, geo });
+      this.group.add(points);
+    }
+    this.draws.push({ chunk, passes });
+    this.draws.sort((x, y) => x.chunk.level - y.chunk.level);
+    if (this.last) this.apply(this.last);
   }
 
   part(seq: number): PartMeta | undefined {
@@ -250,62 +343,65 @@ export class BuildCloud {
 
   /** drawing-buffer height in pixels; call on every resize */
   setViewportHeight(px: number): void {
-    for (const { mat } of this.passes) mat.uniforms.uHalfH.value = px / 2;
+    this.halfH = px / 2;
+    for (const d of this.draws) for (const { mat } of d.passes) mat.uniforms.uHalfH.value = this.halfH;
+  }
+
+  setMaxLevel(level: number): void {
+    this.maxLevel = level;
+    if (this.last) this.apply(this.last);
   }
 
   /**
-   * Draw every k-th point only (k = 1: all). Used in VR, where the headset renders the cloud twice per frame at 72 Hz.
-   * Point order is pool then parts, so a uniform stride thins every part evenly.
+   * Bigger points while finer levels are missing (still streaming, or left out in VR): every level halves the voxel
+   * size, so each missing level makes the spacing on a surface about twice as wide; grow the points by √2 per level.
    */
-  setStride(k: number): void {
-    k = Math.max(1, Math.floor(k));
-    if (k === this.stride) return;
-    this.stride = k;
-    this.strideIndex = null;
-    if (k > 1) {
-      const n = Math.ceil(this.meta.count / k);
-      const idx = new Uint32Array(n);
-      for (let i = 0; i < n; i++) idx[i] = i * k;
-      this.strideIndex = new THREE.BufferAttribute(idx, 1);
-    }
-    for (const { geo } of this.passes) geo.setIndex(this.strideIndex);
+  private levelBoost(): number {
+    const levels = this.meta.lods?.length ?? 1;
+    const shown = this.visibleChunks();
+    if (!shown.length || levels <= 1) return 1;
+    const finest = Math.max(...shown.map((c) => c.level));
+    return Math.SQRT2 ** Math.max(0, levels - 1 - finest);
   }
 
-  /** [start, end) point range a role can occur in, for the current upto/selection */
-  private rangeFor(role: number, upto: number, selected: number): [number, number] {
-    const parts = this.meta.parts;
-    if (role === 0) return [0, upto >= parts.length ? this.meta.pool_count : this.meta.count];
-    if (role === 1) return upto > 0 ? [parts[0].start, parts[upto - 1].end] : [0, 0];
-    const sel = parts[selected - 1];
-    return sel ? [sel.start, sel.end] : [0, 0];
+  /** [start, end) rows of a chunk a role can occur in, for the current upto/selection */
+  private rangeFor(chunk: Chunk, role: number, upto: number, selected: number): [number, number] {
+    const r = chunk.ranges;
+    const n = this.meta.parts.length;
+    if (role === 0) return [0, upto >= n ? r[0][1] : chunk.count];
+    if (role === 1) return upto > 0 ? [r[1][0], r[upto][1]] : [0, 0];
+    return selected > 0 ? r[selected] : [0, 0];
   }
 
   apply(s: ViewState): void {
+    this.last = s;
     const looks = looksFor(s);
     const upto = Math.max(0, Math.min(s.upto, this.meta.parts.length));
     const selected = s.selected > 0 && s.selected <= upto ? s.selected : -1;
-    const k = this.stride;
-    this.passes.forEach(({ points, mat, geo }, role) => {
-      const look = looks[role];
-      const u = mat.uniforms;
-      u.uUpto.value = upto;
-      u.uSelected.value = selected;
-      u.uCutOn.value = s.cut ? 1 : 0;
-      u.uSizeScale.value = this.sizeScale * (k > 1 ? Math.sqrt(k) * 0.85 : 1); // fill most of the gaps a stride leaves
-      u.uAlpha.value = look.alpha;
-      u.uTintMix.value = look.tint ? 1 : 0;
-      if (look.tint) (u.uTint.value as THREE.Color).copy(look.tint);
-      const opaque = look.alpha >= 0.99;
-      mat.transparent = !opaque;
-      mat.depthWrite = opaque;
-      mat.needsUpdate = true;
-      const [a, b] = this.rangeFor(role, upto, selected);
-      const start = Math.ceil(a / k);
-      geo.setDrawRange(start, Math.max(0, Math.ceil(b / k) - start));
-      points.visible = this.pointsVisible && look.alpha > 0 && b > a;
-      // opaque passes first, then the faint ones, selection last so it reads on top of the haze
-      points.renderOrder = (opaque ? 0 : 10) + role;
-    });
+    const boost = this.levelBoost();
+    for (const { chunk, passes } of this.draws) {
+      const shown = this.pointsVisible && chunk.level <= this.maxLevel;
+      passes.forEach(({ points, mat, geo }, role) => {
+        const look = looks[role];
+        const u = mat.uniforms;
+        u.uUpto.value = upto;
+        u.uSelected.value = selected;
+        u.uCutOn.value = s.cut ? 1 : 0;
+        u.uSizeScale.value = this.sizeScale * boost;
+        u.uAlpha.value = look.alpha;
+        u.uTintMix.value = look.tint ? 1 : 0;
+        if (look.tint) (u.uTint.value as THREE.Color).copy(look.tint);
+        const opaque = look.alpha >= 0.99;
+        mat.transparent = !opaque;
+        mat.depthWrite = opaque;
+        mat.needsUpdate = true;
+        const [a, b] = this.rangeFor(chunk, role, upto, selected);
+        geo.setDrawRange(a, Math.max(0, b - a));
+        points.visible = shown && look.alpha > 0 && b > a;
+        // opaque passes first, then the faint ones, selection last so it reads on top of the haze
+        points.renderOrder = (opaque ? 0 : 10) + role;
+      });
+    }
     const showAll = s.source === "wireframe" || s.boxes;
     this.boxes.forEach((box, i) => {
       const seq = i + 1;

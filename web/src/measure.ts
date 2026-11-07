@@ -20,8 +20,6 @@ export function pickPoint(
   radPerPx: number,
   pxTol = 5,
 ): THREE.Vector3 | null {
-  const pos = cloud.geometry.getAttribute("position").array as Float32Array;
-  const part = cloud.geometry.getAttribute("part").array as Uint16Array;
   const looks = looksFor(state);
   const upto = Math.max(0, Math.min(state.upto, cloud.meta.parts.length));
   const sel = state.selected > 0 && state.selected <= upto ? state.selected : -1;
@@ -31,26 +29,32 @@ export function pickPoint(
   const tol = Math.tan(radPerPx * pxTol);
   const tol2 = tol * tol;
   let bestT = Infinity;
-  let best = -1;
-  const n = cloud.meta.count;
-  for (let i = 0; i < n; i++) {
-    const p = part[i];
-    const role = p === 0 || p > upto ? 0 : p === sel ? 2 : 1;
-    if (looks[role].alpha <= 0) continue;
-    const y = pos[i * 3 + 1];
-    if (role < 2 && y > cutY) continue;
-    const vx = pos[i * 3] - ox;
-    const vy = y - oy;
-    const vz = pos[i * 3 + 2] - oz;
-    const t = vx * dx + vy * dy + vz * dz;
-    if (t <= 0 || t >= bestT) continue;
-    const perp2 = vx * vx + vy * vy + vz * vz - t * t;
-    if (perp2 <= tol2 * t * t) {
-      bestT = t;
-      best = i;
+  let best: THREE.Vector3 | null = null;
+  // every loaded detail level that is drawn: together they are the points on screen
+  for (const chunk of cloud.visibleChunks()) {
+    const pos = chunk.geometry.getAttribute("position").array as Float32Array;
+    const part = chunk.geometry.getAttribute("part").array as Uint16Array;
+    let hit = -1;
+    for (let i = 0; i < chunk.count; i++) {
+      const p = part[i];
+      const role = p === 0 || p > upto ? 0 : p === sel ? 2 : 1;
+      if (looks[role].alpha <= 0) continue;
+      const y = pos[i * 3 + 1];
+      if (role < 2 && y > cutY) continue;
+      const vx = pos[i * 3] - ox;
+      const vy = y - oy;
+      const vz = pos[i * 3 + 2] - oz;
+      const t = vx * dx + vy * dy + vz * dz;
+      if (t <= 0 || t >= bestT) continue;
+      const perp2 = vx * vx + vy * vy + vz * vz - t * t;
+      if (perp2 <= tol2 * t * t) {
+        bestT = t;
+        hit = i;
+      }
     }
+    if (hit >= 0) best = new THREE.Vector3(pos[hit * 3], pos[hit * 3 + 1], pos[hit * 3 + 2]);
   }
-  return best < 0 ? null : new THREE.Vector3(pos[best * 3], pos[best * 3 + 1], pos[best * 3 + 2]);
+  return best;
 }
 
 /** The measured segment: two end dots, a line on top of everything, and a label at the middle. */
